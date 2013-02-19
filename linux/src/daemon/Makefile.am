@@ -1,0 +1,66 @@
+# linux/src/daemon/Makefile.am
+
+# additional include paths necessary to compile the program
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
+###############################################################################
+# THE PROGRAMS TO BUILD
+###############################################################################
+
+# the program to build (the names of the final binaries)
+bin_PROGRAMS =
+
+if OMAP4430
+  bin_PROGRAMS += lad_omap4430
+else
+if OMAPL138
+  bin_PROGRAMS += lad_omapl138
+else
+if TCI6614
+  bin_PROGRAMS += lad_tci6614
+else
+if TCI6638
+  bin_PROGRAMS += lad_tci6638
+else
+  bin_PROGRAMS += lad_omap4430 lad_omapl138 lad_tci6614 lad_tci6638
+endif
+endif
+endif
+endif
+
+common_sources = \
+                lad.c \
+                MessageQ_daemon.c \
+                NameServer_daemon.c \
+                $(top_srcdir)/linux/include/Std.h \
+                $(top_srcdir)/linux/include/_NameServerRemoteRpmsg.h \
+                $(top_srcdir)/linux/include/_MessageQ.h \
+                $(top_srcdir)/linux/include/_NameServer.h \
+                $(top_srcdir)/linux/include/_MultiProc.h \
+                $(top_srcdir)/linux/include/_lad.h \
+                $(top_srcdir)/linux/include/SocketFxns.h \
+                $(top_srcdir)/linux/include/ladclient.h \
+                $(top_srcdir)/linux/include/net/rpmsg.h \
+                $(top_srcdir)/packages/ti/ipc/MessageQ.h \
+                $(top_srcdir)/packages/ti/ipc/NameServer.h \
+                $(top_srcdir)/packages/ti/ipc/MultiProc.h
+
+# list of sources for the 'lad' binary and to add to the source distribution
+lad_omap4430_SOURCES = $(common_sources)
+lad_omapl138_SOURCES = $(common_sources)
+lad_tci6614_SOURCES = $(common_sources)
+lad_tci6638_SOURCES = $(common_sources)
+
+common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la $(top_builddir)/linux/src/utils/libtiipcutils.la
+
+# the additional libraries needed to link program
+lad_omap4430_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la $(AM_LDFLAGS)
+lad_omapl138_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la $(AM_LDFLAGS)
+lad_tci6614_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la $(AM_LDFLAGS)
+lad_tci6638_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la $(AM_LDFLAGS)
+
+###############################################################################

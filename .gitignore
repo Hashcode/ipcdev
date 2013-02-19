@@ -1,0 +1,37 @@
+# BIOS stuff
+package/
+lib/
+bin/
+.libraries*
+.dlls
+.executables
+.interfaces
+.xdcenv.mak
+package.mak
+packages/ti/sdo/*/*.p*
+packages/ti/sdo/ipc/family/doc-files/procNames.html
+packages/ti/sdo/ipc/*.h
+packages/ti/sdo/ipc/*/*.h
+packages/ti/sdo/ipc/*/*/*.h
+packages/ti/sdo/utils/*.h
+packages/ti/ipc/family/omapl138/VirtQueue.h
+packages/ti/ipc/family/tci6614/Interrupt.h
+packages/ti/ipc/family/tci6614/NotifySetup.h
+packages/ti/ipc/family/tci6614/VirtQueue.h
+packages/ti/ipc/family/tci6638/Interrupt.h
+packages/ti/ipc/family/tci6638/NotifyCircSetup.h
+packages/ti/ipc/family/tci6638/VirtQueue.h
+packages/ti/ipc/namesrv/NameServerRemoteRpmsg.h
+packages/ti/ipc/remoteproc/Resource.h
+packages/ti/ipc/transports/TransportVirtio.h
+packages/ti/ipc/transports/TransportVirtioSetup.h
+
+# Linux stuff
+/autom4te.cache
+/config.log
+/config.status
+/libtool
+.deps/
+/Makefile
+/linux/etc/Makefile
+/linux/src/*/Makefile
