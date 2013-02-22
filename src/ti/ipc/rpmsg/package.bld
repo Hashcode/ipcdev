@@ -38,9 +38,10 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 Pkg.attrs.exportSrc = true;
 
-Pkg.otherFiles = ["package.bld", "Rpmsg.h", "virtio_ring.h", "MessageQCopy.h"];
+Pkg.otherFiles = ["package.bld", "Rpmsg.h", "virtio_ring.h", "_MessageQCopy.h",
+                        "MessageQCopy.h", "NameMap.h"];
 
-var SRCS = ["MessageQCopy.c"];
+var SRCS = ["MessageQCopy.c", "NameMap.c"];
 
 /* remove this output directory during a clean */
 Pkg.generatedFiles.$add("lib/");

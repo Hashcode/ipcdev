@@ -60,8 +60,20 @@
 #include <ti/sdo/utils/List.h>
 #include <ti/ipc/MultiProc.h>
 
-#include "MessageQCopy.h"
-#include "VirtQueue.h"
+#include <ti/ipc/rpmsg/MessageQCopy.h>
+
+#include "_VirtQueue.h"
+
+/* TBD: VirtQueue.h needs to somehow get factored out of family directory .*/
+#if defined(OMAPL138)
+#include <ti/ipc/family/omapl138/VirtQueue.h>
+#elif defined(TCI6614)
+#include <ti/ipc/family/tci6614/VirtQueue.h>
+#elif defined(TCI6638)
+#include <ti/ipc/family/tci6638/VirtQueue.h>
+#else
+#error unknown processor!
+#endif
 
 /* =============================================================================
  * Structures & Enums
@@ -79,6 +91,8 @@
 typedef struct MessageQCopy_Object {
     UInt32           queueId;      /* Unique id (procId | queueIndex)       */
     Semaphore_Handle semHandle;    /* I/O Completion                        */
+    MessageQCopy_callback cb;      /* MessageQCopy Callback */
+    UArg             arg;          /* Callback argument */
     List_Handle      queue;        /* Queue of pending messages             */
     Bool             unblocked;    /* Use with signal to unblock _receive() */
 } MessageQCopy_Object;
@@ -134,7 +148,6 @@ static UInt8 recv_buffers[MAXHEAPSIZE];
 
 /* Module ref count: */
 static Int curInit = 0;
-extern Semaphore_Handle MessageQCopy_semHandle;
 
 /*
  *  ======== MessageQCopy_swiFxn ========
@@ -146,7 +159,7 @@ static Void MessageQCopy_swiFxn(UArg arg0, UArg arg1)
     MessageQCopy_Msg  msg;
     UInt16            dstProc = MultiProc_self();
     Bool              usedBufAdded = FALSE;
-    Int               len;
+    int len;
 
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
@@ -158,12 +171,12 @@ static Void MessageQCopy_swiFxn(UArg arg0, UArg arg1)
                    "to: 0x%x, dataLen: %d",
                   (IArg)msg->srcAddr, (IArg)msg->dstAddr, (IArg)msg->dataLen);
 
-        /* Pass to desitination queue (which is on this proc): */
+        /* Pass to destination queue (on this proc), or callback: */
         MessageQCopy_send(dstProc, msg->dstAddr, msg->srcAddr,
                          (Ptr)msg->payload, msg->dataLen);
 
         VirtQueue_addUsedBuf(transport.virtQueue_fromHost, token,
-                                                            RP_MSG_BUF_SIZE);
+                                                            RPMSG_BUF_SIZE);
         usedBufAdded = TRUE;
     }
 
@@ -186,8 +199,8 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
         Swi_post(transport.swiHandle);
     }
     else if (vq == transport.virtQueue_toHost) {
-       /* Note: We post nothing for transport.virtQueue_toHost, as we assume the
-        * host has already made all buffers available for sending.
+       /* Note: We normally post nothing for transport.virtQueue_toHost,
+        * unless we were starved for buffers, and we turned on notifications.
         */
         Semaphore_post(transport.semHandle_toHost);
         Log_print0(Diags_INFO, FXNN": virtQueue_toHost kicked");
@@ -212,8 +225,9 @@ Void MessageQCopy_init(UInt16 remoteProcId)
     HeapBuf_Params prms;
     int     i;
     Registry_Result result;
+    Bool    isHost;
+    VirtQueue_Params vqParams;
 
-    Semaphore_pend(MessageQCopy_semHandle, BIOS_WAIT_FOREVER);
     if (curInit++) {
         Log_print1(Diags_ENTRY, "--> "FXNN": (remoteProcId=%d)",
                     (IArg)remoteProcId);
@@ -249,31 +263,37 @@ Void MessageQCopy_init(UInt16 remoteProcId)
     }
     transport.semHandle_toHost = Semaphore_create(0, NULL, NULL);
 
+    isHost = (MultiProc_self() == MultiProc_getId("HOST"));
+
     /* Initialize Transport related objects: */
 
-    /*
-     * Plug Vring Interrupts, and create a pair VirtQueues (one for sending,
-     * one for receiving).
-     */
-    VirtQueue_startup();
+    VirtQueue_Params_init(&vqParams);
+    if (isHost)  {
+      /* We don't handle this case currently! Host would need to prime vq. */
+      Assert_isTrue(FALSE, NULL);
+    }
+    else {
+      vqParams.callback = (Fxn) callback_availBufReady;
+    }
 
     /*
-     * Note: order of these calls determines the virtqueue indices identifying
-     * the vrings toHost and fromHost:  toHost is first!
+     * Create a pair VirtQueues (one for sending, one for receiving).
+     * Note: First one gets an even, second gets odd vq ID.
      */
-    transport.virtQueue_toHost   = VirtQueue_create(callback_availBufReady,
-                                                    remoteProcId,
-                                                    ID_SELF_TO_A9);
-    transport.virtQueue_fromHost = VirtQueue_create(callback_availBufReady,
-                                                    remoteProcId,
-                                                    ID_A9_TO_SELF);
+    vqParams.vqId = ID_SELF_TO_A9;
+    transport.virtQueue_toHost   = (Ptr)VirtQueue_create(remoteProcId,
+                                                    &vqParams, NULL);
+    vqParams.vqId = ID_A9_TO_SELF;
+    transport.virtQueue_fromHost = (Ptr)VirtQueue_create(remoteProcId,
+                                                    &vqParams, NULL);
+
+    /* Plug Vring Interrupts, and wait for host ready to recv kick: */
+    VirtQueue_startup(remoteProcId, isHost);
 
     /* construct the Swi to process incoming messages: */
     transport.swiHandle = Swi_create(MessageQCopy_swiFxn, NULL, NULL);
 
 exit:
-    Semaphore_post(MessageQCopy_semHandle);
-
     Log_print0(Diags_EXIT, "<-- "FXNN);
 }
 #undef FXNN
@@ -286,7 +306,6 @@ Void MessageQCopy_finalize()
 {
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
-    Semaphore_pend(MessageQCopy_semHandle, BIOS_WAIT_FOREVER);
     if (!curInit || --curInit) {
          goto exit; /* module still in use, or uninitialized */
     }
@@ -299,8 +318,6 @@ Void MessageQCopy_finalize()
     GateSwi_delete(&module.gateSwi);
 
 exit:
-    Semaphore_post(MessageQCopy_semHandle);
-
     Log_print0(Diags_EXIT, "<-- "FXNN);
 }
 #undef FXNN
@@ -309,7 +326,10 @@ exit:
  *  ======== MessageQCopy_create ========
  */
 #define FXNN "MessageQCopy_create"
-MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint)
+MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
+                                        MessageQCopy_callback cb,
+                                        UArg arg,
+                                        UInt32 * endpoint)
 {
     MessageQCopy_Object    *obj = NULL;
     Bool                   found = FALSE;
@@ -317,8 +337,9 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint)
     UInt16                 queueIndex = 0;
     IArg key;
 
-    Log_print2(Diags_ENTRY, "--> "FXNN": (reserved=%d, endpoint=0x%x)",
-                (IArg)reserved, (IArg)endpoint);
+    Log_print4(Diags_ENTRY, "--> "FXNN": "
+                "(reserved=%d, cb=0x%x, arg=0x%x, endpoint=0x%x)",
+                (IArg)reserved, (IArg)cb, (IArg)arg, (IArg)endpoint);
 
     Assert_isTrue((curInit > 0) , NULL);
 
@@ -344,11 +365,20 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint)
     if (found)  {
        obj = Memory_alloc(NULL, sizeof(MessageQCopy_Object), 0, NULL);
        if (obj != NULL) {
-           /* Allocate a semaphore to signal when messages received: */
-           obj->semHandle = Semaphore_create(0, NULL, NULL);
+           if (cb) {
+               /* Store callback and it's arg instead of semaphore: */
+               obj->cb = cb;
+               obj->arg= arg;
+           }
+           else {
+               obj->cb = NULL;
 
-           /* Create our queue of to be received messages: */
-           obj->queue = List_create(NULL, NULL);
+               /* Allocate a semaphore to signal when messages received: */
+               obj->semHandle = Semaphore_create(0, NULL, NULL);
+
+               /* Create our queue of to be received messages: */
+               obj->queue = List_create(NULL, NULL);
+           }
 
            /* Store our endpoint, and object: */
            obj->queueId = queueIndex;
@@ -387,14 +417,20 @@ Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
 
     if (handlePtr && (obj = (MessageQCopy_Object *)(*handlePtr)))  {
 
-       Semaphore_delete(&(obj->semHandle));
-
-       /* Free/discard all queued message buffers: */
-       while ((payload = (Queue_elem *)List_get(obj->queue)) != NULL) {
-           HeapBuf_free(module.heap, (Ptr)payload, MSGBUFFERSIZE);
+       if (obj->cb) {
+           obj->cb = NULL;
+           obj->arg= NULL;
        }
+       else {
+           Semaphore_delete(&(obj->semHandle));
 
-       List_delete(&(obj->queue));
+           /* Free/discard all queued message buffers: */
+           while ((payload = (Queue_elem *)List_get(obj->queue)) != NULL) {
+               HeapBuf_free(module.heap, (Ptr)payload, MSGBUFFERSIZE);
+           }
+
+           List_delete(&(obj->queue));
+       }
 
        /* Null out our slot: */
        key = GateSwi_enter(module.gateSwi);
@@ -432,6 +468,8 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
                (IArg)len, (IArg)rplyEndpt, (IArg)timeout);
 
     Assert_isTrue((curInit > 0) , NULL);
+    /* A callback was set: client should not be calling this fxn! */
+    Assert_isTrue((!obj->cb), NULL);
 
     /* Check vring for pending messages before we block: */
     Swi_post(transport.swiHandle);
@@ -486,7 +524,7 @@ Int MessageQCopy_send(UInt16 dstProc,
     Queue_elem        *payload;
     UInt              size;
     IArg              key;
-    Int               length;
+    int length;
 
     Log_print5(Diags_ENTRY, "--> "FXNN": (dstProc=%d, dstEndpt=%d, "
                "srcEndpt=%d, data=0x%x, len=%d", (IArg)dstProc, (IArg)dstEndpt,
@@ -513,7 +551,7 @@ Int MessageQCopy_send(UInt16 dstProc,
             msg->reserved = 0;
 
             VirtQueue_addUsedBuf(transport.virtQueue_toHost, token,
-                                                            RP_MSG_BUF_SIZE);
+                                                            RPMSG_BUF_SIZE);
             VirtQueue_kick(transport.virtQueue_toHost);
         }
         else {
@@ -537,6 +575,14 @@ Int MessageQCopy_send(UInt16 dstProc,
             return status;
         }
 
+        /* If callback registered, call it: */
+        if (obj->cb) {
+            Log_print2(Diags_INFO, FXNN": calling callback with data len: "
+                            "%d, from: %d\n", len, srcEndpt);
+            obj->cb(obj, obj->arg, data, len, srcEndpt);
+        }
+        else {
+            /* else, put on a Message queue on this processor: */
         /* Allocate a buffer to copy the payload: */
         size = len + sizeof(Queue_elem);
 
@@ -557,6 +603,7 @@ Int MessageQCopy_send(UInt16 dstProc,
         else {
             status = MessageQCopy_E_MEMORY;
             Log_print0(Diags_STATUS, FXNN": HeapBuf_alloc failed!");
+            }
         }
     }
 
@@ -575,6 +622,7 @@ Void MessageQCopy_unblock(MessageQCopy_Handle handle)
 
     Log_print1(Diags_ENTRY, "--> "FXNN": (handle=0x%x)", (IArg)handle);
 
+    Assert_isTrue((!obj->cb), NULL);
     /* Set instance to 'unblocked' state, and post */
     obj->unblocked = TRUE;
     Semaphore_post(obj->semHandle);

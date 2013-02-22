@@ -121,7 +121,7 @@ extern "C" {
 
 /*!
  *  @def    MessageQ_E_UNBLOCKED
- *  @brief  MessageQ was unblocked
+ *  @brief  MessageQCopy was unblocked
  */
 #define MessageQCopy_E_UNBLOCKED            -19
 
@@ -141,6 +141,10 @@ extern "C" {
  */
 typedef struct MessageQCopy_Object *MessageQCopy_Handle;
 
+
+typedef Void (*MessageQCopy_callback)(MessageQCopy_Handle, UArg, Ptr,
+                                      UInt16, UInt32);
+
 /* =============================================================================
  *  MessageQCopy Functions:
  * =============================================================================
@@ -148,41 +152,30 @@ typedef struct MessageQCopy_Object *MessageQCopy_Handle;
 
 
 /*!
- *  @brief      Initialize MessageQCopy Module
+ *  @brief      Create a MessageQCopy instance for receiving, with callback.
  *
- *  Note: Multiple clients must serialize calls to this function.
- *
- *  @param[in]  remoteProcId      MultiProc ID of the peer.
- */
-Void MessageQCopy_init(UInt16 remoteProcId);
-
-/*!
- *  @brief      Tear down MessageQCopy Module
- *
- */
-Void MessageQCopy_finalize();
-
-
-/*!
- *  @brief      Create a MessageQ instance for receiving.
- *
- *  The returned handle is to an object containing a queue for receiving
- *  messages from the transport, and a 32 bit endpoint ID unique to this local
- *  processor.
+ *  This is an extension of MessageQCopy_create(), with the option of passing
+ *  a callback function and its argument to be called when a message is
+ *  received.
  *
  *  @param[in]   reserved     If value is MessageQCopy_ASSIGN_ANY, then
  *                            any Endpoint can be assigned; otherwise, value is
  *                            a reserved Endpoint ID, which must be less than
  *                            or equal to MessageQCopy_MAX_RESERVED_ENDPOINT.
+ *  @param[in]   callback     If non-NULL, on received data, this callback is
+ *                            called instead of posting the internal semaphore.
+ *  @param[in]   arg          Argument for the callback.
  *  @param[out]  endpoint     Endpoint ID for this side of the connection.
  *
  *
- *  @return     MessageQ Handle, or NULL if:
+ *  @return     MessageQCopy Handle, or NULL if:
  *                            - reserved endpoint already taken;
  *                            - could not allocate object
  */
-MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint);
-
+MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
+                                        MessageQCopy_callback callback,
+                                        UArg arg,
+                                        UInt32 * endpoint);
 /*!
  *  @brief      Receives a message from a message queue
  *
@@ -200,14 +193,14 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint);
  *  data is copied into the data pointer, and a #MessageQCopy_S_SUCCESS
  *  status is returned.
  *
- *  @param[in]  handle      MessageQ handle
+ *  @param[in]  handle      MessageQCopy handle
  *  @param[out] data        Pointer to the client's data buffer.
  *  @param[out] len         Amount of data received.
  *  @param[out] rplyEndpt   Endpoint of source (for replies).
  *  @param[in]  timeout     Maximum duration to wait for a message in
  *                          microseconds.
  *
- *  @return     MessageQ status:
+ *  @return     MessageQCopy status:
  *              - #MessageQCopy_S_SUCCESS: Message successfully returned
  *              - #MessageQCopy_E_TIMEOUT: MessageQCopy_recv timed out
  *              - #MessageQCopy_E_UNBLOCKED: MessageQ_get was unblocked
@@ -243,7 +236,7 @@ Int MessageQCopy_send(UInt16 dstProc,
                       UInt16 len);
 
 /*!
- *  @brief      Delete a created MessageQ instance.
+ *  @brief      Delete a created MessageQCopy instance.
  *
  *  This function deletes a created message queue instance. If the
  *  message queue is non-empty, any messages remaining in the queue
@@ -251,7 +244,7 @@ Int MessageQCopy_send(UInt16 dstProc,
  *
  *  @param[in,out]  handlePtr   Pointer to handle to delete.
  *
- *  @return     MessageQ status:
+ *  @return     MessageQCopy status:
  *              - #MessageQCopy_E_FAIL: delete failed
  *              - #MessageQCopy_S_SUCCESS: delete successful, *handlePtr = NULL.
  */

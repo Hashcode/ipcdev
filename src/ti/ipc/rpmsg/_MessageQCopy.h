@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,36 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /** ============================================================================
- *  @file       Rpmsg.h
+ *  @file       _MessageQCopy.h
  *
- *  @brief      Rpmsg and related structures.
+ *  @brief      Private header for MessageQCopy_init()/finalize().
  *
+ *  ============================================================================
  */
 
-
-#ifndef ti_ipc_Rpmsg__include
-#define ti_ipc_Rpmsg__include
+#ifndef ti_ipc__MessageQCopy__include
+#define ti_ipc__MessageQCopy__include
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
+/*!
+ *  @brief      Initialize MessageQCopy Module
+ *
+ *  Note: Multiple clients must serialize calls to this function.
+ *
+ *  @param[in]  remoteProcId      MultiProc ID of the peer.
+ */
+Void MessageQCopy_init(UInt16 remoteProcId);
 
-enum Rpmsg_nsFlags {
-    RPMSG_NS_CREATE = 0,
-    RPMSG_NS_DESTROY = 1
-};
-
-#define RPMSG_NAME_SIZE 32
-
-
-typedef struct Rpmsg_NsMsg {
-    char name[RPMSG_NAME_SIZE]; /* name of service including 0 */
-    UInt32 addr;                /* address of the service */
-    UInt32 flags;               /* see below */
-} Rpmsg_NsMsg;
-
-
-#define RPMSG_NAMESERVICE_PORT   53
-
-/* Message Header: Must match rp_msg_hdr in virtio_rp_msg.h on Linux side. */
-typedef struct Rpmsg_Header {
-    Bits32 srcAddr;                 /* source endpoint addr               */
-    Bits32 dstAddr;                 /* destination endpoint addr          */
-    Bits32 reserved;                /* reserved                           */
-    Bits16 dataLen;                 /* data length                        */
-    Bits16 flags;                   /* bitmask of different flags         */
-    UInt8  payload[];               /* Data payload                       */
-} Rpmsg_Header;
-
-typedef Rpmsg_Header *Rpmsg_Msg;
-
+/*!
+ *  @brief      Tear down MessageQCopy Module
+ *
+ */
+Void MessageQCopy_finalize();
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* ti_ipc_Rpmsg__include */
+#endif /* ti_ipc__MessageQCopy__include */
