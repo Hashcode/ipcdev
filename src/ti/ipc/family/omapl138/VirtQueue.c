@@ -76,55 +76,19 @@
 
 #include <string.h>
 
+#include <ti/ipc/rpmsg/_VirtQueue.h>
 #include <ti/ipc/rpmsg/virtio_ring.h>
 
 /* Used for defining the size of the virtqueue registry */
-#define NUM_QUEUES                      5
+#define NUM_QUEUES                      2
 
 /* Predefined device addresses */
 #define IPU_MEM_VRING0          0xc3000000
 #define IPU_MEM_VRING1          0xc3004000
 
-#define CONSOLE_VRING0_PA       0xc3008000
-#define CONSOLE_VRING1_PA       0xc300c000
-
-/*
- * enum - Predefined Mailbox Messages
- *
- * @RP_MSG_MBOX_READY: informs the M3's that we're up and running. will be
- * followed by another mailbox message that carries the A9's virtual address
- * of the shared buffer. This would allow the A9's drivers to send virtual
- * addresses of the buffers.
- *
- * @RP_MSG_MBOX_STATE_CHANGE: informs the receiver that there is an inbound
- * message waiting in its own receive-side vring. please note that currently
- * this message is optional: alternatively, one can explicitly send the index
- * of the triggered virtqueue itself. the preferred approach will be decided
- * as we progress and experiment with those design ideas.
- *
- * @RP_MSG_MBOX_CRASH: this message indicates that the BIOS side is unhappy
- *
- * @RP_MBOX_ECHO_REQUEST: this message requests the remote processor to reply
- * with RP_MBOX_ECHO_REPLY
- *
- * @RP_MBOX_ECHO_REPLY: this is a reply that is sent when RP_MBOX_ECHO_REQUEST
- * is received.
- *
- * @RP_MBOX_ABORT_REQUEST:  tells the M3 to crash on demand
- */
-enum {
-    RP_MSG_MBOX_READY           = (Int)0xFFFFFF00,
-    RP_MSG_MBOX_STATE_CHANGE    = (Int)0xFFFFFF01,
-    RP_MSG_MBOX_CRASH           = (Int)0xFFFFFF02,
-    RP_MBOX_ECHO_REQUEST        = (Int)0xFFFFFF03,
-    RP_MBOX_ECHO_REPLY          = (Int)0xFFFFFF04,
-    RP_MBOX_ABORT_REQUEST       = (Int)0xFFFFFF05,
-    RP_MSG_FLUSH_CACHE          = (Int)0xFFFFFF06,
-    RP_MSG_HIBERNATION          = (Int)0xFFFFFF07
-};
 
 #define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
-#define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * VirtQueue_RP_MSG_BUF_SIZE * 2)
+#define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * RPMSG_BUF_SIZE * 2)
 
 /* With 256 buffers, our vring will occupy 3 pages */
 #define RP_MSG_RING_SIZE    ((DIV_ROUND_UP(vring_size(VirtQueue_RP_MSG_NUM_BUFS, \
@@ -157,6 +121,48 @@ static inline UInt mapVAtoPA(Void * va)
 }
 
 /*
+ * ======== VirtQueue_Instance_init ========
+ */
+Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
+                             const VirtQueue_Params *params)
+{
+    void *vringAddr = NULL;
+    Error_Block eb;
+
+    VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
+
+    Error_init(&eb);
+
+    vq->vringPtr = Memory_calloc(NULL, sizeof(struct vring), 0, &eb);
+    Assert_isTrue((vq->vringPtr != NULL), NULL);
+
+    vq->callback = params->callback;
+    vq->id = params->vqId;
+    vq->procId = remoteProcId;
+    vq->last_avail_idx = 0;
+    vq->last_used_idx = 0;
+    vq->num_free = VirtQueue_RP_MSG_NUM_BUFS;
+
+    switch (vq->id) {
+    /* sysm3 rpmsg vrings */
+        case ID_DSP_TO_A9:
+            vringAddr = (struct vring *) IPU_MEM_VRING0;
+            break;
+        case ID_A9_TO_DSP:
+            vringAddr = (struct vring *) IPU_MEM_VRING1;
+            break;
+    }
+
+    Log_print3(Diags_USER1,
+            "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vringAddr,
+            RP_MSG_RING_SIZE);
+
+    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vringAddr, VirtQueue_RP_MSG_VRING_ALIGN);
+
+    queueRegistry[vq->id] = vq;
+}
+
+/*
  * ======== VirtQueue_kick ========
  */
 Void VirtQueue_kick(VirtQueue_Handle vq)
@@ -182,7 +188,7 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
 /*
  * ======== VirtQueue_addUsedBuf ========
  */
-Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head)
+Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
 {
     struct vring_used_elem *used;
     struct vring *vring = vq->vringPtr;
@@ -197,7 +203,7 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head)
     */
     used = &vring->used->ring[vring->used->idx % vring->num];
     used->id = head;
-    used->len = VirtQueue_RP_MSG_BUF_SIZE;
+    used->len = len;
 
     vring->used->idx++;
 
@@ -222,7 +228,7 @@ Int VirtQueue_addAvailBuf(VirtQueue_Object *vq, Void *buf)
     avail =  vring->avail->idx++ % vring->num;
 
     vring->desc[avail].addr = mapVAtoPA(buf);
-    vring->desc[avail].len = VirtQueue_RP_MSG_BUF_SIZE;
+    vring->desc[avail].len = RPMSG_BUF_SIZE;
 
     return (vq->num_free);
 }
@@ -253,7 +259,7 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
 /*
  * ======== VirtQueue_getAvailBuf ========
  */
-Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
+Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
 {
     UInt16 head;
     struct vring *vring = vq->vringPtr;
@@ -267,9 +273,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
     if (vq->last_avail_idx == vring->avail->idx) {
         /* We need to know about added buffers */
         vring->used->flags &= ~VRING_USED_F_NO_NOTIFY;
-        /* check again after setting flag */
-        if (vq->last_avail_idx == vring->avail->idx)
-            return -1;
+        return (-1);
     }
 
     /* No need to be kicked about added buffers anymore */
@@ -282,13 +286,14 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
     head = vring->avail->ring[vq->last_avail_idx++ % vring->num];
 
     *buf = mapPAtoVA(vring->desc[head].addr);
+    *len = vring->desc[head].len;
 
     return (head);
 }
 
 /*
  * ======== VirtQueue_isr ========
- * Note 'arg' is ignored: it is the Hwi argument, not the mailbox argument.
+ * Note 'msg' is ignored: it is only used where there is a mailbox payload.
  */
 Void VirtQueue_isr(UArg msg)
 {
@@ -300,7 +305,6 @@ Void VirtQueue_isr(UArg msg)
     intInfo.localIntId = DSPEVENTID;
     intInfo.remoteIntId = DSP2ARM_CHIPINT0;
 
-    Assert_isTrue((InterruptDsp_isIntSet(msg, &intInfo) == TRUE), NULL);
     InterruptDsp_intClear(msg, &intInfo);
 
     vq = queueRegistry[0];
@@ -313,57 +317,6 @@ Void VirtQueue_isr(UArg msg)
     }
 }
 
-
-/*
- * ======== VirtQueue_create ========
- */
-Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
-                             const VirtQueue_Params *params)
-{
-    void *vring_phys = NULL;
-    Error_Block eb;
-
-    VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
-
-    Error_init(&eb);
-
-    vq->vringPtr = Memory_calloc(NULL, sizeof(struct vring), 0, &eb);
-    Assert_isTrue((vq->vringPtr != NULL), NULL);
-
-    vq->callback = params->callback;
-    vq->id = VirtQueue_module->numQueues++;
-    vq->procId = remoteProcId;
-    vq->last_avail_idx = 0;
-    vq->last_used_idx = 0;
-    vq->num_free = VirtQueue_RP_MSG_NUM_BUFS;
-    vq->swiHandle = params->swiHandle;
-
-    switch (vq->id) {
-    /* sysm3 rpmsg vrings */
-        case ID_DSP_TO_A9:
-            vring_phys = (struct vring *) IPU_MEM_VRING0;
-            break;
-        case ID_A9_TO_DSP:
-            vring_phys = (struct vring *) IPU_MEM_VRING1;
-            break;
-
-    /* sysm3 console vrings */
-        case CONSOLE_DSP_TO_A9:
-            vring_phys = (struct vring *) CONSOLE_VRING0_PA;
-            break;
-        case CONSOLE_A9_TO_DSP:
-            vring_phys = (struct vring *) CONSOLE_VRING1_PA;
-            break;
-    }
-
-    Log_print3(Diags_USER1,
-            "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vring_phys,
-            RP_MSG_RING_SIZE);
-
-    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vring_phys, VirtQueue_RP_MSG_VRING_ALIGN);
-
-    queueRegistry[vq->id] = vq;
-}
 
 /*
  * ======== VirtQueue_startup ========
@@ -384,13 +337,7 @@ Void VirtQueue_startup(UInt16 remoteProcId, Bool isHost)
     while (InterruptDsp_isIntSet(remoteProcId, &intInfo) == FALSE);
     InterruptDsp_intClear(remoteProcId, &intInfo);
 
-    /*
-     *  DSP can be used to prototype communications with CORE0 instead of
-     *  HOST
-     */
-    if (MultiProc_self() == VirtQueue_dspProcId) {
-        InterruptDsp_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
-    }
+    InterruptDsp_intRegister(remoteProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
     Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
 }
 
@@ -409,25 +356,6 @@ UInt16 VirtQueue_getId(VirtQueue_Handle vq)
 {
   return (vq->id);
 }
-
-Swi_Handle VirtQueue_getSwiHandle(VirtQueue_Handle vq)
-{
-  return (vq->swiHandle);
-}
-
-/*
- * ======== postCrashToMailbox ========
- */
-Void postCrashToMailbox(Error_Block * eb)
-{
-    IInterrupt_IntInfo intInfo;
-
-    intInfo.remoteIntId = DSP2ARM_CHIPINT0;
-
-    Error_print(eb);
-    InterruptDsp_intSend(0, &intInfo, (UInt)RP_MSG_MBOX_CRASH);
-}
-
 
 #define CACHE_WB_TICK_PERIOD    5
 
@@ -453,4 +381,5 @@ Void VirtQueue_cacheWb()
     Assert_isTrue((VirtQueue_module->traceBufPtr != NULL), NULL);
     Cache_wb(VirtQueue_module->traceBufPtr, SysMin_bufSize, Cache_Type_ALL,
              FALSE);
+
 }

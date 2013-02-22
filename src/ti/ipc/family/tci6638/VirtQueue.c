@@ -76,13 +76,14 @@
 
 #include <string.h>
 
+#include <ti/ipc/rpmsg/_VirtQueue.h>
 #include <ti/ipc/rpmsg/virtio_ring.h>
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES                      2
 
 #define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
-#define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * VirtQueue_RP_MSG_BUF_SIZE * 2)
+#define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * RPMSG_BUF_SIZE * 2)
 
 /* With 256 buffers, our vring will occupy 3 pages */
 #define RP_MSG_RING_SIZE    ((DIV_ROUND_UP(vring_size(VirtQueue_RP_MSG_NUM_BUFS, \
@@ -138,7 +139,7 @@ Void VirtQueue_init()
 Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
                              const VirtQueue_Params *params)
 {
-    void *vring_phys = NULL;
+    void *vringAddr = NULL;
     Error_Block eb;
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
@@ -149,7 +150,7 @@ Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
     Assert_isTrue((vq->vringPtr != NULL), NULL);
 
     vq->callback = params->callback;
-    vq->id = VirtQueue_module->numQueues++;
+    vq->id = params->vqId;
     vq->procId = remoteProcId;
     vq->last_avail_idx = 0;
     vq->last_used_idx = 0;
@@ -158,20 +159,20 @@ Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 
     switch (vq->id) {
         case ID_DSP_TO_A9:
-            vring_phys = (struct vring *) (VirtQueue_CORE0_MEM_VRING0 +
+            vringAddr = (struct vring *) (VirtQueue_CORE0_MEM_VRING0 +
                 (DNUM * VirtQueue_VRING_OFFSET));
             break;
         case ID_A9_TO_DSP:
-            vring_phys = (struct vring *) (VirtQueue_CORE0_MEM_VRING1 +
+            vringAddr = (struct vring *) (VirtQueue_CORE0_MEM_VRING1 +
                 (DNUM * VirtQueue_VRING_OFFSET));
             break;
     }
 
     Log_print3(Diags_USER1,
-            "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vring_phys,
+            "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vringAddr,
             RP_MSG_RING_SIZE);
 
-    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vring_phys, VirtQueue_RP_MSG_VRING_ALIGN);
+    vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vringAddr, VirtQueue_RP_MSG_VRING_ALIGN);
 
     queueRegistry[vq->id] = vq;
 }
@@ -181,8 +182,8 @@ Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
  */
 Void VirtQueue_kick(VirtQueue_Handle vq)
 {
-    IInterrupt_IntInfo intInfo;
     struct vring *vring = vq->vringPtr;
+    IInterrupt_IntInfo intInfo;
 
     /* For now, simply interrupt remote processor */
     if (vring->avail->flags & VRING_AVAIL_F_NO_INTERRUPT) {
@@ -202,7 +203,7 @@ Void VirtQueue_kick(VirtQueue_Handle vq)
 /*
  * ======== VirtQueue_addUsedBuf ========
  */
-Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head)
+Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
 {
     struct vring_used_elem *used;
     struct vring *vring = vq->vringPtr;
@@ -217,7 +218,7 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head)
     */
     used = &vring->used->ring[vring->used->idx % vring->num];
     used->id = head;
-    used->len = VirtQueue_RP_MSG_BUF_SIZE;
+    used->len = len;
 
     vring->used->idx++;
 
@@ -242,7 +243,7 @@ Int VirtQueue_addAvailBuf(VirtQueue_Object *vq, Void *buf)
     avail =  vring->avail->idx++ % vring->num;
 
     vring->desc[avail].addr = mapVAtoPA(buf);
-    vring->desc[avail].len = VirtQueue_RP_MSG_BUF_SIZE;
+    vring->desc[avail].len = RPMSG_BUF_SIZE;
 
     return (vq->num_free);
 }
@@ -273,7 +274,7 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
 /*
  * ======== VirtQueue_getAvailBuf ========
  */
-Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
+Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
 {
     UInt16 head;
     struct vring *vring = vq->vringPtr;
@@ -287,9 +288,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
     if (vq->last_avail_idx == vring->avail->idx) {
         /* We need to know about added buffers */
         vring->used->flags &= ~VRING_USED_F_NO_NOTIFY;
-        /* check again after setting flag */
-        if (vq->last_avail_idx == vring->avail->idx)
-            return -1;
+        return (-1);
     }
 
     /* No need to be kicked about added buffers anymore */
@@ -302,6 +301,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf)
     head = vring->avail->ring[vq->last_avail_idx++ % vring->num];
 
     *buf = mapPAtoVA(vring->desc[head].addr);
+    *len = vring->desc[head].len;
 
     return (head);
 }

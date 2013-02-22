@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ function module$use()
     xdc.useModule("ti.ipc.remoteproc.Resource");
 
     this.hostProcId = MultiProc.getIdMeta("HOST");
-    this.dspProcId = MultiProc.getIdMeta("DSP");
 }
 
 /*
@@ -54,7 +53,6 @@ function module$use()
 function module$static$init(mod, params)
 {
   /* Init VirtQueue params */
-  mod.numQueues = 0;
   mod.hostSlaveSynced = 0;
   mod.virtQueueInitialized = 0;
   mod.queueRegistry = null;

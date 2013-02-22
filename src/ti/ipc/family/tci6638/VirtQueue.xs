@@ -34,12 +34,11 @@
  */
 
 
- /*
+/*
  *  ======== module$use ========
  */
 function module$use()
 {
-
     VirtQueue = this;
     var MultiProc   = xdc.useModule("ti.sdo.utils.MultiProc");
 
@@ -51,6 +50,8 @@ function module$use()
         var Startup = xdc.useModule('xdc.runtime.Startup');
         Startup.firstFxns.$add(VirtQueue.init);
     }
+
+    this.hostProcId = MultiProc.getIdMeta("HOST");
 }
 
 /*
@@ -59,7 +60,6 @@ function module$use()
 function module$static$init(mod, params)
 {
   /* Init VirtQueue params */
-  mod.numQueues = 0;
   mod.hostSlaveSynced = 0;
   mod.virtQueueInitialized = 0;
   mod.queueRegistry = null;
