@@ -45,4 +45,4 @@ packages/ti/ipc/transports/TransportVirtioSetup.h
 /linux/src/tests/MessageQMulti_*
 /linux/src/tests/NameServerApp_*
 /linux/src/tests/nano_test_*
-/linux/src/tests/ping_rpmsg_*
+/linux/src/tests/ping_rpmsg
