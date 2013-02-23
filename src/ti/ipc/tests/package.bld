@@ -97,9 +97,6 @@ for (var i = 0; i < Build.targets.length; i++) {
             cfgScript: "ping_rpmsg"
         }).addObjects(["ping_rpmsg.c"]);
 
-        /* TEMP: Just build ping_rpmsg for now: */
-        continue;
-
         /* Only build this for our multicore platforms: */
         if (platform.match(/^ti\.platforms\.simKepler/) ||
             platform.match(/^ti\.platforms\.evm6614\:DSP/)) {

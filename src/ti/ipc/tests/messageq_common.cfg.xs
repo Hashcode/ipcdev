@@ -81,6 +81,30 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Clock.timerId = 1;
 
     SysMin.bufSize  = 0x8000;
+
+    /*  COMMENT OUT TO SHUT OFF LOG FOR BENCHMARKS: */
+    /*
+    Diags.setMaskMeta("ti.sdo.ipc.family.da830.InterruptDsp", Diags.USER1,
+        Diags.ALWAYS_ON);
+    Diags.setMaskMeta("ti.ipc.family.omapl138.VirtQueue", Diags.USER1,
+        Diags.ALWAYS_ON);
+    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+        Diags.INFO|Diags.USER1|Diags.STATUS,
+        Diags.ALWAYS_ON);
+    Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
+        Diags.ALWAYS_ON);
+    */
+
+    /* Enable runtime Diags_setMask() for non-XDC spec'd modules: */
+    /*
+    var Text = xdc.useModule('xdc.runtime.Text');
+    Text.isLoaded = true;
+    var Registry = xdc.useModule('xdc.runtime.Registry');
+    Registry.common$.diags_INFO  = Diags.ALWAYS_ON;
+    Registry.common$.diags_STATUS = Diags.ALWAYS_ON;
+    Registry.common$.diags_LIFECYCLE = Diags.ALWAYS_ON;
+    Diags.setMaskEnabled = true;
+    */
 }
 else if (Program.platformName.match(/6614/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
@@ -208,11 +232,8 @@ var LoggerSysParams = new LoggerSys.Params();
 
 Defaults.common$.logger = LoggerSys.create(LoggerSysParams);
 
-var Main = xdc.useModule('xdc.runtime.Main');
-Main.common$.diags_INFO = Diags.RUNTIME_ON;
-Main.common$.diags_ENTRY = Diags.RUNTIME_ON;
-Main.common$.diags_EXIT = Diags.RUNTIME_ON;
 var VirtioSetup = xdc.useModule('ti.ipc.transports.TransportVirtioSetup');
 VirtioSetup.common$.diags_INFO = Diags.RUNTIME_OFF;
+
 
 xdc.loadPackage('ti.ipc.transports').profile = 'release';

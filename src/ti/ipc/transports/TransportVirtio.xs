@@ -38,32 +38,9 @@
  */
 function module$use()
 {
-    var TransportVirtio = this;
     xdc.useModule("ti.sdo.utils.MultiProc");
     xdc.useModule("ti.sdo.ipc.MessageQ");
-    xdc.useModule("ti.sysbios.knl.Swi");
     xdc.useModule("ti.ipc.transports.TransportVirtioSetup");
     xdc.loadPackage("ti.ipc.namesrv");
-
-    if (Program.cpu.deviceName == "OMAPL138") {
-        xdc.useModule("ti.ipc.family.omapl138.VirtQueue");
-    }
-    else if (Program.platformName.match(/6614/)) {
-        xdc.useModule("ti.ipc.family.tci6614.VirtQueue");
-    }
-    else if (Program.platformName.match(/Kepler/)) {
-        xdc.useModule("ti.ipc.family.tci6638.VirtQueue");
-    }
-    else
-    {
-        print("TransportVirtio.xs: Did not match any platform!");
-    }
-}
-/*
- *  ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
-  /* Init Virtio Transport params */
-  mod.gateSwiHandle = null;
+    xdc.loadPackage("ti.ipc.rpmsg");
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,10 @@ typedef struct NameServerRemote_Msg {
 #define NAME_SERVER_PORT_INVALID (-1)
 
 #define NAMESERVER_MSG_TOKEN   0x5678abcd
+
+/* That special per processor RPMSG channel reserved to multiplex MessageQ */
+/* Duplicated in _TransportVirtio.h: move to a common rpmsg_ports.h? */
+#define RPMSG_MESSAGEQ_PORT         61
 
 extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
 extern void NameServerRemote_SetNameServerPort(UInt port);

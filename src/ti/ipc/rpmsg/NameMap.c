@@ -43,7 +43,7 @@
 typedef unsigned int u32;
 
 struct rpmsg_ns_msg {
-    char name[RPMSG_NAME_SIZE]; /* name of service including 0 */
+    char name[RPMSG_NAME_SIZE]; /* name of service including terminal '\0' */
     u32 addr;                   /* address of the service */
     u32 flags;                  /* see below */
 } __packed;
@@ -58,7 +58,8 @@ static void sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
     struct rpmsg_ns_msg nsMsg;
     Int s;
 
-    strncpy(nsMsg.name, name, RPMSG_NAME_SIZE);
+    strncpy(nsMsg.name, name, (RPMSG_NAME_SIZE - 1));
+    nsMsg.name[RPMSG_NAME_SIZE-1] = '\0';
     nsMsg.addr = port;
     nsMsg.flags = flags;
 

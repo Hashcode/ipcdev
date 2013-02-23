@@ -48,7 +48,7 @@
 #include <ti/sdo/utils/INameServerRemote.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
-#include <ti/ipc/transports/_TransportVirtio.h>
+#include <ti/ipc/rpmsg/MessageQCopy.h>
 
 #include "package/internal/NameServerRemoteRpmsg.xdc.h"
 
@@ -183,15 +183,15 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
 
     len = strlen(instanceName);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
-    strncpy((Char *)msg.instanceName, instanceName, len + 1);
+    strncpy((Char *)msg.instanceName, instanceName, len);
 
     len = strlen(name);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
-    strncpy((Char *)msg.name, name, len + 1);
+    strncpy((Char *)msg.name, name, len);
 
     Log_print3(Diags_INFO, FXNN": Requesting from procId %d, %s:%s...\n",
                obj->remoteProcId, (IArg)msg.instanceName, (IArg)msg.name);
-    sendRpmsg(obj->remoteProcId, NameServerRemoteRpmsg_module->nsPort,
+    MessageQCopy_send(obj->remoteProcId, NameServerRemoteRpmsg_module->nsPort,
                RPMSG_MESSAGEQ_PORT, (Ptr)&msg, sizeof(msg));
 
     /* Now pend for response */
@@ -288,7 +288,7 @@ void NameServerRemote_processMessage(NameServerRemote_Msg * msg)
         msg->request = NameServerRemoteRpmsg_RESPONSE;
 
         /* send response message to remote processor */
-        sendRpmsg(dstProc, NameServerRemoteRpmsg_module->nsPort,
+        MessageQCopy_send(dstProc, NameServerRemoteRpmsg_module->nsPort,
                  RPMSG_MESSAGEQ_PORT, (Ptr)msg, sizeof(NameServerRemote_Msg));
     }
     else {

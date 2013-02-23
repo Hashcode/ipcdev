@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,37 +29,35 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== package.bld ========
+/** ============================================================================
+ *  @file       _VirtQueue.h
+ *
+ *  @brief      Common Virtio Queue Definitions across families.
+ *
+ *  ============================================================================
  */
 
-var Build = xdc.useModule('xdc.bld.BuildEnvironment');
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
+#ifndef ti_ipc_VirtQueue__include
+#define ti_ipc_VirtQueue__include
 
-/*
- * This package distributes its sources in the default release.  This is to
- * enable better understanding by the customer/field, as well as enable
- * modification and profiling techniques in the field.
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+/*!
+ *  @brief  VirtQueue Ids for the basic IPC transport rings.
  */
-Pkg.attrs.exportSrc = true;
+#define ID_SELF_TO_A9      0
+#define ID_A9_TO_SELF      1
 
-Pkg.otherFiles = ["package.bld", "_TransportVirtio.h"];
-
-var SRCS = ["TransportVirtioSetup.c", "TransportVirtio.c"];
-
-/* remove this output directory during a clean */
-Pkg.generatedFiles.$add("lib/");
-
-for (var i = 0; i < Build.targets.length; i++) {
-    var targ = Build.targets[i];
+/*!
+ *  @brief  Size of buffer being exchanged in the VirtQueue rings.
+ */
+#define RPMSG_BUF_SIZE     (512)
 
 
-    /* Build for all profiles */
-    for (var profile in targ.profiles) {
-
-        Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
-            profile: profile,
-            copts: "--gcc"   /* b/c Rpmsg.h requires gcc-isms */
-        }).addObjects(SRCS);
-    }
+#if defined (__cplusplus)
 }
+#endif /* defined (__cplusplus) */
+
+#endif /* ti_ipc_VirtQueue__include */

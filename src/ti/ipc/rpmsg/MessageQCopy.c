@@ -34,6 +34,39 @@
  *
  *  @brief      A simple copy-based MessageQ, to work with Linux virtio_rp_msg.
  *
+ *  Notes:
+ *  - The logic in the functions for sending (_put()) and receiving _swiFxn()
+ *    depend on the role (host or slave) the processor is playing in the
+ *    asymmetric virtio I/O.
+ *  - The host always adds *available* buffers to send/receive, while the slave
+ *    always adds *used* buffers to send/receive.
+ *  - The logic is summarized below:
+ *
+ *    Host:
+ *    - Prime vq_host with avail bufs, and kick vq_host so slave can send.
+ *    - To send a buffer to the slave processor:
+ *          allocate a tx buffer, or get_used_buf(vq_slave);
+ *               >> copy data into buf <<
+ *          add_avail_buf(vq_slave);
+ *          kick(vq_slave);
+ *    - To receive buffer from slave processor:
+ *          get_used_buf(vq_host);
+ *              >> empty data from buf <<
+ *          add_avail_buf(vq_host);
+ *          kick(vq_host);
+ *
+ *    Slave:
+ *    - To receive buffer from the host:
+ *          get_avail_buf(vq_slave);
+ *              >> empty data from buf <<
+ *          add_used_buf(vq_slave);
+ *          kick(vq_slave);
+ *    - To send buffer to the host:
+ *          get_avail_buf(vq_host);
+ *              >> copy data into buf <<
+ *          add_used_buf(vq_host);
+ *          kick(vq_host);
+ *
  *  ============================================================================
  */
 
@@ -42,6 +75,8 @@
 #define MODULE_NAME "ti.ipc.rpmsg.MessageQCopy"
 
 #include <xdc/std.h>
+#include <string.h>
+
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Error.h>
 #include <xdc/runtime/Assert.h>
@@ -486,10 +521,7 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
     }
     else  {
        payload = (Queue_elem *)List_get(obj->queue);
-
-       if (!payload) {
-           System_abort("MessageQCopy_recv: got a NULL payload\n");
-       }
+       Assert_isTrue((!payload), NULL);
     }
 
     if (status == MessageQCopy_S_SUCCESS)  {
@@ -583,26 +615,26 @@ Int MessageQCopy_send(UInt16 dstProc,
         }
         else {
             /* else, put on a Message queue on this processor: */
-        /* Allocate a buffer to copy the payload: */
-        size = len + sizeof(Queue_elem);
+            /* Allocate a buffer to copy the payload: */
+            size = len + sizeof(Queue_elem);
 
-        /* HeapBuf_alloc() is non-blocking, so needs protection: */
-        key = GateSwi_enter(module.gateSwi);
-        payload = (Queue_elem *)HeapBuf_alloc(module.heap, size, 0, NULL);
-        GateSwi_leave(module.gateSwi, key);
+            /* HeapBuf_alloc() is non-blocking, so needs protection: */
+            key = GateSwi_enter(module.gateSwi);
+            payload = (Queue_elem *)HeapBuf_alloc(module.heap, size, 0, NULL);
+            GateSwi_leave(module.gateSwi, key);
 
-        if (payload != NULL)  {
-            memcpy(payload->data, data, len);
-            payload->len = len;
-            payload->src = srcEndpt;
+            if (payload != NULL)  {
+                memcpy(payload->data, data, len);
+                payload->len = len;
+                payload->src = srcEndpt;
 
-            /* Put on the endpoint's queue and signal: */
-            List_put(obj->queue, (List_Elem *)payload);
-            Semaphore_post(obj->semHandle);
-        }
-        else {
-            status = MessageQCopy_E_MEMORY;
-            Log_print0(Diags_STATUS, FXNN": HeapBuf_alloc failed!");
+                /* Put on the endpoint's queue and signal: */
+                List_put(obj->queue, (List_Elem *)payload);
+                Semaphore_post(obj->semHandle);
+            }
+            else {
+                status = MessageQCopy_E_MEMORY;
+                Log_print0(Diags_STATUS, FXNN": HeapBuf_alloc failed!");
             }
         }
     }

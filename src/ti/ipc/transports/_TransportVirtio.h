@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,6 @@ extern "C" {
 
 /* That special per processor RPMSG channel reserved to multiplex MessageQ */
 #define RPMSG_MESSAGEQ_PORT         61
-#define NAME_SERVER_RPMSG_ADDR      0
-
-extern void sendRpmsg(UInt16 dstProc, UInt32 dstEndpt, UInt32 srcEndpt,
-              Ptr data, UInt16 len);
 
 #if defined (__cplusplus)
 }
