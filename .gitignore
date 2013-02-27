@@ -26,6 +26,7 @@ packages/ti/ipc/remoteproc/Resource.h
 packages/ti/ipc/transports/TransportVirtio.h
 packages/ti/ipc/transports/TransportVirtioSetup.h
 packages/ti/trace/SysMin.h
+packages/ti/resources/IpcMemory.h
 
 # Linux stuff
 /autom4te.cache
