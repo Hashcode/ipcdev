@@ -63,6 +63,8 @@
  *	Build	    an alias for xdc.om.xdc.bld.BuildEnvironment
  */
 
+var build_smp = java.lang.System.getenv("BUILD_SMP");
+
 /* Common ccopts suffix used for all C6x targets */
 var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
 
@@ -85,7 +87,7 @@ var ccOpts = {
 
     "ti.targets.elf.C64P"             : c6xOpts,
     "ti.targets.elf.C64P_big_endian"  : c6xOpts,
-    "ti.targets.elf.C64T"             : c6xOpts,
+    "ti.targets.elf.C64T"             : " -mi10 -mo -pds=71",
     "ti.targets.elf.C66"              : c6xOpts,
     "ti.targets.elf.C66_big_endian"   : c6xOpts,
     "ti.targets.elf.C674"             : c6xOpts,
@@ -93,7 +95,7 @@ var ccOpts = {
     "ti.targets.arm.elf.Arm9"         : " -ms -g ",
     "ti.targets.arm.elf.A8F"          : " -ms -g ",
     "ti.targets.arm.elf.A8Fnv"        : " -ms -g ",
-    "ti.targets.arm.elf.M3"           : " -ms -g ",
+    "ti.targets.arm.elf.M3"           : " --embed_inline_assembly -ms -pds=71",
     "ti.targets.arm.elf.M4"           : " -ms -g ",
     "ti.targets.arm.elf.M4F"          : " -ms -g ",
 
@@ -139,6 +141,36 @@ for (arg = 0; arg < arguments.length; arg++) {
             "ti.platforms.simKepler"
             //"ti.platforms.evm6614:DSP"
         ];
+    }
+
+    if (targetName.match(/elf\.C64T/)) {
+        target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
+        /* NOTE: These platforms (from omapzoom) are local, custom: */
+        target.platforms = [
+                    //"ti.platform.omap4430.dsp",
+                    "ti.platform.omap54xx.dsp",
+                ];
+    }
+
+    if (targetName.match(/elf\.M3/)) {
+        target.lnkOpts.prefix += " --retain=.resource_table";
+        target.lnkOpts.prefix += " --cinit_compression=off";
+        /* NOTE: These platforms (from omapzoom) are local, custom: */
+        /* Set default platform and list of all interested platforms for M3 */
+        if (build_smp == null || build_smp == "0") {
+            /* Helps boot times, plus unmasks issues w/ uninit'd vars */
+            target.lnkOpts.prefix +=  " --zero_init=off";
+            target.platforms = [
+                        //"ti.platform.omap4430.core0",
+                        "ti.platform.omap54xx.core0",
+                   ];
+        }
+        else {
+            target.platforms =  [
+                        //"ti.platform.omap4430.ipu",
+                        "ti.platform.omap54xx.ipu",
+                   ];
+        }
     }
 
     Build.targets.$add(target);
