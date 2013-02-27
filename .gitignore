@@ -35,6 +35,7 @@ packages/ti/ipc/transports/TransportVirtioSetup.h
 /Makefile
 /linux/etc/Makefile
 /linux/src/*/Makefile
+/linux/src/*/Makefile.in
 /linux/src/*/*.lo
 /linux/src/*/*.la
 /linux/src/*/.libs
