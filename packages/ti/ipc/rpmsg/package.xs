@@ -50,6 +50,8 @@ function close()
 function getLibs(prog)
 {
     var suffix = prog.build.target.findSuffix(this);
+    var smp = "";
+
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
         $trace("Unable to locate a compatible library, returning none.",
@@ -57,8 +59,12 @@ function getLibs(prog)
         return ("");
     }
 
+    if (prog.platformName.match(/ipu/)) {
+        smp = "_smp";
+    }
+
     /* the location of the libraries are in lib/<profile>/* */
-    var name = this.$name + ".a" + suffix;
+    var name = this.$name + smp + ".a" + suffix;
     var lib = "lib/" + this.profile + "/" + name;
 
 
@@ -72,48 +78,4 @@ function getLibs(prog)
     }
 
     return (lib);
-}
-
-/*
- *  ======== getLibs ========
- */
-function getLibs_opbu(prog)
-{
-    var suffix;
-    var file;
-    var libAry = [];
-    var profile = this.profile;
-    var smp = "";
-
-    suffix = prog.build.target.findSuffix(this);
-    if (suffix == null) {
-        return "";  /* nothing to contribute */
-    }
-
-    if (prog.platformName.match(/ipu/)) {
-        smp = "_smp";
-    }
-
-    /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.ipc.rpmsg" + smp + ".a" + suffix;
-    if (java.io.File(this.packageBase + file).exists()) {
-        libAry.push(file);
-    }
-    else {
-        file = "lib/release/ti.ipc.rpmsg" + smp + ".a" + suffix;
-        if (java.io.File(this.packageBase + file).exists()) {
-            libAry.push(file);
-        }
-        else {
-            /* fallback to a compatible library built by this package */
-            for (var p in this.build.libDesc) {
-                if (suffix == this.build.libDesc[p].suffix) {
-                    libAry.push(p);
-                    break;
-                }
-            }
-        }
-    }
-
-    return libAry.join(";");
 }

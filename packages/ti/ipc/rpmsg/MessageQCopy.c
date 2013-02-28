@@ -106,6 +106,8 @@
 #include <ti/ipc/family/tci6614/VirtQueue.h>
 #elif defined(TCI6638)
 #include <ti/ipc/family/tci6638/VirtQueue.h>
+#elif defined(OMAP5)
+#include <ti/ipc/family/omap54xx/VirtQueue.h>
 #else
 #error unknown processor!
 #endif
@@ -308,7 +310,7 @@ Void MessageQCopy_init(UInt16 remoteProcId)
       Assert_isTrue(FALSE, NULL);
     }
     else {
-      vqParams.callback = (Fxn) callback_availBufReady;
+      vqParams.callback = callback_availBufReady;
     }
 
     /*
