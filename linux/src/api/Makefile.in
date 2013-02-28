@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# src/api/Makefile.am
-
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -63,7 +61,7 @@ am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo NameServer.lo \
 	SysLink.lo
 libtiipc_la_OBJECTS = $(am_libtiipc_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -86,7 +84,9 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -239,9 +239,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  linux/src/api/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  linux/src/api/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  linux/src/api/Makefile
+	  $(AUTOMAKE) --foreign  linux/src/api/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

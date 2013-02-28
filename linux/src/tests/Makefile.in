@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# src/test/Makefile.am
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -41,27 +39,27 @@ host_triplet = @host@
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
 	$(am__EXEEXT_7)
-@OMAP4430_TRUE@am__append_1 = MessageQApp_omap4430 MessageQBench_omap4430 MessageQMulti_omap4430 \
-@OMAP4430_TRUE@                    NameServerApp_omap4430
+@OMAP4430_TRUE@am__append_1 = MessageQApp_omap4430 MessageQBench_omap4430 \
+@OMAP4430_TRUE@                MessageQMulti_omap4430 NameServerApp_omap4430
 
-@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_2 = MessageQApp_omapl138 MessageQBench_omapl138 MessageQMulti_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_TRUE@                    NameServerApp_omapl138
+@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_2 = MessageQApp_omapl138 MessageQBench_omapl138 \
+@OMAP4430_FALSE@@OMAPL138_TRUE@                MessageQMulti_omapl138 NameServerApp_omapl138
 
 @CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_3 = nano_test_omapl138
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_4 = MessageQApp_tci6614 MessageQBench_tci6614 MessageQMulti_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@                    NameServerApp_tci6614
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_4 = MessageQApp_tci6614 MessageQBench_tci6614 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@                MessageQMulti_tci6614 NameServerApp_tci6614
 
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_5 = MessageQApp_tci6638 MessageQBench_tci6638 MessageQMulti_tci6638 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@                    NameServerApp_tci6638
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_5 = MessageQApp_tci6638 MessageQBench_tci6638 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@                MessageQMulti_tci6638 NameServerApp_tci6638
 
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_6 = MessageQApp_omap4430 MessageQBench_omap4430 MessageQMulti_omap4430 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  NameServerApp_omap4430 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  MessageQApp_omapl138 MessageQBench_omapl138 MessageQMulti_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  NameServerApp_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  MessageQApp_tci6614 MessageQBench_tci6614 MessageQMulti_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  NameServerApp_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  MessageQApp_tci6638 MessageQBench_tci6638 MessageQMulti_tci6638 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                  NameServerApp_tci6638
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_6 = MessageQApp_omap4430 MessageQBench_omap4430 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omap4430 NameServerApp_omap4430 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_omapl138 MessageQBench_omapl138 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omapl138 NameServerApp_omapl138 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6614 MessageQBench_tci6614 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6614 NameServerApp_tci6614 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6638 MessageQBench_tci6638 \
+@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6638 NameServerApp_tci6638
 
 @CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = nano_test_omapl138
 subdir = linux/src/tests
@@ -214,7 +212,7 @@ nano_test_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
 	$(am__DEPENDENCIES_2)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -263,7 +261,9 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages  \
+        -I$(CMEM_INSTALL_DIR)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -411,58 +411,74 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+                $(AM_LDFLAGS)
 
 MessageQApp_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
+                $(AM_LDFLAGS)
 
 MessageQApp_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
+                $(AM_LDFLAGS)
 
 MessageQApp_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
+                $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link MessageQBench
 MessageQBench_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la -lrt $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la -lrt \
+                $(AM_LDFLAGS)
 
 MessageQBench_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la -lrt $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la -lrt \
+                $(AM_LDFLAGS)
 
 MessageQBench_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la -lrt $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la -lrt \
+                $(AM_LDFLAGS)
 
 MessageQBench_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la -lrt $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la -lrt \
+                $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link MessageQMulti
 MessageQMulti_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+                $(AM_LDFLAGS)
 
 MessageQMulti_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
+                $(AM_LDFLAGS)
 
 MessageQMulti_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
+                $(AM_LDFLAGS)
 
 MessageQMulti_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
+                $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link NameServerApp
 NameServerApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+                $(AM_LDFLAGS)
 
 NameServerApp_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
+                $(AM_LDFLAGS)
 
 NameServerApp_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
+                $(AM_LDFLAGS)
 
 NameServerApp_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
+                $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link nano_test
@@ -484,9 +500,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  linux/src/tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  linux/src/tests/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  linux/src/tests/Makefile
+	  $(AUTOMAKE) --foreign  linux/src/tests/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

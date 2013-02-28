@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# etc/Makefile.am
-
 ###############################################################################
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -177,9 +175,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  linux/etc/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  linux/etc/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  linux/etc/Makefile
+	  $(AUTOMAKE) --foreign  linux/etc/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
