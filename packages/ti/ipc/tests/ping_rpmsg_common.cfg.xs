@@ -34,10 +34,7 @@ var Memory = xdc.useModule('xdc.runtime.Memory');
 var Semaphore = xdc.useModule('ti.sysbios.knl.Semaphore');
 var BIOS = xdc.useModule('ti.sysbios.BIOS');
 BIOS.heapSize = 0x20000;
-BIOS.libType = BIOS.LibType_Custom;
-
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.deleteTerminatedTasks = true;
+//BIOS.libType = BIOS.LibType_Custom;
 
 var Idle = xdc.useModule('ti.sysbios.knl.Idle');
 Idle.addFunc('&VirtQueue_cacheWb');
@@ -48,10 +45,6 @@ System.SupportProxy = SysMin;
 
 var Diags = xdc.useModule('xdc.runtime.Diags');
 
-xdc.useModule("ti.ipc.namesrv.NameServerRemoteRpmsg");
-
-print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-print ("Program.platformName = " + Program.platformName);
 if (Program.cpu.deviceName == "OMAPL138") {
     xdc.useModule('ti.ipc.family.omapl138.VirtQueue');
     xdc.useModule('ti.sdo.ipc.family.da830.InterruptDsp');
@@ -68,11 +61,13 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;
 
     var Hwi = xdc.useModule('ti.sysbios.family.c64p.Hwi');
-    Hwi.enableException = true;
 
     var Cache = xdc.useModule('ti.sysbios.family.c64p.Cache');
     /* Set 0xc4000000 -> 0xc4ffffff to be non-cached for shared memory IPC */
     Cache.MAR192_223 = 0x00000010;
+
+    Program.global.sysMinBufSize = 0x8000;
+    SysMin.bufSize  =  Program.global.sysMinBufSize;
 
     var Timer = xdc.useModule('ti.sysbios.timers.timer64.Timer');
     var Clock = xdc.useModule('ti.sysbios.knl.Clock');
@@ -80,31 +75,10 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Timer.defaultHalf = Timer.Half_LOWER;
     Clock.timerId = 1;
 
-    SysMin.bufSize  = 0x8000;
-
-    /*  COMMENT OUT TO SHUT OFF LOG FOR BENCHMARKS: */
-    /*
-    Diags.setMaskMeta("ti.sdo.ipc.family.da830.InterruptDsp", Diags.USER1,
+    Diags.setMaskMeta("ti.ipc.family.omapl138.Interrupt", Diags.USER1,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.omapl138.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
-        Diags.INFO|Diags.USER1|Diags.STATUS,
-        Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
-        Diags.ALWAYS_ON);
-    */
-
-    /* Enable runtime Diags_setMask() for non-XDC spec'd modules: */
-    /*
-    var Text = xdc.useModule('xdc.runtime.Text');
-    Text.isLoaded = true;
-    var Registry = xdc.useModule('xdc.runtime.Registry');
-    Registry.common$.diags_INFO  = Diags.ALWAYS_ON;
-    Registry.common$.diags_STATUS = Diags.ALWAYS_ON;
-    Registry.common$.diags_LIFECYCLE = Diags.ALWAYS_ON;
-    Diags.setMaskEnabled = true;
-    */
 }
 else if (Program.platformName.match(/6614/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
@@ -119,7 +93,6 @@ else if (Program.platformName.match(/6614/)) {
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;
 
     var Hwi = xdc.useModule('ti.sysbios.family.c64p.Hwi');
-    Hwi.enableException = true;
 
     /* This makes the vrings address range 0xa0000000 to 0xa1ffffff uncachable.
        We assume the rest is to be left cacheable.
@@ -167,7 +140,6 @@ else if (Program.platformName.match(/simKepler/)) {
     Program.sectMap[".text:_c_int00"].loadAlign = 0x400;
 
     var Hwi = xdc.useModule('ti.sysbios.family.c64p.Hwi');
-    Hwi.enableException = true;
 
     /* This makes the vrings address range 0xa0000000 to 0xa1ffffff uncachable.
        We assume the rest is to be left cacheable.
@@ -210,33 +182,43 @@ else {
 Hwi.enableException = true;
 
 xdc.loadPackage('ti.ipc.ipcmgr');
-BIOS.addUserStartupFunction('&IpcMgr_ipcStartup');
+BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
 
-var HeapBuf = xdc.useModule('ti.sysbios.heaps.HeapBuf');
-var params = new HeapBuf.Params;
-params.align = 8;
-params.blockSize = 512;
-params.numBlocks = 256;
-var msgHeap = HeapBuf.create(params);
+xdc.loadPackage('ti.ipc.rpmsg');
 
-var MessageQ  = xdc.useModule('ti.sdo.ipc.MessageQ');
-MessageQ.registerHeapMeta(msgHeap, 0);
+var HeapBuf   = xdc.useModule('ti.sysbios.heaps.HeapBuf');
+var List      = xdc.useModule('ti.sdo.utils.List');
+
+xdc.useModule('ti.sysbios.xdcruntime.GateThreadSupport');
+var GateSwi   = xdc.useModule('ti.sysbios.gates.GateSwi');
+
+var Task          = xdc.useModule('ti.sysbios.knl.Task');
+var params = new Task.Params;
+params.instance.name = "ping";
+params.arg0= 51;
+//params.arg0= 61;
+Program.global.tsk1 = Task.create('&pingTaskFxn', params);
+Task.deleteTerminatedTasks = true;
 
 var Assert = xdc.useModule('xdc.runtime.Assert');
 var Defaults = xdc.useModule('xdc.runtime.Defaults');
-var Text = xdc.useModule('xdc.runtime.Text');
-Text.isLoaded = true;
-
+var Diags = xdc.useModule('xdc.runtime.Diags');
 var LoggerSys = xdc.useModule('xdc.runtime.LoggerSys');
 var LoggerSysParams = new LoggerSys.Params();
 
+/* Enable Logger: */
 Defaults.common$.logger = LoggerSys.create(LoggerSysParams);
+// FOR BENCHMARKING: Defaults.common$.logger = null;
 
-var VirtioSetup = xdc.useModule('ti.ipc.transports.TransportVirtioSetup');
-VirtioSetup.common$.diags_INFO = Diags.RUNTIME_OFF;
+/* Enable runtime Diags_setMask() for non-XDC spec'd modules: */
+var Text = xdc.useModule('xdc.runtime.Text');
+Text.isLoaded = true;
+var Registry = xdc.useModule('xdc.runtime.Registry');
+Registry.common$.diags_INFO  = Diags.ALWAYS_ON;
+Registry.common$.diags_STATUS = Diags.ALWAYS_ON;
+Registry.common$.diags_LIFECYCLE = Diags.ALWAYS_ON;
+Diags.setMaskEnabled = true;
 
 var Main = xdc.useModule('xdc.runtime.Main');
 Main.common$.diags_ASSERT = Diags.ALWAYS_ON;
 Main.common$.diags_INTERNAL = Diags.ALWAYS_ON;
-
-xdc.loadPackage('ti.ipc.transports').profile = 'release';

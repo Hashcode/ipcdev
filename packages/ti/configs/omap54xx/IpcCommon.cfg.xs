@@ -50,10 +50,18 @@ var BIOS        = xdc.useModule('ti.sysbios.BIOS');
 /* Reduces code size, by only pulling in modules explicitly referenced: */
 BIOS.libType    = BIOS.LibType_Custom;
 
+/* This calls MessageQCopy_init() once before BIOS_start(): */
+xdc.loadPackage('ti.ipc.ipcmgr');
+BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+
 xdc.loadPackage('ti.ipc.rpmsg');
+xdc.loadPackage('ti.ipc.family.omap54xx');
+
+/* TBD:
 xdc.loadPackage('ti.srvmgr');
 xdc.useModule('ti.srvmgr.omx.OmxSrvMgr');
 xdc.loadPackage('ti.resmgr');
+*/
 
 /* Enable Memory Translation module that operates on the BIOS Resource Table */
 var IpcMemory = xdc.useModule('ti.resources.IpcMemory');
@@ -65,9 +73,11 @@ var HeapBuf   = xdc.useModule('ti.sysbios.heaps.HeapBuf');
 var List      = xdc.useModule('ti.sdo.utils.List');
 
 /* ti.grcm Configuration */
+/* TBD:
 var rcmSettings = xdc.useModule('ti.grcm.Settings');
 rcmSettings.ipc = rcmSettings.IpcSupport_ti_sdo_ipc;
 xdc.useModule('ti.grcm.RcmServer');
+*/
 xdc.useModule('ti.sysbios.xdcruntime.GateThreadSupport');
 var GateSwi   = xdc.useModule('ti.sysbios.gates.GateSwi');
 
@@ -89,9 +99,10 @@ Text.isLoaded = true;
 var Registry = xdc.useModule('xdc.runtime.Registry');
 Registry.common$.diags_ENTRY = Diags.RUNTIME_OFF;
 Registry.common$.diags_EXIT  = Diags.RUNTIME_OFF;
-Registry.common$.diags_INFO  = Diags.RUNTIME_OFF;
-Registry.common$.diags_LIFECYCLE = Diags.RUNTIME_OFF;
-Registry.common$.diags_STATUS = Diags.RUNTIME_OFF;
+Registry.common$.diags_USER1 = Diags.ALWAYS_ON;
+Registry.common$.diags_INFO  = Diags.ALWAYS_ON;
+Registry.common$.diags_LIFECYCLE = Diags.ALWAYS_ON;
+Registry.common$.diags_STATUS = Diags.ALWAYS_ON;
 Diags.setMaskEnabled = true;
 
 var Main = xdc.useModule('xdc.runtime.Main');
@@ -99,12 +110,14 @@ Main.common$.diags_ASSERT = Diags.ALWAYS_ON;
 Main.common$.diags_INTERNAL = Diags.ALWAYS_ON;
 
 var Hwi = xdc.useModule('ti.sysbios.family.arm.m3.Hwi');
-var Deh = xdc.useModule('ti.deh.Deh');
+//TBD: var Deh = xdc.useModule('ti.deh.Deh');
 Hwi.enableException = true;
 Hwi.nvicCCR.DIV_0_TRP = 1;
 
 /* Include stack debug helper */
+/* TBD:
 var StackDbg = xdc.useModule('ti.trace.StackDbg');
+*/
 
 var dmTimer = xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
 /* dmTimer 0 mapped to GPT3 */
@@ -129,4 +142,6 @@ var halTimer = xdc.useModule('ti.sysbios.hal.Timer');
 halTimer.TimerProxy = dmTimer;
 
 /* Version module */
+/* ???
 xdc.useModule('ti.utils.Version');
+*/

@@ -71,8 +71,8 @@ for (var i = 0; i < Build.targets.length; i++) {
 
 //    print("building for target " + targ.name + " ...");
 
-    /* currently only build for OMAPL138, Appleton and Kepler */
-    if (!((targ.isa == "674") || (targ.isa == "66"))) {
+    /* currently only build for OMAPL138, Keystone II, and OMAP5*/
+    if (!((targ.isa == "674") || (targ.isa == "66") || (targ.isa == "v7M"))) {
         continue;
     }
 
@@ -80,9 +80,10 @@ for (var i = 0; i < Build.targets.length; i++) {
     for (var j = 0; j < targ.platforms.length; j++) {
         var platform = targ.platforms[j];
 
-        /* currently only build for OMAPL138, Appleton and Kepler */
+        /* currently only build for OMAPL138, Keystone II, and OMAP5*/
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
+              (platform.match(/^ti\.platform\.omap54xx/)) ||
               (platform.match(/\.platforms\.evmOMAPL138/)))) {
              continue;
         }
@@ -112,7 +113,7 @@ for (var i = 0; i < Build.targets.length; i++) {
                 }).addObjects(["dual_transports.c"]);
         }
 
-
+/* RE-ENABLE after ping_rpmsg works on OMAP5 SMP:
         Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
             cfgScript: "rpmsg_transport",
             defs: "-D BENCHMARK "
@@ -122,7 +123,7 @@ for (var i = 0; i < Build.targets.length; i++) {
             cfgScript: "rpmsg_transport",
             defs: "-D BENCHMARK "
         }).addObjects(["messageq_single.c"]);
-
+*/
         if (platform.match(/^ti\.platforms\.evmOMAPL138\:DSP/)) {
                 Pkg.addExecutable(name + "/nano_test", targ, platform, {
                     cfgScript: "rpmsg_transport"
