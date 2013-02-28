@@ -46,6 +46,9 @@ AC_CONFIG_AUX_DIR([linux/build-aux])
 # Initilize automake
 AM_INIT_AUTOMAKE([foreign])
 
+# Disabling maintainer mode to prevent rebuild of configure script
+AM_MAINTAINER_MODE([disable])
+
 # Initalize libtool but disable fortran check
 define([AC_LIBTOOL_LANG_F77_CONFIG], [:])dnl
 AC_PROG_LIBTOOL(gcc)
