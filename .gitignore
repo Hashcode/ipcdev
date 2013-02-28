@@ -25,6 +25,8 @@ packages/ti/ipc/namesrv/NameServerRemoteRpmsg.h
 packages/ti/ipc/remoteproc/Resource.h
 packages/ti/ipc/transports/TransportVirtio.h
 packages/ti/ipc/transports/TransportVirtioSetup.h
+packages/ti/trace/SysMin.h
+packages/ti/resources/IpcMemory.h
 
 # Linux stuff
 /autom4te.cache
@@ -35,6 +37,7 @@ packages/ti/ipc/transports/TransportVirtioSetup.h
 /Makefile
 /linux/etc/Makefile
 /linux/src/*/Makefile
+/linux/src/*/Makefile.in
 /linux/src/*/*.lo
 /linux/src/*/*.la
 /linux/src/*/.libs
@@ -45,3 +48,4 @@ packages/ti/ipc/transports/TransportVirtioSetup.h
 /linux/src/tests/MessageQMulti_*
 /linux/src/tests/NameServerApp_*
 /linux/src/tests/nano_test_*
+/linux/src/tests/ping_rpmsg

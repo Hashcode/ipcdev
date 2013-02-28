@@ -52,29 +52,14 @@ Pkg.generatedFiles.$add("lib/");
 
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
-    var isaDefs = "";
 
-    /* Yuck, yuck, yuck! */
-    if (targ.isa == "674") {
-        isaDefs = "-DOMAPL138";
-// OMAP4 not yet supported
-//    } else if ((targ.isa == "v7M") || (targ.isa == "64T")) {
-//        isaDefs = "-DOMAP4430";
-    } else if (targ.isa == "66") {
-        /* TBD: Only one of Appleton or Kepler can build for now: */
-        isaDefs = "-DTCI6638";
-        //isaDefs = "-DTCI6614";
-    } else {
-        continue;
-    }
 
     /* Build for all profiles */
     for (var profile in targ.profiles) {
 
         Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
             profile: profile,
-            copts: "--gcc",   /* b/c Rpmsg.h requires gcc-isms */
-            defs: isaDefs
+            copts: "--gcc"   /* b/c Rpmsg.h requires gcc-isms */
         }).addObjects(SRCS);
     }
 }

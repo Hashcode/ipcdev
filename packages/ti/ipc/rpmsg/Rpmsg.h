@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@
 #if defined (__cplusplus)
 extern "C" {
 #endif
+
 
 enum Rpmsg_nsFlags {
     RPMSG_NS_CREATE = 0,

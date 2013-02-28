@@ -143,8 +143,6 @@ module VirtQueue
 
     /* See VirtQueue.c also for other constants:   */
     config UInt RP_MSG_NUM_BUFS = VQ0_SIZE; /* must be power of two */
-    config UInt RP_MSG_BUF_SIZE = 512;
-
 
     config UInt PAGE_SIZE = 4096;
 
@@ -278,6 +276,7 @@ instance:
      *
      *  @param[in]  vq        the VirtQueue.
      *  @param[out] buf       Pointer to location of available buffer;
+     *  @param[out] len       Length of the available buffer message.
      *
      *  @return     Returns a token used to identify the available buffer, to be
      *              passed back into VirtQueue_addUsedBuf();
@@ -286,31 +285,28 @@ instance:
      *  @sa         VirtQueue_addUsedBuf
      */
     @DirectCall
-    Int16 getAvailBuf(Void **buf);
+    Int16 getAvailBuf(Void **buf, Int *len);
 
     /*!
      *  @brief      Add used buffer to virtqueue's used buffer list.
      *              Only used by Slave.
      *
      *  @param[in]  vq        the VirtQueue.
-     *  @param[in]  token     token of the buffer to be added to vring used list.
+     *  @param[in]  token     token of the buffer added to vring used list.
+     *  @param[in]  len       length of the message being added.
      *
      *  @return     Remaining capacity of queue or a negative error.
      *
      *  @sa         VirtQueue_getAvailBuf
      */
     @DirectCall
-    Int addUsedBuf(Int16 head);
+    Int addUsedBuf(Int16 token, Int len);
 
     // -------- Handle Parameters --------
 
-    config Bool host = false;
-
     config Fxn callback = null;
 
-    config Swi.Handle swiHandle = null;
-
-    config UInt intVectorId = ~1u;
+    config Int vqId = 0;
 
     // -------- Handle Functions --------
 
@@ -336,7 +332,6 @@ internal:   /* not for client use */
      */
     struct Module_State
     {
-        UInt16 numQueues;
         UInt16 hostSlaveSynced;
         UInt16 virtQueueInitialized;
         UInt32 *queueRegistry;
@@ -351,7 +346,6 @@ internal:   /* not for client use */
         Bool hostSlaveSynced;
         UInt16 id;
         Fxn callback;
-        Swi.Handle swiHandle;
         Void *vringPtr;
         UInt16 num_free;
         UInt16 last_avail_idx;

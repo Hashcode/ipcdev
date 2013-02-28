@@ -123,12 +123,14 @@ export XDCPATH
 #XDCOPTIONS=v
 export XDCOPTIONS
 
+BUILD_SMP       ?= 1
+
 #
 # Set XDC executable command
 # Note that XDCBUILDCFG points to the ipc-bios.bld file which uses
 # the arguments specified by XDCARGS
 #
-XDC = $(XDC_INSTALL_DIR)/xdc XDCARGS="$(XDCARGS)" XDCBUILDCFG=./ipc-bios.bld
+XDC = $(XDC_INSTALL_DIR)/xdc XDCARGS="$(XDCARGS)" BUILD_SMP=$(BUILD_SMP) XDCBUILDCFG=./ipc-bios.bld
 
 ######################################################
 ## Shouldnt have to modify anything below this line ##

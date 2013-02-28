@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,8 @@
 
 /*!
  *  ======== ti.ipc.rpmsg ========
- *  Inter processor communication.
- *
- *  Contains modules are that OS independent and support
- *  streaming messaging between threads and/or processors.
- *
+ *  IPC over Virtio vrings (RPMSG).
  */
 
-package ti.ipc.rpmsg [1,0,0,0] {
+package ti.ipc.rpmsg [1,0,0] {
 }

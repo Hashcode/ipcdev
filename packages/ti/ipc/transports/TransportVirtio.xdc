@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,6 @@
  *  ======== TransportVirtio.xdc ================
  */
 
-import ti.sysbios.knl.Swi;
-import ti.sysbios.gates.GateSwi;
-
 /*!
  *  ======== TransportVirtio ========
  *  Transport for MessageQ that uses vring structures.
@@ -61,35 +58,13 @@ instance:
      */
     config Ptr sharedAddr = null;
 
-    /*!
-     *  ======== intVectorId ========
-     *  Interrupt vector ID to be used by the driver.
-     *
-     *  This parameter is only used by C64x+ targets
-     */
-    config UInt intVectorId = ~1u;
 
 internal:
-
-    /*!
-     *  ======== swiFxn ========
-     */
-    Void swiFxn(UArg arg0, UArg arg1);
-
-    struct Module_State
-    {
-        GateSwi.Handle gateSwiHandle;
-    }
 
     /*! Instance state structure */
     struct Instance_State {
         UInt16       priority;           /* priority to register             */
         UInt16       remoteProcId;       /* dst proc id                      */
-        Bool         isHost;             /* self proc id acts as a host.     */
-        Swi.Object   swiObj;             /* Each instance has a swi          */
-        Ptr          vq_slave;           /* Slave's VirtQueue Handle         */
-        Ptr          vq_host;            /* Host's VirtQueue Handle          */
-        Ptr          sbufs;              /* Buffers for sending              */
-        UInt16       last_sbuf;          /* Index of last send buffer used   */
+        Ptr          msgqHandle;         /* MessageQCopy Handle              */
     }
 }

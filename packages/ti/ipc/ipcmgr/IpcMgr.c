@@ -31,6 +31,7 @@
  */
 /*
  *  ======== IpcMgr.c ========
+ *  Various IPC stack backplane startup fxns.
  */
 
 #include <xdc/std.h>
@@ -40,9 +41,21 @@
 #include <ti/ipc/MultiProc.h>
 #include <ti/ipc/namesrv/NameServerRemoteRpmsg.h>
 #include <ti/ipc/transports/TransportVirtioSetup.h>
+#include <ti/ipc/rpmsg/_MessageQCopy.h>
+
+/*
+ *  ======== IpcMgr_rpmsgStartup ========
+ *  Initialize the RPMSG module.  This calls VirtQueue_startup().
+ */
+Void IpcMgr_rpmsgStartup()
+{
+    Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), NULL);
+    MessageQCopy_init(MultiProc_getId("HOST"));
+}
 
 /*
  *  ======== IpcMgr_ipcStartup ========
+ *  Initialize MessageQ Transport stack built over RPMSG.
  */
 Void IpcMgr_ipcStartup()
 {
@@ -60,6 +73,8 @@ Void IpcMgr_ipcStartup()
 
 /*
  *  ======== IpcMgr_callIpcStart ========
+ *  Initialize standard IPC module, which may use the RPMSG protocol as well.
+ *
  *  Calls the Ipc_start command.  This must be done
  *  after IpcMgr_ipcStartup().
  */
