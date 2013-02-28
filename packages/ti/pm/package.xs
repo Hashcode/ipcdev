@@ -40,6 +40,10 @@
  */
 function init()
 {
+    if (xdc.om.$name != 'cfg') {
+        return;
+    }
+
     if (Program.build.target.name.match(/C64T/)) {
         var Power = xdc.useModule('ti.sysbios.family.c64p.tesla.Power');
     }
