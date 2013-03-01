@@ -45,7 +45,7 @@ function module$use()
     BIOS = xdc.module("ti.sysbios.BIOS");
     Build = this;
 
-    if (("ti.sdo.ipc" in xdc.om) || ("ti.sdo.io" in xdc.om)) {
+    if ("ti.sdo.ipc" in xdc.om) {
         return;
     }
 
