@@ -50,10 +50,6 @@ var BIOS        = xdc.useModule('ti.sysbios.BIOS');
 /* Reduces code size, by only pulling in modules explicitly referenced: */
 BIOS.libType    = BIOS.LibType_Custom;
 
-/* This calls MessageQCopy_init() once before BIOS_start(): */
-xdc.loadPackage('ti.ipc.ipcmgr');
-BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
-
 xdc.loadPackage('ti.ipc.rpmsg');
 xdc.loadPackage('ti.ipc.family.omap54xx');
 
