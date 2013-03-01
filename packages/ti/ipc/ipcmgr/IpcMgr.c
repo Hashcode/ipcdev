@@ -46,6 +46,8 @@
 /*
  *  ======== IpcMgr_rpmsgStartup ========
  *  Initialize the RPMSG module.  This calls VirtQueue_startup().
+ *
+ *  Use for stacks built on RPMessage only.
  */
 Void IpcMgr_rpmsgStartup()
 {
@@ -56,6 +58,9 @@ Void IpcMgr_rpmsgStartup()
 /*
  *  ======== IpcMgr_ipcStartup ========
  *  Initialize MessageQ Transport stack built over RPMSG.
+ *  This ends up calling MessageQCopy_init().
+ *
+ *  Use for stacks built on MessageQ/TransportRpmsg only.
  */
 Void IpcMgr_ipcStartup()
 {
@@ -75,8 +80,9 @@ Void IpcMgr_ipcStartup()
  *  ======== IpcMgr_callIpcStart ========
  *  Initialize standard IPC module, which may use the RPMSG protocol as well.
  *
- *  Calls the Ipc_start command.  This must be done
- *  after IpcMgr_ipcStartup().
+ *  Calls the Ipc_start command.  This must be done after IpcMgr_ipcStartup().
+ *
+ *  Use for stacks using a combination of TransportRpmsg and other Transports.
  */
 Void IpcMgr_callIpcStart()
 {
