@@ -66,9 +66,6 @@ xdc.loadPackage('ti.resmgr');
 /* Enable Memory Translation module that operates on the BIOS Resource Table */
 var Resource = xdc.useModule('ti.ipc.remoteproc.Resource');
 
-/* HwSpinlock Module */
-xdc.loadPackage('ti.gates.hwspinlock');
-
 var HeapBuf   = xdc.useModule('ti.sysbios.heaps.HeapBuf');
 var List      = xdc.useModule('ti.sdo.utils.List');
 

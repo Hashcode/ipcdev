@@ -42,9 +42,7 @@
 #ifndef _RSC_TABLE_IPU_H_
 #define _RSC_TABLE_IPU_H_
 
-#include <xdc/std.h>
 #include "rsc_types.h"
-#include <ti/gates/hwspinlock/HwSpinlock.h>
 
 /* IPU Memory Map */
 #define L4_44XX_BASE            0x4a000000
@@ -128,7 +126,7 @@ struct resource_table {
     UInt32 version;
     UInt32 num;
     UInt32 reserved[2];
-    UInt32 offset[17];  /* Should match 'num' in actual definition */
+    UInt32 offset[16];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
@@ -179,21 +177,16 @@ struct resource_table {
 
     /* devmem entry */
     struct fw_rsc_devmem devmem10;
-
-    /* hwspinlock custom entry */
-    struct fw_rsc_custom hwspin;
 };
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
-#define HWSPINKLOCKSTATEADDR (UInt32)&ti_gates_HwSpinlock_sharedState
-#define HWSPINKLOCKNUMADDR (UInt32)&ti_gates_HwSpinlock_numLocks
 
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
 struct resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    17,     /* number of entries in the table */
+    16,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
@@ -213,7 +206,6 @@ struct resource_table ti_ipc_remoteproc_ResourceTable = {
         offsetof(struct resource_table, devmem8),
         offsetof(struct resource_table, devmem9),
         offsetof(struct resource_table, devmem10),
-        offsetof(struct resource_table, hwspin),
     },
 
     /* rpmsg vdev entry */
@@ -312,12 +304,6 @@ struct resource_table ti_ipc_remoteproc_ResourceTable = {
         TYPE_DEVMEM,
         IPU_PERIPHERAL_DMM, L3_PERIPHERAL_DMM,
         SZ_1M, 0, 0, "IPU_PERIPHERAL_DMM",
-    },
-
-    {
-        TYPE_CUSTOM, TYPE_HWSPIN,
-        sizeof(struct fw_rsc_custom_hwspin),
-        { HWSPINKLOCKNUMADDR, HWSPINKLOCKSTATEADDR, "hwspin"},
     },
 };
 
