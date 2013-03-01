@@ -31,98 +31,90 @@
  */
 
 /*
- *  ======== rsc_table_ipu.h ========
+ *  ======== rsc_table_omap5_dsp.h ========
  *
- *  Define the resource table entries for all IPU cores. This will be
+ *  Define the resource table entries for all DSP cores. This will be
  *  incorporated into corresponding base images, and used by the remoteproc
  *  on the host-side to allocated/reserve resources.
  *
  */
 
-#ifndef _RSC_TABLE_IPU_H_
-#define _RSC_TABLE_IPU_H_
+#ifndef _RSC_TABLE_DSP_H_
+#define _RSC_TABLE_DSP_H_
 
 #include <xdc/std.h>
-#include <ti/resources/rsc_types.h>
+#include "rsc_types.h"
 #include <ti/gates/hwspinlock/HwSpinlock.h>
 
-/* IPU Memory Map */
-#define L4_44XX_BASE            0x4a000000
+/* DSP Memory Map */
+#define L4_44XX_BASE            0x4A000000
 
 #define L4_PERIPHERAL_L4CFG     (L4_44XX_BASE)
-#define IPU_PERIPHERAL_L4CFG    0xAA000000
+#define DSP_PERIPHERAL_L4CFG    0x4A000000
 
 #define L4_PERIPHERAL_L4PER     0x48000000
-#define IPU_PERIPHERAL_L4PER    0xA8000000
+#define DSP_PERIPHERAL_L4PER    0x48000000
 
 #define L4_PERIPHERAL_L4EMU     0x54000000
-#define IPU_PERIPHERAL_L4EMU    0xB4000000
+#define DSP_PERIPHERAL_L4EMU    0x54000000
 
 #define L3_PERIPHERAL_DMM       0x4E000000
-#define IPU_PERIPHERAL_DMM      0xAE000000
+#define DSP_PERIPHERAL_DMM      0x4E000000
 
-#define L3_IVAHD_CONFIG         0x5A000000
-#define IPU_IVAHD_CONFIG        0xBA000000
-
-#define L3_IVAHD_SL2            0x5B000000
-#define IPU_IVAHD_SL2           0xBB000000
+#define L3_PERIPHERAL_ISS       0x52000000
+#define DSP_PERIPHERAL_ISS      0x52000000
 
 #define L3_TILER_MODE_0_1       0x60000000
-#define IPU_TILER_MODE_0_1      0x60000000
+#define DSP_TILER_MODE_0_1      0x60000000
 
 #define L3_TILER_MODE_2         0x70000000
-#define IPU_TILER_MODE_2        0x70000000
+#define DSP_TILER_MODE_2        0x70000000
 
 #define L3_TILER_MODE_3         0x78000000
-#define IPU_TILER_MODE_3        0x78000000
+#define DSP_TILER_MODE_3        0x78000000
 
-#define IPU_MEM_TEXT            0x0
-#define IPU_MEM_DATA            0x80000000
+#define DSP_MEM_TEXT            0x20000000
+/* Co-locate alongside TILER region for easier flushing */
+#define DSP_MEM_IOBUFS          0x80000000
+#define DSP_MEM_DATA            0x90000000
+#define DSP_MEM_HEAP            0x90100000
 
-#ifdef OMAP5
-#define IPU_MEM_IOBUFS          0x90000000
-#else
-#define IPU_MEM_IOBUFS          0x88000000
-#endif
+#define DSP_MEM_IPC_DATA        0x9F000000
+#define DSP_MEM_IPC_VRING       0xA0000000
+#define DSP_MEM_RPMSG_VRING0    0xA0000000
+#define DSP_MEM_RPMSG_VRING1    0xA0004000
+#define DSP_MEM_VRING_BUFS0     0xA0040000
+#define DSP_MEM_VRING_BUFS1     0xA0080000
 
-#define IPU_MEM_IPC_DATA        0x9F000000
-#define IPU_MEM_IPC_VRING       0xA0000000
-#define IPU_MEM_RPMSG_VRING0    0xA0000000
-#define IPU_MEM_RPMSG_VRING1    0xA0004000
-#define IPU_MEM_VRING_BUFS0     0xA0040000
-#define IPU_MEM_VRING_BUFS1     0xA0080000
-
-#define IPU_MEM_IPC_VRING_SIZE  SZ_1M
-#define IPU_MEM_IPC_DATA_SIZE   SZ_1M
-#define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
-#ifdef OMAP5
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 156)
-#else
-#define IPU_MEM_DATA_SIZE       (SZ_1M * 100)
-#endif
-#define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
+#define DSP_MEM_IPC_VRING_SIZE  SZ_1M
+#define DSP_MEM_IPC_DATA_SIZE   SZ_1M
+#define DSP_MEM_TEXT_SIZE       SZ_1M
+#define DSP_MEM_DATA_SIZE       SZ_1M
+#define DSP_MEM_HEAP_SIZE       (SZ_1M * 3)
+#define DSP_MEM_IOBUFS_SIZE     (SZ_1M * 90)
 
 /*
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
- * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
  */
+/* This address is derived from current IPU & ION carveouts */
 #ifdef OMAP5
-#define PHYS_MEM_IPC_VRING      0x95800000
+#define PHYS_MEM_IPC_VRING      0x95000000
 #else
-#define PHYS_MEM_IPC_VRING      0x99000000
+#define PHYS_MEM_IPC_VRING      0x98800000
 #endif
 
+/* Need to be identical to that of Ducati */
 #define PHYS_MEM_IOBUFS         0xBA300000
 
 /*
  * Sizes of the virtqueues (expressed in number of buffers supported,
  * and must be power of 2)
  */
-#define IPU_RPMSG_VQ0_SIZE      256
-#define IPU_RPMSG_VQ1_SIZE      256
+#define DSP_RPMSG_VQ0_SIZE      256
+#define DSP_RPMSG_VQ1_SIZE      256
 
 /* flip up bits whose indices represent features we support */
-#define RPMSG_IPU_C0_FEATURES   1
+#define RPMSG_DSP_C0_FEATURES         1
 
 struct resource_table {
     UInt32 version;
@@ -140,6 +132,9 @@ struct resource_table {
 
     /* data carveout entry */
     struct fw_rsc_carveout data_cout;
+
+    /* heap carveout entry */
+    struct fw_rsc_carveout heap_cout;
 
     /* ipcdata carveout entry */
     struct fw_rsc_carveout ipcdata_cout;
@@ -177,9 +172,6 @@ struct resource_table {
     /* devmem entry */
     struct fw_rsc_devmem devmem9;
 
-    /* devmem entry */
-    struct fw_rsc_devmem devmem10;
-
     /* hwspinlock custom entry */
     struct fw_rsc_custom hwspin;
 };
@@ -188,10 +180,10 @@ struct resource_table {
 #define HWSPINKLOCKSTATEADDR (UInt32)&ti_gates_HwSpinlock_sharedState
 #define HWSPINKLOCKNUMADDR (UInt32)&ti_gates_HwSpinlock_numLocks
 
-#pragma DATA_SECTION(ti_resources_ResourceTable, ".resource_table")
-#pragma DATA_ALIGN(ti_resources_ResourceTable, 4096)
+#pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
+#pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
-struct resource_table ti_resources_ResourceTable = {
+struct resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
     17,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
@@ -200,6 +192,7 @@ struct resource_table ti_resources_ResourceTable = {
         offsetof(struct resource_table, rpmsg_vdev),
         offsetof(struct resource_table, text_cout),
         offsetof(struct resource_table, data_cout),
+        offsetof(struct resource_table, heap_cout),
         offsetof(struct resource_table, ipcdata_cout),
         offsetof(struct resource_table, trace),
         offsetof(struct resource_table, devmem0),
@@ -212,106 +205,105 @@ struct resource_table ti_resources_ResourceTable = {
         offsetof(struct resource_table, devmem7),
         offsetof(struct resource_table, devmem8),
         offsetof(struct resource_table, devmem9),
-        offsetof(struct resource_table, devmem10),
         offsetof(struct resource_table, hwspin),
     },
 
     /* rpmsg vdev entry */
     {
         TYPE_VDEV, VIRTIO_ID_RPMSG, 0,
-        RPMSG_IPU_C0_FEATURES, 0, 0, 0, 2, { 0, 0 },
+        RPMSG_DSP_C0_FEATURES, 0, 0, 0, 2, { 0, 0 },
         /* no config data */
     },
     /* the two vrings */
-    { IPU_MEM_RPMSG_VRING0, 4096, IPU_RPMSG_VQ0_SIZE, 1, 0 },
-    { IPU_MEM_RPMSG_VRING1, 4096, IPU_RPMSG_VQ1_SIZE, 2, 0 },
+    { DSP_MEM_RPMSG_VRING0, 4096, DSP_RPMSG_VQ0_SIZE, 1, 0 },
+    { DSP_MEM_RPMSG_VRING1, 4096, DSP_RPMSG_VQ1_SIZE, 2, 0 },
 
     {
         TYPE_CARVEOUT,
-        IPU_MEM_TEXT, 0,
-        IPU_MEM_TEXT_SIZE, 0, RPROC_MEMREGION_CODE, "IPU_MEM_TEXT",
-    },
-
-    {
-        TYPE_CARVEOUT,
-        IPU_MEM_DATA, 0,
-        IPU_MEM_DATA_SIZE, 0, RPROC_MEMREGION_DATA, "IPU_MEM_DATA",
+        DSP_MEM_TEXT, 0,
+        DSP_MEM_TEXT_SIZE, 0, 0, "DSP_MEM_TEXT",
     },
 
     {
         TYPE_CARVEOUT,
-        IPU_MEM_IPC_DATA, 0,
-        IPU_MEM_IPC_DATA_SIZE, 0, RPROC_MEMREGION_SMEM, "IPU_MEM_IPC_DATA",
+        DSP_MEM_DATA, 0,
+        DSP_MEM_DATA_SIZE, 0, 0, "DSP_MEM_DATA",
     },
 
     {
-        TYPE_TRACE, TRACEBUFADDR, 0x8000, 0, "trace:sysm3",
+        TYPE_CARVEOUT,
+        DSP_MEM_HEAP, 0,
+        DSP_MEM_HEAP_SIZE, 0, 0, "DSP_MEM_HEAP",
     },
 
     {
-        TYPE_DEVMEM,
-        IPU_MEM_IPC_VRING, PHYS_MEM_IPC_VRING,
-        IPU_MEM_IPC_VRING_SIZE, 0, RPROC_MEMREGION_VRING, "IPU_MEM_IPC_VRING",
+        TYPE_CARVEOUT,
+        DSP_MEM_IPC_DATA, 0,
+        DSP_MEM_IPC_DATA_SIZE, 0, 0, "DSP_MEM_IPC_DATA",
     },
 
     {
-        TYPE_DEVMEM,
-        IPU_MEM_IOBUFS, PHYS_MEM_IOBUFS,
-        IPU_MEM_IOBUFS_SIZE, 0, RPROC_MEMREGION_1D, "IPU_MEM_IOBUFS",
-    },
-
-    {
-        TYPE_DEVMEM,
-        IPU_TILER_MODE_0_1, L3_TILER_MODE_0_1,
-        SZ_256M, 0, 0, "IPU_TILER_MODE_0_1",
+        TYPE_TRACE, TRACEBUFADDR, 0x8000, 0, "trace:dsp",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_TILER_MODE_2, L3_TILER_MODE_2,
-        SZ_128M, 0, 0, "IPU_TILER_MODE_2",
+        DSP_MEM_IPC_VRING, PHYS_MEM_IPC_VRING,
+        DSP_MEM_IPC_VRING_SIZE, 0, 0, "DSP_MEM_IPC_VRING",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_TILER_MODE_3, L3_TILER_MODE_3,
-        SZ_128M, 0, 0, "IPU_TILER_MODE_3",
+        DSP_MEM_IOBUFS, PHYS_MEM_IOBUFS,
+        DSP_MEM_IOBUFS_SIZE, 0, 0, "DSP_MEM_IOBUFS",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_PERIPHERAL_L4CFG, L4_PERIPHERAL_L4CFG,
-        SZ_16M, 0, 0, "IPU_PERIPHERAL_L4CFG",
+        DSP_TILER_MODE_0_1, L3_TILER_MODE_0_1,
+        SZ_256M, 0, 0, "DSP_TILER_MODE_0_1",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_PERIPHERAL_L4PER, L4_PERIPHERAL_L4PER,
-        SZ_16M, 0, 0, "IPU_PERIPHERAL_L4PER",
+        DSP_TILER_MODE_2, L3_TILER_MODE_2,
+        SZ_128M, 0, 0, "DSP_TILER_MODE_2",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_PERIPHERAL_L4EMU, L4_PERIPHERAL_L4EMU,
-        SZ_16M, 0, 0, "IPU_PERIPHERAL_L4EMU",
+        DSP_TILER_MODE_3, L3_TILER_MODE_3,
+        SZ_128M, 0, 0, "DSP_TILER_MODE_3",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_IVAHD_CONFIG, L3_IVAHD_CONFIG,
-        SZ_16M, 0, 0, "IPU_IVAHD_CONFIG",
+        DSP_PERIPHERAL_L4CFG, L4_PERIPHERAL_L4CFG,
+        SZ_16M, 0, 0, "DSP_PERIPHERAL_L4CFG",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_IVAHD_SL2, L3_IVAHD_SL2,
-        SZ_16M, 0, 0, "IPU_IVAHD_SL2",
+        DSP_PERIPHERAL_L4PER, L4_PERIPHERAL_L4PER,
+        SZ_16M, 0, 0, "DSP_PERIPHERAL_L4PER",
     },
 
     {
         TYPE_DEVMEM,
-        IPU_PERIPHERAL_DMM, L3_PERIPHERAL_DMM,
-        SZ_1M, 0, 0, "IPU_PERIPHERAL_DMM",
+        DSP_PERIPHERAL_L4EMU, L4_PERIPHERAL_L4EMU,
+        SZ_16M, 0, 0, "DSP_PERIPHERAL_L4EMU",
+    },
+
+    {
+        TYPE_DEVMEM,
+        DSP_PERIPHERAL_DMM, L3_PERIPHERAL_DMM,
+        SZ_1M, 0, 0, "DSP_PERIPHERAL_DMM",
+    },
+
+    {
+        TYPE_DEVMEM,
+        DSP_PERIPHERAL_ISS, L3_PERIPHERAL_ISS,
+        SZ_256K, 0, 0, "DSP_PERIPHERAL_ISS",
     },
 
     {
@@ -321,4 +313,4 @@ struct resource_table ti_resources_ResourceTable = {
     },
 };
 
-#endif /* _RSC_TABLE_IPU_H_ */
+#endif /* _RSC_TABLE_DSP_H_ */

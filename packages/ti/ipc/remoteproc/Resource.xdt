@@ -47,6 +47,12 @@
 %if (prog.platformName.match(/Kepler/)) {
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
+%if (prog.platformName.match(/omap54xx\.ipu/)) {
+#include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
+%}
+%if (prog.platformName.match(/omap54xx\.dsp/)) {
+#include <ti/ipc/remoteproc/rsc_table_omap5_dsp.h>
+%}
 
 Void ti_ipc_remoteproc_Resource_init__I()
 {
