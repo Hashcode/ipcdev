@@ -50,16 +50,23 @@ var SRCS = ["TransportVirtioSetup.c", "TransportVirtio.c"];
 /* remove this output directory during a clean */
 Pkg.generatedFiles.$add("lib/");
 
+var myCopts = "";
+
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
 
+    if (targ.$name.match(/^ti\.targets\.*/)) {
+        myCopts = "--gcc";  /* Rpmsg.h requires gcc-isms */
+    } else {
+        myCopts = "";
+    }
 
     /* Build for all profiles */
     for (var profile in targ.profiles) {
 
         Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
             profile: profile,
-            copts: "--gcc"   /* b/c Rpmsg.h requires gcc-isms */
+            copts: myCopts
         }).addObjects(SRCS);
     }
 }

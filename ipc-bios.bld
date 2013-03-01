@@ -63,7 +63,8 @@
  *	Build	    an alias for xdc.om.xdc.bld.BuildEnvironment
  */
 
-var build_smp = java.lang.System.getenv("BUILD_SMP");
+/* for M3-devices only (OMAP5), build using the SMP-enabled platform */
+var build_smp = "1";
 
 /* Common ccopts suffix used for all C6x targets */
 var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
@@ -130,7 +131,7 @@ for (arg = 0; arg < arguments.length; arg++) {
     target.rootDir = rootDir;
     target.ccOpts.suffix += ccOpts[targetName];
 
-    /* Add appropriate platforms to build for based on target name */    
+    /* Add appropriate platforms to build for based on target name */
     if (targetName.match(/elf\.C674/)) {
         target.platforms = [ "ti.platforms.evmOMAPL138:DSP" ];
     }

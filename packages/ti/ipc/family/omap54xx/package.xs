@@ -36,20 +36,14 @@
  */
 
 /*
- *  ======== init ========
- */
-function init()
-{
-    xdc.loadPackage('ti.pm');
-}
-
-/*
  *  ======== close ========
  */
 function close()
 {
-    Program.exportModule('ti.sysbios.hal.Cache');
-    Program.exportModule('ti.sysbios.knl.Idle');
+    /* bring in modules we use in this package */
+    xdc.useModule('ti.sysbios.knl.Swi');
+    xdc.useModule('ti.sysbios.hal.Cache');
+    xdc.loadPackage('ti.pm');
 }
 
 /*
@@ -57,15 +51,17 @@ function close()
  */
 function getLibs(prog)
 {
-    var suffix;
     var file;
     var libAry = [];
     var profile = this.profile;
     var smp = "";
 
-    suffix = prog.build.target.findSuffix(this);
+    var suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
-        return "";  /* nothing to contribute */
+        /* no matching lib found in this package, return "" */
+        $trace("Unable to locate a compatible library, returning none.",
+                1, ['getLibs']);
+        return ("");
     }
 
     if (prog.platformName.match(/ipu/)) {

@@ -49,9 +49,11 @@ function close()
  */
 function getLibs(prog)
 {
-    var suffix = prog.build.target.findSuffix(this);
+    var device = prog.cpu.deviceName;
+    var platform = "";
     var smp = "";
 
+    var suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
         $trace("Unable to locate a compatible library, returning none.",
@@ -63,8 +65,28 @@ function getLibs(prog)
         smp = "_smp";
     }
 
+
+    switch (device) {
+        case "OMAP4430":
+            /* OMAP5 */
+            platform = "omap5";
+            break;
+
+        case "OMAPL138":
+            platform = "omapl138";
+            break;
+
+        case "Kepler":
+            platform = "tci6638";
+            break;
+
+        default:
+            throw ("Unspported device: " + device);
+            break;
+    }
+
     /* the location of the libraries are in lib/<profile>/* */
-    var name = this.$name + smp + ".a" + suffix;
+    var name = this.$name + "_" + platform + smp + ".a" + suffix;
     var lib = "lib/" + this.profile + "/" + name;
 
 

@@ -35,7 +35,6 @@
 
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var smpBuild = java.lang.System.getenv("BUILD_SMP");
 
 Pkg.attrs.exportSrc = true;
 
@@ -47,46 +46,60 @@ var SRCS = ["MessageQCopy.c", "NameMap.c"];
 /* remove this output directory during a clean */
 Pkg.generatedFiles.$add("lib/");
 
+var myCopts = "";
 
 for (var i = 0; i < Build.targets.length; i++) {
     var targ = Build.targets[i];
-    var isaDefs = "";
     var name = Pkg.name;
 
-    print("targ.isa: " + targ.isa);
-    print("smpBuild: " + smpBuild);
-
-    /* Yuck, yuck, yuck! */
-    if (targ.isa == "674") {
-        isaDefs = "-DOMAPL138";
-    } else if (targ.isa == "66") {
-        /* TBD: Only one of Appleton or Kepler can build for now: */
-	isaDefs = "-DTCI6638";
-	//isaDefs = "-DTCI6614";
-    } else if (targ.isa == "v7M") {
-        if (smpBuild == "1") {
-            isaDefs = "-DOMAP5 -DSMP";
-            name = name + "_smp";
-        }
-        else {
-            isaDefs = "-DOMAP5 -DDM3_ONLY";
-        }
-    } else if (targ.isa == "64T" && smpBuild == 0) {
-        isaDefs = "-DOMAP5 -DDSP";
+    if (targ.$name.match(/^ti\.targets\.*/)) {
+        myCopts = "--gcc";  /* Rpmsg.h requires gcc-isms */
     } else {
-        continue;
+        myCopts = "";
     }
-
-    print("name: " + name);
-    print("isaDefs: " + isaDefs);
 
     /* Build for all profiles */
     for (var profile in targ.profiles) {
 
-	Pkg.addLibrary("lib/" + profile + "/" + name, targ, {
-	    profile: profile,
-	    copts: "--gcc",   /* b/c Rpmsg.h requires gcc-isms */
-	    defs: isaDefs
-	}).addObjects(SRCS);
+        /* Build a platform-specific library */
+        if (targ.isa == "674") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omapl138", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAPL138"
+            }).addObjects(SRCS);
+        } else if (targ.isa == "66") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_tci6638", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DTCI6638"
+            }).addObjects(SRCS);
+
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_tci6614", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DTCI6614"
+            }).addObjects(SRCS);
+        } else if (targ.isa == "v7M") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP5 -DSMP"
+            }).addObjects(SRCS);
+
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP5 -DDM3_ONLY"
+            }).addObjects(SRCS);
+        } else if (targ.isa == "64T") {
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DOMAP5 -DDSP"
+            }).addObjects(SRCS);
+        } else {
+            continue;
+        }
     }
 }
