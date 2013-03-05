@@ -136,7 +136,7 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
 
             /* currently, no response expected from rpmsg_omx: */
             continue;
-#if 0       // rpmsg_omx is not listening for this ... yet.
+#if 0       /* rpmsg_omx is not listening for this ... yet. */
             hdr->type = OMX_DISC_RSP;
             hdr->len = sizeof(struct omx_disc_rsp);
             len = HDRSIZE + hdr->len;
