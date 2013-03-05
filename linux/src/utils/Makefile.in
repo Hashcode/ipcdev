@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# src/utils/Makefile.am
-
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -64,7 +62,7 @@ am_libtiipcutils_la_OBJECTS = $(am__objects_1) LAD_client.lo \
 	MultiProc.lo SocketFxns.lo
 libtiipcutils_la_OBJECTS = $(am_libtiipcutils_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -87,7 +85,9 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -125,6 +125,9 @@ LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
+MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
+MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
 OMAP4430_FALSE = @OMAP4430_FALSE@
@@ -225,7 +228,7 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -234,9 +237,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  linux/src/utils/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  linux/src/utils/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  linux/src/utils/Makefile
+	  $(AUTOMAKE) --foreign  linux/src/utils/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -250,9 +253,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)

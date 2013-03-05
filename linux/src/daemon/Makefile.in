@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-# linux/src/daemon/Makefile.am
-
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -90,7 +88,7 @@ lad_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
 	$(am__DEPENDENCIES_2)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -113,7 +111,9 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@
@@ -151,6 +151,9 @@ LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
+MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
+MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
 OMAP4430_FALSE = @OMAP4430_FALSE@
@@ -239,26 +242,32 @@ lad_omap4430_SOURCES = $(common_sources)
 lad_omapl138_SOURCES = $(common_sources)
 lad_tci6614_SOURCES = $(common_sources)
 lad_tci6638_SOURCES = $(common_sources)
-common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la $(top_builddir)/linux/src/utils/libtiipcutils.la
+common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
+                $(top_builddir)/linux/src/utils/libtiipcutils.la
+
 
 # the additional libraries needed to link program
 lad_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+                $(AM_LDFLAGS)
 
 lad_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
+                $(AM_LDFLAGS)
 
 lad_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
+                $(AM_LDFLAGS)
 
 lad_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la $(AM_LDFLAGS)
+                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
+                $(AM_LDFLAGS)
 
 all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -267,9 +276,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  linux/src/daemon/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  linux/src/daemon/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  linux/src/daemon/Makefile
+	  $(AUTOMAKE) --foreign  linux/src/daemon/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -283,9 +292,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
