@@ -31,39 +31,47 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 %%}
-%/*
-% *  ======== Build.xdt ========
-% */
-%var BIOS = xdc.module("ti.sysbios.BIOS");
-%var Build = xdc.module("ti.sdo.utils.Build");
-%if ((BIOS.libType == BIOS.LibType_Custom)
-%      && (xdc.module('ti.sdo.ipc.Build').$used == false)) {
 %%{
-    /* get the specified output directory (saved when BIOS was "used") */
-    var outputDir = this.$private.outputDir;
+/*
+ *  ======== Build.xdt ========
+ */
+var BIOS = xdc.module("ti.sysbios.BIOS");
+var Build = xdc.module("ti.sdo.utils.Build");
+var tplt = "";
 
-    /* generate makefile from makefile.xdt
-     *    $args[0] = the RTSC target, so the makefile knows how to run the
-     *               compiler and archiver
-     */
-    print("generating custom ti.sdo.utils library makefile ... ");
-%%}
+if ((BIOS.libType == BIOS.LibType_Custom) &&
+        (Build.$private.outputDir != undefined)) {
 
-%if (Program.build.target.$name.match(/gnu/) &&
-%    (Program.build.target.name.match(/A15/) ||
-%     Program.build.target.name.match(/A9/)  ||
-%     Program.build.target.name.match(/A8/))) {
-%%{
-    var tplt = xdc.loadTemplate(this.$package.packageBase + "/makefile_gccArmLto.xdt");
-%%}
-%}
-%else {
-%%{
-    var tplt = xdc.loadTemplate(this.$package.packageBase + "/makefile.xdt");
-%%}
-%}
+    if (Build.doBuild) {
+        /* generate makefile from makefile.xdt
+         *    $args[0] = the RTSC target, so the makefile knows how to run the
+         *               compiler and archiver
+         */
+        print("generating custom ti.sdo.utils library makefile ... ");
 
-%%{
-    tplt.genFile(outputDir + "/makefile", this, [Program.build.target]);
-%%}
-%}
+        if (Program.build.target.$name.match(/gnu/) &&
+            (Program.build.target.name.match(/A15/) ||
+             Program.build.target.name.match(/A9/)  ||
+             Program.build.target.name.match(/A8/))) {
+
+            tplt = xdc.loadTemplate(this.$package.packageBase +
+                    "/makefile_gccArmLto.xdt");
+        }
+        else {
+            tplt = xdc.loadTemplate(this.$package.packageBase +
+                    "/makefile.xdt");
+        }
+    }
+    else {
+        /* Getting here means that this module should not have been
+         * instructed to build anything. It's too late to abort, so
+         * generate a makefile which will not actually build anything.
+         */
+        tplt = xdc.loadTemplate(this.$package.packageBase +
+                "/makefile_null.xdt");
+    }
+
+    /* use the output directory computed when Build was "used" */
+    tplt.genFile(Build.$private.outputDir + "/makefile", this,
+            [Program.build.target]);
+}
