@@ -1,0 +1,12 @@
+syslink - SysLink Resource Manager
+
+syslink [-fHT]
+
+Options:
+ -f <file_name> Name of the Ducati firmware file to load.  *Must be specified*
+ -H <option>    Enable/Disable Ducati hibernation.  Default: 1
+                where <option> is:
+                    0: OFF
+                    1: ON
+ -T <timeout>   Set the timeout value of the Ducati hibernation in ms.
+                Default: 5000 ms

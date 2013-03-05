@@ -1,0 +1,7 @@
+Syslink Trace Daemon
+
+Usage:
+    syslink_trace_daemon [-h] [-l logfile] [-f]
+      -h   show this help message
+      -l   select file to log to (default stdout)
+      -f   run in foreground (do not fork daemon process)

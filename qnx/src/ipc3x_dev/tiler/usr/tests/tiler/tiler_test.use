@@ -1,0 +1,11 @@
+Parametric memmgr test
+
+Syntax:
+  tiler_test [<operations>]
+
+  Parametric memmgr test.  This is similar to the star test
+  except the operations are read from the command line:
+
+  [#=]a:w*h*bits[,w*h*bits...] allocates a list of blocks as
+  buffer # (it frees any previously allocated/mapped buffer
+  f:# frees a buffer

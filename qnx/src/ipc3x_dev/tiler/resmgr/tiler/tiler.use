@@ -1,0 +1,8 @@
+Tiler - TILER Resource Manager
+
+Tiler [-SLU]
+Options:
+ -S <page_grow_size> Size to grow tiler page allocations at a time (Default:16)
+ -L <lowmem_limit>   Limit (in Mbytes) below which to free any cached pages
+                     held by Tiler (Default:128M)
+ -U <user_param>     User param to use to set uid/gid (Default:NULL)

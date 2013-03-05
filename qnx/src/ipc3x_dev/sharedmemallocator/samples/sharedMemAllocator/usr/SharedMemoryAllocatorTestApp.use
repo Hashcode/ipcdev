@@ -1,0 +1,7 @@
+SharedMemAllocator Test for Syslink SharedMemAllocator
+
+Syntax:
+sharedmemallocator
+
+Examples:
+  sharedmemallocator

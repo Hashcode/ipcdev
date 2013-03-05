@@ -1,0 +1,229 @@
+###############################################################################
+# This is the generic Makefile for all reference implementations of the       #
+# dynamic loader. It is meant to be included by a target specific Makefile.   #
+###############################################################################
+
+###############################################################################
+# Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/      #
+#                                                                             #
+#                                                                             #
+# Redistribution and use in source and binary forms, with or without          #
+# modification, are permitted provided that the following conditions          #
+# are met:                                                                    #
+#                                                                             #
+# Redistributions of source code must retain the above copyright              #
+# notice, this list of conditions and the following disclaimer.               #
+#                                                                             #
+# Redistributions in binary form must reproduce the above copyright           #
+# notice, this list of conditions and the following disclaimer in the         #
+# documentation and/or other materials provided with the                      #
+# distribution.                                                               #
+#                                                                             #
+# Neither the name of Texas Instruments Incorporated nor the names of         #
+# its contributors may be used to endorse or promote products derived         #
+# from this software without specific prior written permission.               #
+#                                                                             #
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS         #
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT           #
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR       #
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT        #
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,       #
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT            #
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,       #
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY       #
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         #
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE       #
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.        #
+###############################################################################
+
+###############################################################################
+# Variables and their meanings.                                               #
+#                                                                             #
+# CC                      C compiler to be used                               #
+# C++                     C++ compiler to be used (required for unit testing) #
+# C_OPTS                  Options to be passed to compiler                    #
+# LNK_OPTS                Options to be passed during linking                 #
+# OUTPUT_FILE_OPTION      Compiler specific option used to specify the        #
+#                         object file output name                             #
+# HOST_PRFX               Prefix for the object file directory                #
+# HOST_EXT                Extension for the dynamic loader executable         #
+# TARG_TOOL_NAME_PRFX     Prefix for the dynamic loader executable            #
+# TARG_TOOL_NAME          Dynamic loader name, formed from the                #
+#                         TARG_TOOL_NAME_NAME_PRFX and HOST_EXT               #
+# OBJ_DIR                 Directory where object files are stored             #
+# UNIT_OBJ_DIR            Direcotry where object files for unit testing       #
+#                         are stored                                          #
+# UNIT_TEST_FILES         Generic files related to unit testing               #
+# TARG_UNIT_TEST_FILES    Target specific unit testing files.                 #
+# VPATH                   List of module directories                          #
+# FILES                   List of files related to building the dynamic       #
+#                         loader                                              #
+# UNIT_FILES              All files required for building a unit testing      #
+#                         executable.                                         #
+# HEADERS                 List of header files extracted from FILES           #
+# UNIT_HEADERS            List of header files extracted from UNIT_FILES      #
+# INCL                    Include directories                                 #
+# OBJS                    List of object files required for linking           #
+# OBJS_UNIT               List of object files required for linking a         #
+#                         unit testing executable.                            #
+###############################################################################
+
+###############################################################################
+# Set C++ compiler to be same as C compiler.  For gcc this must be changed
+# to g++
+###############################################################################
+C++ = $(CC)
+
+###############################################################################
+# Set host specific default options
+###############################################################################
+ifeq (cl6x, $(CC))
+HOST_PRFX = C60
+HOST_EXT = 6x
+C_OPTS += -mv6400+ ## Kelvin determines HW to simulate based on base image
+C_OPTS += -o
+C_OPTS += -pds67
+C_OPTS += --abi=elfabi
+OUTPUT_FILE_OPTION = --output_file
+LNK_OPTS += -z lnk.cmd --dynamic -c
+EXPORT_OPTS = DLWRAPPER/c60_export.cmd
+
+else ifeq (cl470, $(CC))
+HOST_PRFX = TMS470
+HOST_EXT = 470
+C_OPTS = -mv5e
+C_OPTS += -pds67
+C_OPTS += --abi=eabi
+OUTPUT_FILE_OPTION = --output_file
+LNK_OPTS += -z lnk.cmd --dynamic -c
+EXPORT_OPTS = DLWRAPPER/arm_export.cmd
+
+else ifeq (gcc, $(CC))
+HOST_PRFX = GCC
+HOST_EXT = gcc
+OUTPUT_FILE_OPTION = -o
+C++ = g++
+EXPORT_OPTS =
+
+else ifeq (rv31cc, $(CC))
+HOST_PRFX = RVCT
+HOST_EXT = rvct
+OUTPUT_FILE_OPTION = -o
+EXPORT_OPTS =
+
+else
+DEFAULT:
+	@echo "Compiler '$(CC)' not supported"
+	@exit 1
+endif
+
+TARG_TOOL_NAME = $(TARG_TOOL_NAME_PRFX).$(HOST_EXT)
+
+###############################################################################
+# List of generic modules and their files
+###############################################################################
+DLOAD_FILES = \
+        Queue.h \
+        ArrayList.c \
+        ArrayList.h \
+        dload.c \
+        dload.h \
+        elf32.c \
+        elf32.h \
+        dload_endian.c \
+        dload_endian.h \
+        relocate.h \
+        symtab.h \
+        util.h
+
+DLOAD_API_FILES = \
+        dload_api.h
+
+DLWRAPPER_FILES = \
+        dlw.c \
+        Stack.h \
+        dlw_debug.c \
+        dlw_debug.h \
+        dlw_dsbt.c \
+        dlw_dsbt.h \
+        dlw_trgmem.c \
+        dlw_trgmem.h \
+        dlmodules.c \
+        dlw_client.c
+
+DLOAD_SYM_FILES = symtab.c
+
+OBJ_DIR = $(HOST_PRFX)_LNX
+UNIT_OBJ_DIR = $(HOST_PRFX)_UNIT_LNX
+
+###############################################################################
+# Add any generic unit test files here
+###############################################################################
+UNIT_TEST_FILES = \
+        $(TARG_UNIT_TEST_FILES) \
+        runner.cpp
+
+VPATH = DLOAD DLOAD_API DLWRAPPER DLOAD_SYM $(TARG_VPATH)
+
+FILES = $(DLOAD_FILES) $(DLOAD_API_FILES) $(DLWRAPPER_FILES) $(TARG_SRCFILES) \
+        $(DLOAD_SYM_FILES)
+UNIT_FILES = $(FILES) $(UNIT_TEST_FILES)
+
+HEADERS = $(filter %.h, $(FILES))
+UNIT_HEADERS = $(filter %.h, $(UNIT_TEST_FILES))
+INCL = -I. $(patsubst %,-I%,$(VPATH))
+TARGET_TEMP = $(patsubst %,-D%,$(TARGET))
+DEFINE_TARGET = $(patsubst %,%_TARGET,$(TARGET_TEMP))
+
+OBJS = $(patsubst %.c,$(OBJ_DIR)/%.obj,$(filter %.c, $(FILES)))
+OBJS_UNIT = $(patsubst %.c,$(UNIT_OBJ_DIR)/%.obj,$(filter %.c, $(UNIT_FILES)))
+OBJS_UNIT += $(patsubst %.cpp,$(UNIT_OBJ_DIR)/%.obj,$(filter %.cpp, $(UNIT_FILES)))
+
+all: $(TARG_TOOL_NAME)
+unit: unit_$(TARG_TOOL_NAME)
+
+###############################################################################
+# Normal make process
+###############################################################################
+$(TARG_TOOL_NAME): $(OBJS) lnk.cmd
+	$(CC) $(C_OPTS) $(OBJS) $(LNK_OPTS) $(EXPORT_OPTS) -o $@
+
+$(OBJ_DIR)/%.obj: %.c $(HEADERS) $(OBJ_DIR)/.created
+	$(CC) -c $(C_OPTS) $(INCL) $(DEFINE_TARGET) $< $(OUTPUT_FILE_OPTION) $@
+
+$(OBJ_DIR)/.created:
+	mkdir -p $(OBJ_DIR)
+	touch $(OBJ_DIR)/.created
+
+
+###############################################################################
+# Unit test make process
+###############################################################################
+unit_$(TARG_TOOL_NAME): $(OBJS_UNIT) lnk.cmd
+	$(C++) $(C_OPTS) $(OBJS_UNIT) -z lnk.cmd -o $@
+
+
+$(UNIT_OBJ_DIR)/%.obj: %.c $(HEADERS) $(UNIT_OBJ_DIR)/.created
+	$(CC) -c -DUNIT_TEST=1 $(C_OPTS) $(INCL) $(DEFINE_TARGET) -I /db/sds13/packages/cxxtest-3.10.1 $< $(OUTPUT_FILE_OPTION) $@
+
+$(UNIT_OBJ_DIR)/%.obj: %.cpp $(HEADERS) $(UNIT_OBJ_DIR)/.created
+	$(CC) -c -DUNIT_TEST=1 $(C_OPTS) $(INCL) $(DEFINE_TARGET) -I /db/sds13/packages/cxxtest-3.10.1 $< $(OUTPUT_FILE_OPTION) $@
+
+runner.cpp: $(UNIT_HEADERS)
+	cxxtestgen.py --error-printer -o runner.cpp $(UNIT_HEADERS)
+
+$(UNIT_OBJ_DIR)/.created:
+	mkdir -p $(UNIT_OBJ_DIR)
+	touch $(UNIT_OBJ_DIR)/.created
+
+###############################################################################
+# Cleanup
+###############################################################################
+clean:
+	-rm -rf *_LNX
+	-rm -rf *$(TARG_TOOL_NAME_PRFX).*
+	-rm -f runner.cpp
+
+clean_host:
+	-rm -rf *$(HOST_PRFX)_LNX
+	-rm -rf *$(TARG_TOOL_NAME_PRFX).$(HOST_EXT)
