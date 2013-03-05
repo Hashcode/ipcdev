@@ -38,7 +38,6 @@
 /* explicit references to global objects */
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
-var smpBuild = java.lang.System.getenv("BUILD_SMP");
 
 /* clean lib folder */
 Pkg.generatedFiles.$add("lib/");
@@ -55,38 +54,29 @@ Pkg.otherFiles = [
 
 /* list of libraries to build */
 var libArray = new Array();
-if (smpBuild == "1") {
-    /* srvmgr library for IPU SMP target */
-    libArray.push(
-        {
-            name: "ti.srvmgr_smp",
-            sources: [
-                "ServiceMgr",
-            ],
-            libAttrs: {
-                defs: " -DSMP"
-            },
-            icw: [ "v7M" ],
-        }
-    );
-}
-else {
-    /* srvmgr library for regular targets */
-    libArray.push(
-        {
-            name: "ti.srvmgr",
-            sources: [
-                "ServiceMgr",
-            ],
-        }
-    );
-}
 
-/* generate the package libraries */
-/* check if profile specified in XDCARGS */
-/* XDCARGS="... profile=debug ..." */
-var cmdlProf = (" " + arguments.join(" ") + " ").match(/ profile=([^ ]+) /);
-cmdlProf = cmdlProf != null ? cmdlProf[1] : null;
+/* srvmgr library for IPU SMP target */
+libArray.push(
+    {
+        name: "ti.srvmgr_smp",
+        sources: [
+            "ServiceMgr",
+        ],
+        libAttrs: {
+            defs: " -DSMP"
+        },
+    }
+);
+
+/* srvmgr library for regular targets */
+libArray.push(
+    {
+        name: "ti.srvmgr",
+        sources: [
+            "ServiceMgr",
+        ],
+    }
+);
 
 /* ==== loop over array of libraries ==== */
 for (var i = 0; i < libArray.length; i++) {
@@ -95,19 +85,6 @@ for (var i = 0; i < libArray.length; i++) {
     /* ==== loop over all targets in build array ==== */
     for (var j = 0; j < Build.targets.length; j++) {
         var targ = Build.targets[j];
-
-        /* skip target if not compatible with source code */
-        if ("icw" in lib) {
-            var skipTarget = true;
-            var targIsaChain = "/" + targ.getISAChain().join("/") + "/";
-            for (var k = 0; k < lib.icw.length; k++) {
-                if (targIsaChain.match("/" + lib.icw[k] + "/")) {
-                    skipTarget = false;
-                    break;
-                }
-            }
-            if (skipTarget) continue;
-        }
 
         /* skip target if it does not generate code for the given isa */
         if ("isas" in lib) {
@@ -121,11 +98,6 @@ for (var i = 0; i < libArray.length; i++) {
 
         /* ==== loop over all profiles ==== */
         for (var profile in targ.profiles) {
-
-            /* skip profile if different than specified on command line */
-            if ((cmdlProf != null) && (profile != cmdlProf)) {
-                continue;
-            }
 
             /* name = lib/profile/name.a+suffix */
             var name = "lib/" + profile + "/" + lib.name;

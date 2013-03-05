@@ -44,24 +44,19 @@ function getLibs(prog)
     var file;
     var libAry = [];
     var profile = this.profile;
-    var smp = "";
 
     suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
         return "";  /* nothing to contribute */
     }
 
-    if (prog.platformName.match(/ipu/)) {
-        smp = "_smp";
-    }
-
     /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.grcm" + smp + ".a" + suffix;
+    file = "lib/" + profile + "/ti.grcm.a" + suffix;
     if (java.io.File(this.packageBase + file).exists()) {
         libAry.push(file);
     }
     else {
-        file = "lib/release/ti.grcm" + smp + ".a" + suffix;
+        file = "lib/release/ti.grcm.a" + suffix;
         if (java.io.File(this.packageBase + file).exists()) {
             libAry.push(file);
         }
