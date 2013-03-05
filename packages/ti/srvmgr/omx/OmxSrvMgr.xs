@@ -30,27 +30,22 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
+/*
+ *  ======== OmxServerMgr.xs ========
+ *
+ */
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*
+ *  ======== module$use ========
+ *  Use other modules required by this module
+ */
+function module$use()
+{
+    xdc.useModule('xdc.runtime.System');
+    xdc.useModule('xdc.runtime.Startup');
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+    xdc.useModule('ti.sysbios.knl.Task');
+    xdc.useModule('ti.sdo.utils.MultiProc');
 
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
-}
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+    xdc.loadPackage('ti.srvmgr');
 }

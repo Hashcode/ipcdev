@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,46 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*
+ *  ======== RcmClient.xs ========
+ *
+ */
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+/*
+ *  ======== module$use ========
+ *  Use other modules required by this module
+ */
+function module$use()
+{
+    var Settings = xdc.module(this.$package.$name + '.Settings');
 
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
-}
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+    /* Settings.ipc config param cannot be undefined */
+    if (Settings.ipc == undefined) {
+        throw new Error("the " + Settings.$name + ".ipc config param"
+        + " is undefined, it must be assigned a value by"
+        + " the application config script.");
+    }
+
+    xdc.useModule('xdc.runtime.Diags');
+    xdc.useModule('xdc.runtime.Error');
+    xdc.useModule('xdc.runtime.Log');
+    xdc.useModule('xdc.runtime.Memory');
+    xdc.useModule('xdc.runtime.Startup');
+    xdc.useModule('xdc.runtime.knl.GateThread');
+    xdc.useModule('xdc.runtime.knl.Semaphore');
+    xdc.useModule('xdc.runtime.knl.SemThread');
+    xdc.useModule('xdc.runtime.knl.SyncSemThread');
+
+    if (Settings.IpcSupport_ti_sdo_ipc == Settings.ipc) {
+        xdc.useModule('ti.sdo.ipc.MessageQ');
+        xdc.useModule('ti.sdo.utils.List');
+    }
+    else if (Settings.IpcSupport_ti_syslink_ipc == Settings.ipc) {
+        xdc.loadPackage('ti.syslink');
+    }
+    else {
+        throw new Error("unknown value for " + Settings.$name
+        + ".ipc config param (" + Settings.ipc + ")");
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,66 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
+/*
+ *  ======== package.xs ========
+ *
+ */
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*
+ *  ======== getLibs ========
+ */
+function getLibs(prog)
+{
+    var suffix;
+    var file;
+    var libAry = [];
+    var profile = this.profile;
+    var smp = "";
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+    suffix = prog.build.target.findSuffix(this);
+    if (suffix == null) {
+        return "";  /* nothing to contribute */
+    }
 
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
+    if (prog.platformName.match(/ipu/)) {
+        smp = "_smp";
+    }
+
+    /* make sure the library exists, else fallback to a built library */
+    file = "lib/" + profile + "/ti.grcm" + smp + ".a" + suffix;
+    if (java.io.File(this.packageBase + file).exists()) {
+        libAry.push(file);
+    }
+    else {
+        file = "lib/release/ti.grcm" + smp + ".a" + suffix;
+        if (java.io.File(this.packageBase + file).exists()) {
+            libAry.push(file);
+        }
+        else {
+            /* fallback to a compatible library built by this package */
+            for (var p in this.build.libDesc) {
+                if (suffix == this.build.libDesc[p].suffix) {
+                    libAry.push(p);
+                    break;
+                }
+            }
+        }
+    }
+
+    return libAry.join(";");
 }
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+
+/*
+ *  ======== getSects ========
+ */
+function getSects()
+{
+    var Settings = this.Settings;
+
+    if (!Settings.loadStrings) {
+        return "ti/grcm/link.xdt";
+    }
+    else {
+        return null;
+    }
 }

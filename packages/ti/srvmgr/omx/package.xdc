@@ -30,27 +30,20 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
+/*
+ *  ======== package.xdc ========
+ *
+ */
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*!
+ *  ======== ti.srvmgr.omx ========
+ *  OMX Service Package
+ *
+ *  The OMX Service package provides the service task implementation for the
+ *  OMX service.
+ *
+ */
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
-
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
-}
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+package ti.srvmgr.omx [1,0,0] {
+    module OmxSrvMgr;
 }

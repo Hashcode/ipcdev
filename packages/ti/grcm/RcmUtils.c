@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,67 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*
+ *  ======== RcmUtils.c ========
+ *
+ */
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+#include <xdc/std.h>
+#include "RcmTypes.h"
 
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
+
+/*
+ *  ======== memset ========
+ */
+Void *_memset(Void *s, Int c, Int n)
+{
+    UChar *p = (UChar *)s;
+
+    while (n-- > 0) {
+        *p++ = (UChar)c;
+    }
+
+    return(s);
 }
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+
+
+/*
+ *  ======== _strcpy ========
+ *  Copy t to s, including null character.
+ */
+Void _strcpy(Char *s, Char *t)
+{
+    while ((*s++ = *t++))
+        ;
+}
+
+
+/*
+ *  ======== _strcmp ========
+ *  Return <0 if s<t, 0 if s==t, >0 if s>t
+ */
+Int _strcmp(Char *s, Char *t)
+{
+    for ( ; *s == *t; s++, t++) {
+        if (*s == '\0') {
+            return(0);
+        }
+    }
+    return(*s - *t);
+}
+
+
+/*
+ *  ======== _strlen ========
+ *  Return length of s
+ */
+Int _strlen(const Char *s)
+{
+    Int n;
+
+    for (n = 0; *s != '\0'; s++) {
+        n++;
+    }
+    return(n);
 }

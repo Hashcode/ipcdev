@@ -113,7 +113,6 @@ for (var i = 0; i < Build.targets.length; i++) {
                 }).addObjects(["dual_transports.c"]);
         }
 
-/* RE-ENABLE after ping_rpmsg works on OMAP5 SMP:
         Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
             cfgScript: "rpmsg_transport",
             defs: "-D BENCHMARK "
@@ -123,11 +122,18 @@ for (var i = 0; i < Build.targets.length; i++) {
             cfgScript: "rpmsg_transport",
             defs: "-D BENCHMARK "
         }).addObjects(["messageq_single.c"]);
-*/
+
         if (platform.match(/^ti\.platforms\.evmOMAPL138\:DSP/)) {
                 Pkg.addExecutable(name + "/nano_test", targ, platform, {
                     cfgScript: "rpmsg_transport"
                 }).addObjects(["nano_test.c"]);
+        }
+
+        if (platform.match(/^ti\.platform\.omap54xx\.ipu/)) {
+            Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
+                cfgScript: "test_omx_ipu_omap5",
+                defs: "-D IPU -D OMAP5xxx"
+            }).addObjects(["test_omx.c","ping_tasks.c"]);
         }
     }
 }

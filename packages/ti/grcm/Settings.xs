@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,27 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//print ("Program.cpu.deviceName = " + Program.cpu.deviceName);
-//print ("Program.platformName = " + Program.platformName);
 
-/* This will match for omap5 SMP only: */
-if (Program.platformName.match(/ipu/)) {
-    var Task          = xdc.useModule('ti.sysbios.knl.Task');
-    var params = new Task.Params;
-    params.instance.name = "ping";
-    params.arg0= 51;
-    Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-    Task.deleteTerminatedTasks = true;
+/*
+ *  ======== Settings.xs ========
+ *
+ */
 
-    /* This calls MessageQCopy_init() once before BIOS_start(): */
-    xdc.loadPackage('ti.ipc.ipcmgr');
-    var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-    BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
 
-    xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-    xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-    xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
-}
-else {
-    xdc.loadCapsule("ping_rpmsg_common.cfg.xs");
+/*
+ *  ======== module$validate ========
+ *  Validate the module's state
+ */
+function module$validate()
+{
+    /* ipc config param cannot be undefined */
+    if (this.ipc == undefined) {
+        throw new Error("ipc config param is undefined, it must be"
+        + " assigned a value by the application config script.");
+    }
+    else if (this.ipc == this.IpcSupport_ti_syslink_ipc) {
+        throw new Error("ipc config param cannot be set to "
+        + "IpcSupport_ti_syslink_ipc, it is only supported with "
+        + "IpcSupport_ti_sdo_ipc");
+    }
 }
