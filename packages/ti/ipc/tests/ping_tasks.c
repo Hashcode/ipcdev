@@ -86,9 +86,6 @@ Void copyTaskFxn(UArg arg0, UArg arg1)
 
     /* Teardown our side: */
     MessageQCopy_delete(&handle);
-
-    /* Free MessageQCopy module wide resources: */
-    MessageQCopy_finalize();
 }
 
 void start_ping_tasks()
