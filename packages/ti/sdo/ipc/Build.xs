@@ -45,6 +45,9 @@ function module$use()
     BIOS = xdc.module("ti.sysbios.BIOS");
     Build = this;
 
+    /* inform ti.sdo.utils.Build *not* to contribute libraries */
+    xdc.module("ti.sdo.utils.Build").doBuild = false;
+
     /* inform getLibs() about location of library */
     switch (BIOS.libType) {
         case BIOS.LibType_Instrumented:

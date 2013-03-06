@@ -68,8 +68,7 @@ function getLibs(prog)
         case BIOS.LibType_Instrumented:
         case BIOS.LibType_NonInstrumented:
         case BIOS.LibType_Custom:
-            if ((xdc.module('ti.sdo.ipc.Build').$used == false)
-                 && (Build.$used == true)) {
+            if (Build.$used && Build.doBuild) {
                 lib = Build.$private.outputDir + Build.$private.libraryName;
                 return ("!" + String(java.io.File(lib).getCanonicalPath()));
             }

@@ -45,7 +45,7 @@ function module$use()
     BIOS = xdc.module("ti.sysbios.BIOS");
     Build = this;
 
-    if ("ti.sdo.ipc" in xdc.om) {
+    if (!Build.doBuild) {
         return;
     }
 
@@ -227,7 +227,7 @@ function getDefs()
 function getLibs(pkg)
 {
     var BIOS = xdc.module("ti.sysbios.BIOS");
-print("In utils.Build.getLibs");
+
     if (BIOS.libType != BIOS.LibType_Debug) {
         return null;
     }
