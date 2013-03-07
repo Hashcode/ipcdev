@@ -573,6 +573,7 @@ Int MessageQCopy_send(UInt16 dstProc,
             Semaphore_reset(transport.semHandle_toHost, 0);
             token = VirtQueue_getAvailBuf(transport.virtQueue_toHost,
                     (Void **)&msg, &length);
+            GateSwi_leave(module.gateSwi, key);
         } while (token < 0 && Semaphore_pend(transport.semHandle_toHost,
                                              BIOS_WAIT_FOREVER));
         if (token >= 0) {
@@ -584,15 +585,16 @@ Int MessageQCopy_send(UInt16 dstProc,
             msg->flags = 0;
             msg->reserved = 0;
 
+            key = GateSwi_enter(module.gateSwi);  // Protect vring structs.
             VirtQueue_addUsedBuf(transport.virtQueue_toHost, token,
                                                             RPMSG_BUF_SIZE);
             VirtQueue_kick(transport.virtQueue_toHost);
+            GateSwi_leave(module.gateSwi, key);
         }
         else {
             status = MessageQCopy_E_FAIL;
             Log_print0(Diags_STATUS, FXNN": getAvailBuf failed!");
         }
-        GateSwi_leave(module.gateSwi, key);
     }
     else {
         /* Put on a Message queue on this processor: */
