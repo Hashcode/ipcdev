@@ -39,7 +39,7 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 Pkg.attrs.exportSrc = true;
 
 Pkg.otherFiles = ["package.bld", "Rpmsg.h", "virtio_ring.h", "_MessageQCopy.h",
-                        "MessageQCopy.h", "NameMap.h"];
+        "_VirtQueue.h", "MessageQCopy.h", "NameMap.h"];
 
 var SRCS = ["MessageQCopy.c", "NameMap.c"];
 

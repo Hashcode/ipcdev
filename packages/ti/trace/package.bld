@@ -32,7 +32,6 @@
 
 /*
  *  ======== package.bld ========
- *
  */
 
 /* explicit references to global objects */
@@ -41,14 +40,10 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 /* clean lib folder */
 Pkg.generatedFiles.$add("lib/");
-Pkg.libDir = "package/";
 
 /* add custom files to all releases */
-Pkg.attrs.exportSrc = false;
-Pkg.attrs.exportCfg = true;
-Pkg.otherFiles = [
-    "SysMin.h",
-];
+Pkg.attrs.exportSrc = true;
+Pkg.otherFiles = ["package.bld", "SysMin.h"];
 
 /* list of libraries to build */
 var libArray = new Array();
