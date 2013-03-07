@@ -32,7 +32,6 @@
 
 /*
  *  ======== package.bld ========
- *
  */
 
 /* explicit references to global objects */
@@ -41,22 +40,14 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 /* clean lib folder */
 Pkg.generatedFiles.$add("lib/");
-Pkg.generatedFiles.$add("nocfg/");
-Pkg.generatedFiles.$add("nocfg.mak");
-Pkg.libDir = "package/";
 
-/* add custom makefiles to build model */
-Pkg.makePrologue =
-    "-include prologue.mak\n" +
-    "-include docs.mak\n";
-
-/* add custom files to all releases */
-Pkg.attrs.exportSrc = false;
-Pkg.attrs.exportCfg = true;
+Pkg.attrs.exportSrc = true;
 Pkg.otherFiles = [
     "RcmClient.h",
     "RcmServer.h",
-    "RcmTypes.h"
+    "RcmTypes.h",
+    "package.bld",
+    "link.xdt"
 ];
 
 /* list of libraries to build */
@@ -87,16 +78,6 @@ for (var i = 0; i < libArray.length; i++) {
         /* invoke user supplied target predicate function */
         if (this.skipTarget != undefined)  {
             continue;
-        }
-
-        /* skip target if it does not generate code for the given isa */
-        if ("isas" in lib) {
-            var skipTarget = true;
-            var list = "/" + lib.isas.join("/") + "/";
-            if (list.match("/" + targ.isa + "/")) {
-                skipTarget = false;
-            }
-            if (skipTarget) continue;
         }
 
         /* ==== loop over all profiles ==== */
