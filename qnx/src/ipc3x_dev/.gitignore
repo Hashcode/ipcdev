@@ -15,6 +15,7 @@ ti/syslink/samples/hlos/rpmsg-omx/usr/arm/le.v7/rpmsg-omx-test
 ti/syslink/samples/hlos/stress/usr/arm/le.v7/rpmsg-omx-stress
 ti/syslink/samples/hlos/deh/usr/arm/le.v7/rpmsg-omx-errors
 ti/syslink/samples/hlos/ti-ipc/arm/le.v7/ti-ipc-test
+ti/syslink/samples/hlos/rpmsg-rpc-stress/usr/arm/le.v7/rpmsg-rpc-stress
 tiler/resmgr/tiler/arm/le.v7/tiler
 tiler/usr/tests/memmgr/arm/le.v7/memmgr_test
 tiler/usr/tests/tiler/arm/le.v7/tiler_test
