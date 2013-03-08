@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*!
- *  @file       SysLink.c
+ *  @file       Ipc.c
  *
- *  @brief      Initializes and finalizes user side SysLink
+ *  @brief      Starts and stops user side Ipc
  *              All setup/destroy APIs on user side will be call from this
  *              module.
  *
@@ -47,11 +47,11 @@
 #include <Std.h>
 
 /* Common IPC headers: */
+#include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
 
 /* User side headers */
 #include <ladclient.h>
-#include <SysLink.h>
 
 /* IPC startup/shutdown stuff: */
 #include <ti/ipc/MultiProc.h>
@@ -66,11 +66,11 @@ static void cleanup(int arg);
  *  Functions
  *  ============================================================================
  */
-/* Function to initialize SysLink. */
-Int SysLink_setup (Void)
+/* Function to start Ipc */
+Int Ipc_start (Void)
 {
     MessageQ_Config   msgqCfg;
-    Int32             status = 0;
+    Int32             status = Ipc_S_SUCCESS;
     LAD_Status        ladStatus;
     UInt16            rprocId;
 
@@ -79,8 +79,8 @@ Int SysLink_setup (Void)
 
     ladStatus = LAD_connect(&ladHandle);
     if (ladStatus != LAD_SUCCESS) {
-        printf("SysLink_setup: LAD_connect() failed: %d\n", ladStatus);
-        status = SysLink_E_RESOURCE;
+        printf("Ipc_start: LAD_connect() failed: %d\n", ladStatus);
+        status = Ipc_E_FAIL;
         goto exit;
     }
 
@@ -99,10 +99,15 @@ Int SysLink_setup (Void)
            }
            status = MessageQ_attach (rprocId, NULL);
            if (status < 0) {
-              printf("SysLink_setup: MessageQ_attach(%d) failed: %d\n",
+              printf("Ipc_start: MessageQ_attach(%d) failed: %d\n",
                      rprocId, status);
+              status = Ipc_E_FAIL;
            }
         }
+    }
+    else {
+        printf("Ipc_start: NameServer_setup() failed: %d\n", status);
+        status = Ipc_E_FAIL;
     }
 
 exit:
@@ -110,10 +115,10 @@ exit:
 }
 
 
-/* Function to finalize SysLink. */
-Void SysLink_destroy (Void)
+/* Function to stop Ipc */
+Int Ipc_stop (Void)
 {
-    Int32             status = 0;
+    Int32             status = Ipc_S_SUCCESS;
     LAD_Status        ladStatus;
     UInt16            rprocId;
 
@@ -121,36 +126,47 @@ Void SysLink_destroy (Void)
     for (rprocId = 0;
          (rprocId < MultiProc_getNumProcessors()) && (status >= 0);
          rprocId++) {
-       if (0 == rprocId) {
+        if (0 == rprocId) {
           /* Skip host, which should always be 0th entry. */
           continue;
-       }
-       status = MessageQ_detach(rprocId);
-       if (status < 0) {
-          printf("SysLink_destroy: MessageQ_detach(%d) failed: %d\n",
-                 rprocId, status);
+        }
+        status = MessageQ_detach(rprocId);
+        if (status < 0) {
+            printf("Ipc_stop: MessageQ_detach(%d) failed: %d\n",
+                rprocId, status);
+            status = Ipc_E_FAIL;
+            goto exit;
        }
     }
 
     status = MessageQ_destroy();
     if (status < 0) {
-       printf("SysLink_destroy: MessageQ_destroy() failed: %d\n", status);
+        printf("Ipc_stop: MessageQ_destroy() failed: %d\n", status);
+        status = Ipc_E_FAIL;
+        goto exit;
     }
 
     status = NameServer_destroy();
     if (status < 0) {
-       printf("SysLink_destroy: NameServer_destroy() failed: %d\n", status);
+        printf("Ipc_stop: NameServer_destroy() failed: %d\n", status);
+        status = Ipc_E_FAIL;
+        goto exit;
     }
 
     ladStatus = LAD_disconnect(ladHandle);
     if (ladStatus != LAD_SUCCESS) {
         printf("LAD_disconnect() failed: %d\n", ladStatus);
+        status = Ipc_E_FAIL;
+        goto exit;
     }
+
+exit:
+    return (status);
 }
 
 static void cleanup(int arg)
 {
-    printf("SysLink: Caught SIGINT, calling SysLink_destroy...\n");
-    SysLink_destroy();
+    printf("Ipc: Caught SIGINT, calling Ipc_stop...\n");
+    Ipc_stop();
     exit(0);
 }

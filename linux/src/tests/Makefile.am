@@ -79,7 +79,7 @@ endif
 
 common_sources = \
                 $(top_srcdir)/linux/include/Std.h \
-                $(top_srcdir)/linux/include/SysLink.h \
+                $(top_srcdir)/packages/ti/ipc/Ipc.h \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h
 
 nameServer_common_sources = \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,9 @@
 /* Standard headers */
 #include <stdio.h>
 
-/* SysLink/IPC Headers: */
+/* IPC headers */
 #include <Std.h>
-#include <SysLink.h>
+#include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
 #include <ti/sdo/linuxutils/cmem/include/cmem.h>
@@ -227,14 +227,14 @@ int main (int argc, char ** argv)
         return(-1);
     }
 
-    status = SysLink_setup();
+    status = Ipc_start();
 
     if (status >= 0) {
         Nanotest_execute();
-        SysLink_destroy();
+        Ipc_stop();
     }
     else {
-        printf ("SysLink_setup failed: status = 0x%x\n", status);
+        printf ("Ipc_start failed: status = 0x%x\n", status);
     }
 
     return(0);

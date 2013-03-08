@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@
 /* Standard headers */
 #include <stdio.h>
 
-/* SysLink Standard Header: */
+/* Ipc Standard header */
 #include <Std.h>
 
 #include <_NameServer.h>

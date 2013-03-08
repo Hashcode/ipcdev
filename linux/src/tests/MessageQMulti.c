@@ -44,9 +44,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* SysLink/IPC Headers: */
+/* IPC Headers */
 #include <Std.h>
-#include <SysLink.h>
+#include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
 /* App defines: Must match on remote proc side: */
@@ -225,9 +225,9 @@ int main (int argc, char ** argv)
         printf("ProcNum: %d\n", procNum);
     }
 
-    status = SysLink_setup();
+    status = Ipc_start();
     if (status < 0) {
-        printf ("SysLink_setup failed: status = 0x%x\n", status);
+        printf ("Ipc_start failed: status = 0x%x\n", status);
         goto exit;
     }
 
@@ -256,7 +256,7 @@ int main (int argc, char ** argv)
         free(res);      /* Free memory allocated by thread */
     }
 
-    SysLink_destroy();
+    Ipc_stop();
 
 exit:
 

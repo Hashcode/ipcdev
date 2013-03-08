@@ -46,9 +46,7 @@ lib_LTLIBRARIES = libtiipc.la
 libtiipc_ladir = $(includedir)
 
 # the list of header files that belong to the library (to be installed later)
-libtiipc_la_HEADERS =    \
-                        $(top_srcdir)/linux/include/Std.h \
-                        $(top_srcdir)/linux/include/SysLink.h
+libtiipc_la_HEADERS = $(top_srcdir)/linux/include/Std.h
 
 # the sources to add to the library and to add to the source distribution
 libtiipc_la_SOURCES =    \
@@ -60,12 +58,13 @@ libtiipc_la_SOURCES =    \
                         $(top_srcdir)/linux/include/_lad.h \
                         $(top_srcdir)/linux/include/SocketFxns.h \
                         $(top_srcdir)/linux/include/net/rpmsg.h \
+                        $(top_srcdir)/packages/ti/ipc/Ipc.h \
                         $(top_srcdir)/packages/ti/ipc/NameServer.h \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         $(top_srcdir)/packages/ti/ipc/MessageQ.h \
                         MessageQ.c \
                         NameServer.c \
-                        SysLink.c
+                        Ipc.c
 
 # Add version info to the shared library
 libtiipc_la_LDFLAGS = -version-info 1:0:0

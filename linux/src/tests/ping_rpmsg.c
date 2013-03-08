@@ -46,7 +46,7 @@
 #include <unistd.h>
 #include <time.h>
 
-/* SysLink Socket Protocol Family */
+/* Ipc Socket Protocol Family */
 #include <net/rpmsg.h>
 
 #define CORE0 (0)  /* This should be MultiProc_getId("CORE0") - 1 */

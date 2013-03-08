@@ -36,9 +36,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
-	$(am__EXEEXT_7)
+bin_PROGRAMS = ping_rpmsg$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6) $(am__EXEEXT_7)
 @OMAP4430_TRUE@am__append_1 = MessageQApp_omap4430 MessageQBench_omap4430 \
 @OMAP4430_TRUE@                MessageQMulti_omap4430 NameServerApp_omap4430
 
@@ -211,6 +211,9 @@ nano_test_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
 	$(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
 	$(am__DEPENDENCIES_2)
+am_ping_rpmsg_OBJECTS = ping_rpmsg.$(OBJEXT)
+ping_rpmsg_OBJECTS = $(am_ping_rpmsg_OBJECTS)
+ping_rpmsg_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -236,7 +239,8 @@ SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(NameServerApp_omap4430_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES)
+	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 DIST_SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
 	$(MessageQApp_tci6638_SOURCES) \
@@ -251,7 +255,8 @@ DIST_SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(NameServerApp_omap4430_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES)
+	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -371,7 +376,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 common_sources = \
                 $(top_srcdir)/linux/include/Std.h \
-                $(top_srcdir)/linux/include/SysLink.h \
+                $(top_srcdir)/packages/ti/ipc/Ipc.h \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h
 
 nameServer_common_sources = \
@@ -381,6 +386,9 @@ nameServer_common_sources = \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
                 NameServerApp.c
 
+
+# list of sources for the 'ping_rpmsg' binary
+ping_rpmsg_SOURCES = ping_rpmsg.c
 
 # list of sources for the 'MessageQApp' binary
 MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c
@@ -411,6 +419,9 @@ nano_test_omapl138_SOURCES = $(common_sources) nano_test.c
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
+
+# the additional libraries to link ping_rpmsg
+ping_rpmsg_LDADD = -lrt
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_omap4430_LDADD = $(common_libraries) \
@@ -602,6 +613,9 @@ NameServerApp_tci6638$(EXEEXT): $(NameServerApp_tci6638_OBJECTS) $(NameServerApp
 nano_test_omapl138$(EXEEXT): $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_DEPENDENCIES) 
 	@rm -f nano_test_omapl138$(EXEEXT)
 	$(LINK) $(nano_test_omapl138_LDFLAGS) $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_LDADD) $(LIBS)
+ping_rpmsg$(EXEEXT): $(ping_rpmsg_OBJECTS) $(ping_rpmsg_DEPENDENCIES) 
+	@rm -f ping_rpmsg$(EXEEXT)
+	$(LINK) $(ping_rpmsg_LDFLAGS) $(ping_rpmsg_OBJECTS) $(ping_rpmsg_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -614,6 +628,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nano_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ping_rpmsg.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

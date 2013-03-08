@@ -47,7 +47,7 @@
 #include <sys/param.h>
 
 #include <Std.h>
-#include <SysLink.h>
+#include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
 #define MessageQ_payload(m) ((void *)((char *)(m) + sizeof(MessageQ_MsgHeader)))
@@ -223,14 +223,14 @@ int main (int argc, char * argv[])
     printf("Using numLoops: %d; payloadSize: %d, procId : %d\n",
             numLoops, payloadSize, procId);
 
-    status = SysLink_setup();
+    status = Ipc_start();
 
     if (status >= 0) {
         MessageQApp_execute(numLoops, payloadSize, procId);
-        SysLink_destroy();
+        Ipc_stop();
     }
     else {
-        fprintf(stderr, "SysLink_setup failed: status = %d\n", status);
+        fprintf(stderr, "Ipc_start failed: status = %d\n", status);
     }
 
     return (status);

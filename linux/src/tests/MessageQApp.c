@@ -41,9 +41,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* SysLink/IPC Headers: */
+/* IPC Headers */
 #include <Std.h>
-#include <SysLink.h>
+#include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
 /* App defines:  Must match on remote proc side: */
@@ -201,14 +201,14 @@ int main (int argc, char ** argv)
     }
     printf("Using numLoops: %d; procId : %d\n", numLoops, procId);
 
-    status = SysLink_setup();
+    status = Ipc_start();
 
     if (status >= 0) {
         MessageQApp_execute(numLoops, procId);
-        SysLink_destroy();
+        Ipc_stop();
     }
     else {
-        printf("SysLink_setup failed: status = %d\n", status);
+        printf("Ipc_start failed: status = %d\n", status);
     }
 
     return(0);
