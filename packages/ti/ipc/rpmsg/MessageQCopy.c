@@ -570,7 +570,6 @@ Int MessageQCopy_send(UInt16 dstProc,
         /* Send to remote processor: */
         do {
             key = GateSwi_enter(module.gateSwi);  /* Protect vring structs */
-            Semaphore_reset(transport.semHandle_toHost, 0);
             token = VirtQueue_getAvailBuf(transport.virtQueue_toHost,
                     (Void **)&msg, &length);
             GateSwi_leave(module.gateSwi, key);
