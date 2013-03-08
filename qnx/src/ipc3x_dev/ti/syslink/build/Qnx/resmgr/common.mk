@@ -138,6 +138,7 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-omx/hlos/knl/$(SYSLINK_BUILDOS)	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-dce/hlos/knl/$(SYSLINK_BUILDOS)	\
 		$(SYSLINK_ROOT)/ti/syslink/ti-ipc	\
+		$(SYSLINK_ROOT)/ti/syslink/rpmsg-rpc	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)/family/$(SYSLINK_PLATFORM)	\
 		$(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)
 

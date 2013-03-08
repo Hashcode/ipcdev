@@ -122,6 +122,8 @@ extern int rpmsg_resmgr_setup (void);
 extern void rpmsg_resmgr_destroy (void);
 extern Int rpmsg_dce_setup (Void);
 extern Void rpmsg_dce_destroy (Void);
+extern Int rpmsg_rpc_setup (Void);
+extern Void rpmsg_rpc_destroy (Void);
 extern Void GateHWSpinlock_LeaveLockForPID(int pid);
 
 typedef struct syslink_firmware_info_t {
@@ -793,9 +795,16 @@ procmgropen_fail:
         if (status < 0)
             goto tiipcsetup_fail;
 
+        /* Set up rpmsg_rpc */
+        status = rpmsg_rpc_setup();
+        if (status < 0)
+            goto rpcsetup_fail;
+
         goto exit;
     }
 
+rpcsetup_fail:
+    ti_ipc_destroy(recover);
 tiipcsetup_fail:
     rpmsg_dce_destroy();
 dcesetup_fail:
@@ -848,6 +857,8 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
             ProcMgr_stop(procH[i]);
         }
     }
+
+    rpmsg_rpc_destroy();
 
     ti_ipc_destroy(recover);
 
