@@ -138,9 +138,10 @@ for (arg = 0; arg < arguments.length; arg++) {
 
     if (targetName.match(/elf\.C66/)) {
         target.lnkOpts.suffix += " -cr";
-        target.platforms = [ 
+        target.platforms = [
             "ti.platforms.simKepler"
             //"ti.platforms.evm6614:DSP"
+//            "ti.platforms.evmTCI6638K2K"
         ];
     }
 

@@ -127,7 +127,8 @@ else if (Program.platformName.match(/6614/)) {
         Diags.ALWAYS_ON);
     */
 }
-else if (Program.platformName.match(/simKepler/)) {
+else if (Program.platformName.match(/simKepler/) ||
+        Program.platformName.match(/evmTCI6638K2K/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
     var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
 

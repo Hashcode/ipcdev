@@ -83,6 +83,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* currently only build for OMAPL138, Keystone II, and OMAP5*/
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
+              (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti\.platform\.omap54xx/)) ||
               (platform.match(/\.platforms\.evmOMAPL138/)))) {
              continue;
@@ -100,17 +101,18 @@ for (var i = 0; i < Build.targets.length; i++) {
 
         /* Only build this for our multicore platforms: */
         if (platform.match(/^ti\.platforms\.simKepler/) ||
-            platform.match(/^ti\.platforms\.evm6614\:DSP/)) {
-                Pkg.addExecutable(name + "/messageq_multicore",targ,platform, {
-                    cfgScript: "messageq_multicore",
-                    //defs: "-D TCI6614_v33"
-                    //defs: "-D TCI6614"
-                    defs: "-D TCI6638"
-                }).addObjects(["messageq_multicore.c"]);
+                (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
+                (platform.match(/^ti\.platforms\.evm6614\:DSP/))) {
+            Pkg.addExecutable(name + "/messageq_multicore", targ, platform, {
+                cfgScript: "messageq_multicore",
+                //defs: "-D TCI6614_v33"
+                //defs: "-D TCI6614"
+                defs: "-D TCI6638"
+            }).addObjects(["messageq_multicore.c"]);
 
-                Pkg.addExecutable(name + "/dual_transports",targ,platform, {
-                    cfgScript: "dual_transports",
-                }).addObjects(["dual_transports.c"]);
+            Pkg.addExecutable(name + "/dual_transports", targ, platform, {
+                cfgScript: "dual_transports",
+            }).addObjects(["dual_transports.c"]);
         }
 
         Pkg.addExecutable(name + "/messageq_multi", targ, platform, {

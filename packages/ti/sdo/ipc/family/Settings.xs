@@ -166,11 +166,16 @@ var procNames = {
     'TMS320TCI6636'     : ["CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7",
                             "HOST0", "HOST1", "HOST2", "HOST3"],
-    'TMS320TCI6638'     : ["CORE0", "CORE1", "CORE2", "CORE3",
-                           "CORE4", "CORE5", "CORE6", "CORE7",
-                           "HOST0", "HOST1", "HOST2", "HOST3"],
+
+    /*
+     *  Note, the name "HOST" was intentionally chosen as a proc name to
+     *  accomodate TransportVirtio, a common transport on these platforms.
+     */
+    'TMS320TCI6638'     : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
+                           "CORE4", "CORE5", "CORE6", "CORE7"],
     'Kepler'            : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
+
     'TMS320C6674'       : ["CORE0", "CORE1", "CORE2", "CORE3"],
     'TMS320C6678'       : ["CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
@@ -586,8 +591,8 @@ function getHWGate()
     if (deviceName == "TMS320C6472" ||
         deviceName == "TMS320CTCI6486") {
         return ('ti.sdo.ipc.gates.GateAAMonitor');
-    }  
-    else if (deviceName == "TMS320C6A8149") { 
+    }
+    else if (deviceName == "TMS320C6A8149") {
         return ('ti.sdo.ipc.gates.GatePetersonN');
     }
     try {

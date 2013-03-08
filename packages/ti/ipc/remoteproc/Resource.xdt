@@ -44,7 +44,8 @@
 #include <ti/ipc/remoteproc/rsc_table_tci6614.h>
 //#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h> // Test with v3.3 Linux.
 %}
-%if (prog.platformName.match(/Kepler/)) {
+%if (prog.platformName.match(/Kepler/) ||
+%         prog.platformName.match(/TCI6638/)) {
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
 %if (prog.platformName.match(/omap54xx\.ipu/)) {

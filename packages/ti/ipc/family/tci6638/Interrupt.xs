@@ -45,6 +45,16 @@ var deviceSettings = {
         INTERDSPINT:    105,
         DSPINT:         5,
     },
+    'TMS320TCI6638' : {
+        IPCGR0:         0x02620240,
+        IPCAR0:         0x02620280,
+        IPCGRH:         0x02620260,
+        IPCARH:         0x026202A0,
+        KICK0:          0x02620038,
+        KICK1:          0x0262003C,
+        INTERDSPINT:    105,
+        DSPINT:         5,
+    },
 }
 var Settings = xdc.loadCapsule('ti/sdo/ipc/family/Settings.xs');
 Settings.setDeviceAliases(deviceSettings, Settings.deviceAliases);

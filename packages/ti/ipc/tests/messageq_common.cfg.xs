@@ -154,7 +154,8 @@ else if (Program.platformName.match(/6614/)) {
         Diags.ALWAYS_ON);
     */
 }
-else if (Program.platformName.match(/simKepler/)) {
+else if (Program.platformName.match(/simKepler/) ||
+        Program.cpu.deviceName.match(/^TMS320TCI6638$/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
     var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
 
@@ -204,7 +205,7 @@ else if (Program.platformName.match(/simKepler/)) {
     */
 }
 else {
-    throw("messageq_common.cfg: Did not match any platform!");
+    throw("messageq_common.cfg.xs: Did not match any platform!");
 }
 
 Hwi.enableException = true;
