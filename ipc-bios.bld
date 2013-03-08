@@ -44,7 +44,7 @@
  */
 
 /*
- *  ======== ipc.bld ========
+ *  ======== ipc-bios.bld ========
  *  This script is run prior to all build scripts. It sets host-system-
  *  independent values for targets and platforms, then it attempts to
  *  find the host-system-specific user.bld script that sets rootDirs.
