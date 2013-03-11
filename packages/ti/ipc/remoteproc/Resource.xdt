@@ -48,6 +48,7 @@
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
 %if (prog.platformName.match(/omap54xx\.ipu/)) {
+#define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
 %}
 %if (prog.platformName.match(/omap54xx\.dsp/)) {

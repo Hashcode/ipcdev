@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,7 +105,7 @@ struct fw_rsc_devmem {
     UInt32  pa;
     UInt32  len;
     UInt32  flags;
-    UInt32  reserved;
+    UInt32  memregion;
     Char    name[32];
 };
 
