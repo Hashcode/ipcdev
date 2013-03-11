@@ -55,6 +55,7 @@
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
 %    } else if (prog.cpu.attrs.cpuCore.match(/^64T$/)) {
+#define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_omap5_dsp.h>
 %    }
 %    else {

@@ -106,8 +106,9 @@ function getLibs(prog)
 function validate()
 {
     var BIOS = xdc.module('ti.sysbios.BIOS');
+    var suffix = prog.build.target.findSuffix(this);
 
-    if (!BIOS.smpEnabled) {
+    if (!BIOS.smpEnabled && (suffix != "e64T")) {
         throw new Error(Pkg.$name+" must have BIOS.smpEnabled set to true.");
     }
 }

@@ -75,7 +75,7 @@ for (var i = 0; i < Build.targets.length; i++) {
 
     /* currently only build for OMAPL138, Keystone II, and OMAP5*/
     if (!((targ.isa == "674") || (targ.isa == "66") ||
-          (targ.isa.match(/v7M(|4)/)))) {
+          (targ.isa.match(/v7M(|4)/)) || (targ.isa == "64T"))) {
         continue;
     }
 
@@ -146,6 +146,14 @@ for (var i = 0; i < Build.targets.length; i++) {
                 cfgScript: "test_omx_ipu_omap5",
                 defs: "-D IPU -D OMAP5xxx -DOMAP5"
             }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
+                    "MxServer.c"]);
+        }
+
+        if (platform.match(/^ti\.platform\.omap54xx\.dsp/)) {
+            Pkg.addExecutable(name + "/test_omx_dsp_omap5", targ, platform, {
+                cfgScript: "test_omx_dsp_omap5",
+                defs: "-D DSP -D OMAP5xxx"
+            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task",
                     "MxServer.c"]);
         }
     }

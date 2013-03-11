@@ -180,7 +180,7 @@ else if (Program.platformName.match(/simKepler/) ||
     */
 }
 else {
-    throw("messageq_common.cfg: Did not match any platform!");
+    throw("ping_rpmsg_common.cfg: Did not match any platform!");
 }
 
 Hwi.enableException = true;
