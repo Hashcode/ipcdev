@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,26 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.bld ========
- *
+ *  ======== mmrpc_test.c ========
  */
+#include <stdio.h>
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld",
-    "mm/MmRpc.c",
-    "mm/MmRpc.h"
-];
+#include <ti/ipc/mm/MmRpc.h>
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+int main(int argc, char **argv)
+{
+    MmRpc_Params params;
+    MmRpc_Handle dsp_rpc;
+
+    printf("Hello world\n");
+
+    MmRpc_Params_init(&params);
+
+    dsp_rpc  = MmRpc_create("DSP", "FooServer", &params);
+
+    MmRpc_delete(&dsp_rpc);
+
+    return(0);
+}

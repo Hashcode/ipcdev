@@ -29,28 +29,61 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.bld ========
- *
+ *  ======== MmRpc.c ========
  */
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld",
-    "mm/MmRpc.c",
-    "mm/MmRpc.h"
-];
+#include <stdlib.h>
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+#include "MmRpc.h"
+
+/*
+ *  ======== MmRpc_Object ========
+ */
+typedef struct {
+    int         reserved;
+} MmRpc_Object;
+
+/*
+ *  ======== MmRpc_Params_init ========
+ */
+void MmRpc_Params_init(MmRpc_Params *params)
+{
+    params->reserved = 0;
+}
+
+/*
+ *  ======== MmRpc_create ========
+ */
+MmRpc_Handle MmRpc_create(const char *proc, const char *service,
+        const MmRpc_Params *params)
+{
+    int                 status = MmRpc_S_SUCCESS;
+    MmRpc_Object *      obj;
+
+    /* allocate the instance object */
+    obj = (MmRpc_Object *)calloc(1, sizeof(MmRpc_Object));
+
+    if (obj == NULL) {
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
+leave:
+    return((MmRpc_Handle)obj);
+}
+
+/*
+ *  ======== MmRpc_delete ========
+ */
+int MmRpc_delete(MmRpc_Handle *handlePtr)
+{
+    int status = MmRpc_S_SUCCESS;
+
+    /* free the instance object */
+    free((void *)(*handlePtr));
+    *handlePtr = NULL;
+
+    return(status);
+}
