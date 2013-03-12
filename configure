@@ -16873,6 +16873,8 @@ fi
 
           ac_config_files="$ac_config_files linux/src/tests/Makefile"
 
+          ac_config_files="$ac_config_files linux/src/mm/Makefile"
+
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -17511,6 +17513,7 @@ do
   "linux/src/family/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/family/Makefile" ;;
   "linux/src/daemon/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/daemon/Makefile" ;;
   "linux/src/tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/tests/Makefile" ;;
+  "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

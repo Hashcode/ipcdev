@@ -36,9 +36,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = ping_rpmsg$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
-	$(am__EXEEXT_6) $(am__EXEEXT_7)
+bin_PROGRAMS = ping_rpmsg$(EXEEXT) mmrpc_test$(EXEEXT) $(am__EXEEXT_1) \
+	$(am__EXEEXT_2) $(am__EXEEXT_3) $(am__EXEEXT_4) \
+	$(am__EXEEXT_5) $(am__EXEEXT_6) $(am__EXEEXT_7)
 @OMAP4430_TRUE@am__append_1 = MessageQApp_omap4430 MessageQBench_omap4430 \
 @OMAP4430_TRUE@                MessageQMulti_omap4430 NameServerApp_omap4430
 
@@ -205,6 +205,9 @@ NameServerApp_tci6638_OBJECTS = $(am_NameServerApp_tci6638_OBJECTS)
 NameServerApp_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
 	$(am__DEPENDENCIES_2)
+am_mmrpc_test_OBJECTS = mmrpc_test.$(OBJEXT)
+mmrpc_test_OBJECTS = $(am_mmrpc_test_OBJECTS)
+mmrpc_test_DEPENDENCIES = $(top_builddir)/linux/src/mm/libmmrpc.la
 am_nano_test_omapl138_OBJECTS = $(am__objects_1) nano_test.$(OBJEXT)
 nano_test_omapl138_OBJECTS = $(am_nano_test_omapl138_OBJECTS)
 nano_test_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -239,8 +242,8 @@ SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(NameServerApp_omap4430_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_omapl138_SOURCES) $(ping_rpmsg_SOURCES)
 DIST_SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
 	$(MessageQApp_tci6638_SOURCES) \
@@ -255,8 +258,8 @@ DIST_SOURCES = $(MessageQApp_omap4430_SOURCES) \
 	$(NameServerApp_omap4430_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(nano_test_omapl138_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_omapl138_SOURCES) $(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -390,6 +393,9 @@ nameServer_common_sources = \
 # list of sources for the 'ping_rpmsg' binary
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
+# list of sources for the 'mmrpc_test' binary
+mmrpc_test_SOURCES = mmrpc_test.c
+
 # list of sources for the 'MessageQApp' binary
 MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
@@ -422,6 +428,9 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 # the additional libraries to link ping_rpmsg
 ping_rpmsg_LDADD = -lrt
+
+# the additional libraries to link mmrpc_test
+mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_omap4430_LDADD = $(common_libraries) \
@@ -610,6 +619,9 @@ NameServerApp_tci6614$(EXEEXT): $(NameServerApp_tci6614_OBJECTS) $(NameServerApp
 NameServerApp_tci6638$(EXEEXT): $(NameServerApp_tci6638_OBJECTS) $(NameServerApp_tci6638_DEPENDENCIES) 
 	@rm -f NameServerApp_tci6638$(EXEEXT)
 	$(LINK) $(NameServerApp_tci6638_LDFLAGS) $(NameServerApp_tci6638_OBJECTS) $(NameServerApp_tci6638_LDADD) $(LIBS)
+mmrpc_test$(EXEEXT): $(mmrpc_test_OBJECTS) $(mmrpc_test_DEPENDENCIES) 
+	@rm -f mmrpc_test$(EXEEXT)
+	$(LINK) $(mmrpc_test_LDFLAGS) $(mmrpc_test_OBJECTS) $(mmrpc_test_LDADD) $(LIBS)
 nano_test_omapl138$(EXEEXT): $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_DEPENDENCIES) 
 	@rm -f nano_test_omapl138$(EXEEXT)
 	$(LINK) $(nano_test_omapl138_LDFLAGS) $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_LDADD) $(LIBS)
@@ -627,6 +639,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQBench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmrpc_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nano_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ping_rpmsg.Po@am__quote@
 

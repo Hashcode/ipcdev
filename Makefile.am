@@ -33,7 +33,7 @@
 
 # the subdirectories of the project to go into
 SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/family \
-        linux/src/daemon linux/src/tests linux/src/mm
+        linux/src/mm linux/src/daemon linux/src/tests
 
 # hook to remove libtools library extention files (.la)
 install-exec-hook:

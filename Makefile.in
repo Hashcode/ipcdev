@@ -195,7 +195,7 @@ target_alias = @target_alias@
 
 # the subdirectories of the project to go into
 SUBDIRS = linux/etc linux/src/utils linux/src/api linux/src/family \
-        linux/src/daemon linux/src/tests
+        linux/src/mm linux/src/daemon linux/src/tests
 
 
 # where to install common headers on the system

@@ -93,7 +93,7 @@ nameServer_common_sources = \
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
 # list of sources for the 'mmrpc_test' binary
-mmrpc_SOURCES = mmrpc_test.c
+mmrpc_test_SOURCES = mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
 MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c

@@ -39,7 +39,6 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /Makefile
 /linux/etc/Makefile
 /linux/src/*/Makefile
-/linux/src/*/Makefile.in
 /linux/src/*/*.lo
 /linux/src/*/*.la
 /linux/src/*/.libs
@@ -51,3 +50,4 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /linux/src/tests/NameServerApp_*
 /linux/src/tests/nano_test_*
 /linux/src/tests/ping_rpmsg
+/linux/src/tests/mmrpc_test
