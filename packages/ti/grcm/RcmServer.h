@@ -76,6 +76,9 @@
 #include <xdc/runtime/knl/GateThread.h>
 #include <xdc/runtime/knl/Thread.h>
 
+/* For USE_MESSAGEQCOPY setting */
+#include <ti/grcm/RcmTypes.h>
+
 
 /** @ingroup ti_grcm_RcmServer */
 /*@{*/
