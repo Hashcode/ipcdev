@@ -40,7 +40,7 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages  \
 ###############################################################################
 
 # the program to build (the names of the final binaries)
-bin_PROGRAMS = ping_rpmsg
+bin_PROGRAMS = ping_rpmsg mmrpc_test
 
 if OMAP4430
   bin_PROGRAMS += MessageQApp_omap4430 MessageQBench_omap4430 \
@@ -92,6 +92,9 @@ nameServer_common_sources = \
 # list of sources for the 'ping_rpmsg' binary
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
+# list of sources for the 'mmrpc_test' binary
+mmrpc_SOURCES = mmrpc_test.c
+
 # list of sources for the 'MessageQApp' binary
 MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
@@ -124,6 +127,9 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 # the additional libraries to link ping_rpmsg
 ping_rpmsg_LDADD = -lrt
+
+# the additional libraries to link mmrpc_test
+mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_omap4430_LDADD = $(common_libraries) \

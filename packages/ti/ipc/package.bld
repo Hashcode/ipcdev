@@ -47,6 +47,8 @@ Pkg.otherFiles = [
     "Notify.h",
     "SharedRegion.h",
     "package.bld",
+    "mm/MmRpc.c",
+    "mm/MmRpc.h"
 ];
 
 /* include source files in the release package */

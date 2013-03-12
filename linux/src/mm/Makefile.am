@@ -28,23 +28,31 @@
 ##  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 ##  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
-##  ======== Makefile.am ========
+## ======== src/mm/Makefile.am ========
 ##
 
-# the subdirectories of the project to go into
-SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/family \
-        linux/src/daemon linux/src/tests linux/src/mm
+# additional include paths necessary to compile the library
+AM_CFLAGS = -Wall @AM_CFLAGS@
 
-# hook to remove libtools library extention files (.la)
-install-exec-hook:
-	rm -f $(DESTDIR)$(libdir)/*.la
+###############################################################################
+# THE LIBRARIES TO BUILD
+###############################################################################
 
-# where to install common headers on the system
-ipcincludedir = $(includedir)/ti/ipc
+# the library names to build (note we are building shared libs)
+lib_LTLIBRARIES = libmmrpc.la
 
-# the list of common header files (to be installed later)
-ipcinclude_HEADERS = $(top_srcdir)/packages/ti/ipc/Ipc.h \
-                $(top_srcdir)/packages/ti/ipc/MessageQ.h \
-                $(top_srcdir)/packages/ti/ipc/MultiProc.h \
-                $(top_srcdir)/packages/ti/ipc/NameServer.h
+# where to install the headers on the system
+libmmrpc_ladir = $(includedir)
 
+# the list of header files that belong to the library (to be installed later)
+libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
+
+# the sources to add to the library and to add to the source distribution
+libmmrpc_la_SOURCES = \
+        $(libmmrpc_la_HEADERS) \
+        $(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
+
+# Add version info to the shared library
+libmmrpc_la_LDFLAGS = -version-info 1:0:0
+
+###############################################################################

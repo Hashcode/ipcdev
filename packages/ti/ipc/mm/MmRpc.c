@@ -1,6 +1,5 @@
-%%{
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +29,61 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-%%}
 
-#include <xdc/runtime/System.h>
+/*
+ *  ======== MmRpc.c ========
+ */
 
-%var prog = xdc.om['xdc.cfg.Program'];
-%var MultiProc = xdc.module('ti.sdo.utils.MultiProc');
+#include <stdlib.h>
 
-%if (prog.platformName.match(/OMAPL138/)) {
-#include <ti/ipc/remoteproc/rsc_table_omapl138.h>
-%}
-%if (prog.platformName.match(/evm6614/)) {
-#include <ti/ipc/remoteproc/rsc_table_tci6614.h>
-//#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h> // Test with v3.3 Linux.
-%}
-%if (prog.platformName.match(/Kepler/) ||
-%         prog.platformName.match(/TCI6638/)) {
-#include <ti/ipc/remoteproc/rsc_table_tci6638.h>
-%}
-%if (prog.platformName.match(/omap54xx\.ipu/)) {
-#define OMAP5
-#include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
-%}
-%if (prog.platformName.match(/omap54xx\.dsp/)) {
-#include <ti/ipc/remoteproc/rsc_table_omap5_dsp.h>
-%}
+#include "MmRpc.h"
 
-Void ti_ipc_remoteproc_Resource_init__I()
+/*
+ *  ======== MmRpc_Object ========
+ */
+typedef struct {
+    int         reserved;
+} MmRpc_Object;
+
+/*
+ *  ======== MmRpc_Params_init ========
+ */
+void MmRpc_Params_init(MmRpc_Params *params)
 {
-%if (prog.platformName.match(/evm6614/)) {
-// Uncomment to test for v3.3 Linux...
-//    xdc_runtime_System_printf("Resource Table: 0x%lx\n", resources);
-//  ...and comment out this:
-    xdc_runtime_System_printf("%d Resource entries at 0x%x\n",
-            ti_ipc_remoteproc_ResourceTable.num,
-            &ti_ipc_remoteproc_ResourceTable);
-%}
-%else {
-    xdc_runtime_System_printf("%d Resource entries at 0x%x\n",
-            ti_ipc_remoteproc_ResourceTable.num,
-            &ti_ipc_remoteproc_ResourceTable);
-%}
+    params->reserved = 0;
+}
 
-    return;
+/*
+ *  ======== MmRpc_create ========
+ */
+MmRpc_Handle MmRpc_create(const char *proc, const char *service,
+        const MmRpc_Params *params)
+{
+    int                 status = MmRpc_S_SUCCESS;
+    MmRpc_Object *      obj;
+
+    /* allocate the instance object */
+    obj = (MmRpc_Object *)calloc(1, sizeof(MmRpc_Object));
+
+    if (obj == NULL) {
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
+leave:
+    return((MmRpc_Handle)obj);
+}
+
+/*
+ *  ======== MmRpc_delete ========
+ */
+int MmRpc_delete(MmRpc_Handle *handlePtr)
+{
+    int status = MmRpc_S_SUCCESS;
+
+    /* free the instance object */
+    free((void *)(*handlePtr));
+    *handlePtr = NULL;
+
+    return(status);
 }

@@ -102,6 +102,7 @@ AC_CONFIG_FILES([linux/src/api/Makefile])
 AC_CONFIG_FILES([linux/src/family/Makefile])
 AC_CONFIG_FILES([linux/src/daemon/Makefile])
 AC_CONFIG_FILES([linux/src/tests/Makefile])
+AC_CONFIG_FILES([linux/src/mm/Makefile])
 AC_OUTPUT
 
 echo \
