@@ -69,7 +69,7 @@ Int SysMin_Module_startup(Int phase)
 /*
  *  ======== SysMin_abort ========
  */
-Void SysMin_abort(String str)
+Void SysMin_abort(CString str)
 {
     Char ch;
 

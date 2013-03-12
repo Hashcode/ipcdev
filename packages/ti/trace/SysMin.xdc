@@ -153,7 +153,7 @@ module SysMin inherits xdc.runtime.ISystemSupport {
      *
      *  @see ISystemSupport#abort
      */
-    override Void abort(String str);
+    override Void abort(CString str);
 
     /*!
      *  ======== exit ========
