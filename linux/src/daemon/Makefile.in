@@ -38,11 +38,11 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5)
-@OMAP4430_TRUE@am__append_1 = lad_omap4430
-@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_2 = lad_omapl138
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_3 = lad_tci6614
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_4 = lad_tci6638
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_5 = lad_omap4430 lad_omapl138 lad_tci6614 lad_tci6638
+@OMAP54XX_SMP_TRUE@am__append_1 = lad_omap54xx_smp
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_2 = lad_omapl138
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_3 = lad_tci6614
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_4 = lad_tci6638
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_5 = lad_omap54xx_smp lad_omapl138 lad_tci6614 lad_tci6638
 subdir = linux/src/daemon
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -51,26 +51,27 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-@OMAP4430_TRUE@am__EXEEXT_1 = lad_omap4430$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_TRUE@am__EXEEXT_2 = lad_omapl138$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_3 = lad_tci6614$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_4 = lad_tci6638$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_5 = lad_omap4430$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_tci6638$(EXEEXT)
+@OMAP54XX_SMP_TRUE@am__EXEEXT_1 = lad_omap54xx_smp$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_2 =  \
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	lad_omapl138$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_3 = lad_tci6614$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_4 = lad_tci6638$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_5 = lad_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	lad_tci6638$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
 	NameServer_daemon.$(OBJEXT)
-am_lad_omap4430_OBJECTS = $(am__objects_1)
-lad_omap4430_OBJECTS = $(am_lad_omap4430_OBJECTS)
+am_lad_omap54xx_smp_OBJECTS = $(am__objects_1)
+lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la
 am__DEPENDENCIES_2 =
-lad_omap4430_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
 	$(am__DEPENDENCIES_2)
 am_lad_omapl138_OBJECTS = $(am__objects_1)
 lad_omapl138_OBJECTS = $(am_lad_omapl138_OBJECTS)
@@ -98,9 +99,9 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(lad_omap4430_SOURCES) $(lad_omapl138_SOURCES) \
+SOURCES = $(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
 	$(lad_tci6614_SOURCES) $(lad_tci6638_SOURCES)
-DIST_SOURCES = $(lad_omap4430_SOURCES) $(lad_omapl138_SOURCES) \
+DIST_SOURCES = $(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
 	$(lad_tci6614_SOURCES) $(lad_tci6638_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -156,8 +157,8 @@ MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
-OMAP4430_FALSE = @OMAP4430_FALSE@
-OMAP4430_TRUE = @OMAP4430_TRUE@
+OMAP54XX_SMP_FALSE = @OMAP54XX_SMP_FALSE@
+OMAP54XX_SMP_TRUE = @OMAP54XX_SMP_TRUE@
 OMAPL138_FALSE = @OMAPL138_FALSE@
 OMAPL138_TRUE = @OMAPL138_TRUE@
 PACKAGE = @PACKAGE@
@@ -238,7 +239,7 @@ common_sources = \
 
 
 # list of sources for the 'lad' binary and to add to the source distribution
-lad_omap4430_SOURCES = $(common_sources)
+lad_omap54xx_smp_SOURCES = $(common_sources)
 lad_omapl138_SOURCES = $(common_sources)
 lad_tci6614_SOURCES = $(common_sources)
 lad_tci6638_SOURCES = $(common_sources)
@@ -247,8 +248,8 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 
 # the additional libraries needed to link program
-lad_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+lad_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 
 lad_omapl138_LDADD = $(common_libraries) \
@@ -324,9 +325,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-lad_omap4430$(EXEEXT): $(lad_omap4430_OBJECTS) $(lad_omap4430_DEPENDENCIES) 
-	@rm -f lad_omap4430$(EXEEXT)
-	$(LINK) $(lad_omap4430_LDFLAGS) $(lad_omap4430_OBJECTS) $(lad_omap4430_LDADD) $(LIBS)
+lad_omap54xx_smp$(EXEEXT): $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_DEPENDENCIES) 
+	@rm -f lad_omap54xx_smp$(EXEEXT)
+	$(LINK) $(lad_omap54xx_smp_LDFLAGS) $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_LDADD) $(LIBS)
 lad_omapl138$(EXEEXT): $(lad_omapl138_OBJECTS) $(lad_omapl138_DEPENDENCIES) 
 	@rm -f lad_omapl138$(EXEEXT)
 	$(LINK) $(lad_omapl138_LDFLAGS) $(lad_omapl138_OBJECTS) $(lad_omapl138_LDADD) $(LIBS)

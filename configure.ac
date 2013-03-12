@@ -66,17 +66,17 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 # Add config variables/options and check them
-AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap4330' 'tci6614' and 'tci6638'. If not defined all platforms will be built.)
+AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6614' and 'tci6638'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
 
 # Test platform variable for setting
 AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
-  [AS_IF([test "x$PLATFORM" = "xomap4430"],
-  [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xtci6614"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xtci6638"],
+  [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
+  [AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "x"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
@@ -88,10 +88,9 @@ AC_SUBST([CMEM_INSTALL_DIR])
 
 # Define specific variables to be used in Makefile.am
 AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xomapl138"]) 
-AM_CONDITIONAL([OMAP4430], [test "x$PLATFORM" = "xomap4430"]) 
 AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xtci6614"]) 
 AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xtci6638"]) 
-
+AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xomap54xx_smp"])
 AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"]) 
 
 # Generate Makefile(s)

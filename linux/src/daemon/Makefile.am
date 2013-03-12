@@ -42,8 +42,8 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
 # the program to build (the names of the final binaries)
 bin_PROGRAMS =
 
-if OMAP4430
-  bin_PROGRAMS += lad_omap4430
+if OMAP54XX_SMP
+  bin_PROGRAMS += lad_omap54xx_smp
 else
 if OMAPL138
   bin_PROGRAMS += lad_omapl138
@@ -54,7 +54,7 @@ else
 if TCI6638
   bin_PROGRAMS += lad_tci6638
 else
-  bin_PROGRAMS += lad_omap4430 lad_omapl138 lad_tci6614 lad_tci6638
+  bin_PROGRAMS += lad_omap54xx_smp lad_omapl138 lad_tci6614 lad_tci6638
 endif
 endif
 endif
@@ -78,7 +78,7 @@ common_sources = \
                 $(top_srcdir)/packages/ti/ipc/MultiProc.h
 
 # list of sources for the 'lad' binary and to add to the source distribution
-lad_omap4430_SOURCES = $(common_sources)
+lad_omap54xx_smp_SOURCES = $(common_sources)
 lad_omapl138_SOURCES = $(common_sources)
 lad_tci6614_SOURCES = $(common_sources)
 lad_tci6638_SOURCES = $(common_sources)
@@ -87,8 +87,8 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
 # the additional libraries needed to link program
-lad_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+lad_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 lad_omapl138_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \

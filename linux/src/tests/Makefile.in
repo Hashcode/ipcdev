@@ -39,29 +39,29 @@ host_triplet = @host@
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) mmrpc_test$(EXEEXT) $(am__EXEEXT_1) \
 	$(am__EXEEXT_2) $(am__EXEEXT_3) $(am__EXEEXT_4) \
 	$(am__EXEEXT_5) $(am__EXEEXT_6) $(am__EXEEXT_7)
-@OMAP4430_TRUE@am__append_1 = MessageQApp_omap4430 MessageQBench_omap4430 \
-@OMAP4430_TRUE@                MessageQMulti_omap4430 NameServerApp_omap4430
+@OMAP54XX_SMP_TRUE@am__append_1 = MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
+@OMAP54XX_SMP_TRUE@                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp
 
-@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_2 = MessageQApp_omapl138 MessageQBench_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_TRUE@                MessageQMulti_omapl138 NameServerApp_omapl138
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_2 = MessageQApp_omapl138 MessageQBench_omapl138 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@                MessageQMulti_omapl138 NameServerApp_omapl138
 
-@CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_TRUE@am__append_3 = nano_test_omapl138
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_4 = MessageQApp_tci6614 MessageQBench_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@                MessageQMulti_tci6614 NameServerApp_tci6614
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_3 = nano_test_omapl138
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_4 = MessageQApp_tci6614 MessageQBench_tci6614 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@                MessageQMulti_tci6614 NameServerApp_tci6614
 
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_5 = MessageQApp_tci6638 MessageQBench_tci6638 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@                MessageQMulti_tci6638 NameServerApp_tci6638
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_5 = MessageQApp_tci6638 MessageQBench_tci6638 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@                MessageQMulti_tci6638 NameServerApp_tci6638
 
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_6 = MessageQApp_omap4430 MessageQBench_omap4430 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omap4430 NameServerApp_omap4430 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_omapl138 MessageQBench_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omapl138 NameServerApp_omapl138 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6614 MessageQBench_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6614 NameServerApp_tci6614 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6638 MessageQBench_tci6638 \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6638 NameServerApp_tci6638
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_6 = MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_omapl138 MessageQBench_omapl138 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omapl138 NameServerApp_omapl138 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6614 MessageQBench_tci6614 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6614 NameServerApp_tci6614 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6638 MessageQBench_tci6638 \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6638 NameServerApp_tci6638
 
-@CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = nano_test_omapl138
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = nano_test_omapl138
 subdir = linux/src/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -70,53 +70,53 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-@OMAP4430_TRUE@am__EXEEXT_1 = MessageQApp_omap4430$(EXEEXT) \
-@OMAP4430_TRUE@	MessageQBench_omap4430$(EXEEXT) \
-@OMAP4430_TRUE@	MessageQMulti_omap4430$(EXEEXT) \
-@OMAP4430_TRUE@	NameServerApp_omap4430$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_TRUE@am__EXEEXT_2 =  \
-@OMAP4430_FALSE@@OMAPL138_TRUE@	MessageQApp_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_TRUE@	MessageQBench_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_TRUE@	MessageQMulti_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_TRUE@	NameServerApp_omapl138$(EXEEXT)
-@CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = nano_test_omapl138$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_4 = MessageQApp_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQBench_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQMulti_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	NameServerApp_tci6614$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_5 = MessageQApp_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQBench_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQMulti_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	NameServerApp_tci6638$(EXEEXT)
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_6 = MessageQApp_omap4430$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omap4430$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omap4430$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omap4430$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omapl138$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6614$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6638$(EXEEXT) \
-@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6638$(EXEEXT)
-@CMEM_TRUE@@OMAP4430_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_7 = nano_test_omapl138$(EXEEXT)
+@OMAP54XX_SMP_TRUE@am__EXEEXT_1 = MessageQApp_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_TRUE@	MessageQBench_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_TRUE@	MessageQMulti_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_TRUE@	NameServerApp_omap54xx_smp$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_2 = MessageQApp_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	MessageQBench_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	MessageQMulti_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	NameServerApp_omapl138$(EXEEXT)
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = nano_test_omapl138$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_4 = MessageQApp_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQBench_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQMulti_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	NameServerApp_tci6614$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_5 = MessageQApp_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQBench_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQMulti_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	NameServerApp_tci6638$(EXEEXT)
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_6 = MessageQApp_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omap54xx_smp$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omapl138$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6614$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6638$(EXEEXT) \
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6638$(EXEEXT)
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_7 = nano_test_omapl138$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am_MessageQApp_omap4430_OBJECTS = $(am__objects_1) \
+am_MessageQApp_omap54xx_smp_OBJECTS = $(am__objects_1) \
 	MessageQApp.$(OBJEXT)
-MessageQApp_omap4430_OBJECTS = $(am_MessageQApp_omap4430_OBJECTS)
+MessageQApp_omap54xx_smp_OBJECTS =  \
+	$(am_MessageQApp_omap54xx_smp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la
 am__DEPENDENCIES_2 =
-MessageQApp_omap4430_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQApp_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
 	$(am__DEPENDENCIES_2)
 am_MessageQApp_omapl138_OBJECTS = $(am__objects_1) \
 	MessageQApp.$(OBJEXT)
@@ -136,11 +136,12 @@ MessageQApp_tci6638_OBJECTS = $(am_MessageQApp_tci6638_OBJECTS)
 MessageQApp_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
 	$(am__DEPENDENCIES_2)
-am_MessageQBench_omap4430_OBJECTS = $(am__objects_1) \
+am_MessageQBench_omap54xx_smp_OBJECTS = $(am__objects_1) \
 	MessageQBench.$(OBJEXT)
-MessageQBench_omap4430_OBJECTS = $(am_MessageQBench_omap4430_OBJECTS)
-MessageQBench_omap4430_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQBench_omap54xx_smp_OBJECTS =  \
+	$(am_MessageQBench_omap54xx_smp_OBJECTS)
+MessageQBench_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
 	$(am__DEPENDENCIES_2)
 am_MessageQBench_omapl138_OBJECTS = $(am__objects_1) \
 	MessageQBench.$(OBJEXT)
@@ -160,11 +161,12 @@ MessageQBench_tci6638_OBJECTS = $(am_MessageQBench_tci6638_OBJECTS)
 MessageQBench_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
 	$(am__DEPENDENCIES_2)
-am_MessageQMulti_omap4430_OBJECTS = $(am__objects_1) \
+am_MessageQMulti_omap54xx_smp_OBJECTS = $(am__objects_1) \
 	MessageQMulti.$(OBJEXT)
-MessageQMulti_omap4430_OBJECTS = $(am_MessageQMulti_omap4430_OBJECTS)
-MessageQMulti_omap4430_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQMulti_omap54xx_smp_OBJECTS =  \
+	$(am_MessageQMulti_omap54xx_smp_OBJECTS)
+MessageQMulti_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
 	$(am__DEPENDENCIES_2)
 am_MessageQMulti_omapl138_OBJECTS = $(am__objects_1) \
 	MessageQMulti.$(OBJEXT)
@@ -185,10 +187,11 @@ MessageQMulti_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
 	$(am__DEPENDENCIES_2)
 am__objects_2 = NameServerApp.$(OBJEXT)
-am_NameServerApp_omap4430_OBJECTS = $(am__objects_2)
-NameServerApp_omap4430_OBJECTS = $(am_NameServerApp_omap4430_OBJECTS)
-NameServerApp_omap4430_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+am_NameServerApp_omap54xx_smp_OBJECTS = $(am__objects_2)
+NameServerApp_omap54xx_smp_OBJECTS =  \
+	$(am_NameServerApp_omap54xx_smp_OBJECTS)
+NameServerApp_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
 	$(am__DEPENDENCIES_2)
 am_NameServerApp_omapl138_OBJECTS = $(am__objects_2)
 NameServerApp_omapl138_OBJECTS = $(am_NameServerApp_omapl138_OBJECTS)
@@ -228,34 +231,34 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(MessageQApp_omap4430_SOURCES) \
+SOURCES = $(MessageQApp_omap54xx_smp_SOURCES) \
 	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
 	$(MessageQApp_tci6638_SOURCES) \
-	$(MessageQBench_omap4430_SOURCES) \
+	$(MessageQBench_omap54xx_smp_SOURCES) \
 	$(MessageQBench_omapl138_SOURCES) \
 	$(MessageQBench_tci6614_SOURCES) \
 	$(MessageQBench_tci6638_SOURCES) \
-	$(MessageQMulti_omap4430_SOURCES) \
+	$(MessageQMulti_omap54xx_smp_SOURCES) \
 	$(MessageQMulti_omapl138_SOURCES) \
 	$(MessageQMulti_tci6614_SOURCES) \
 	$(MessageQMulti_tci6638_SOURCES) \
-	$(NameServerApp_omap4430_SOURCES) \
+	$(NameServerApp_omap54xx_smp_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
 	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
 	$(nano_test_omapl138_SOURCES) $(ping_rpmsg_SOURCES)
-DIST_SOURCES = $(MessageQApp_omap4430_SOURCES) \
+DIST_SOURCES = $(MessageQApp_omap54xx_smp_SOURCES) \
 	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
 	$(MessageQApp_tci6638_SOURCES) \
-	$(MessageQBench_omap4430_SOURCES) \
+	$(MessageQBench_omap54xx_smp_SOURCES) \
 	$(MessageQBench_omapl138_SOURCES) \
 	$(MessageQBench_tci6614_SOURCES) \
 	$(MessageQBench_tci6638_SOURCES) \
-	$(MessageQMulti_omap4430_SOURCES) \
+	$(MessageQMulti_omap54xx_smp_SOURCES) \
 	$(MessageQMulti_omapl138_SOURCES) \
 	$(MessageQMulti_tci6614_SOURCES) \
 	$(MessageQMulti_tci6638_SOURCES) \
-	$(NameServerApp_omap4430_SOURCES) \
+	$(NameServerApp_omap54xx_smp_SOURCES) \
 	$(NameServerApp_omapl138_SOURCES) \
 	$(NameServerApp_tci6614_SOURCES) \
 	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
@@ -314,8 +317,8 @@ MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
 MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
-OMAP4430_FALSE = @OMAP4430_FALSE@
-OMAP4430_TRUE = @OMAP4430_TRUE@
+OMAP54XX_SMP_FALSE = @OMAP54XX_SMP_FALSE@
+OMAP54XX_SMP_TRUE = @OMAP54XX_SMP_TRUE@
 OMAPL138_FALSE = @OMAPL138_FALSE@
 OMAPL138_TRUE = @OMAPL138_TRUE@
 PACKAGE = @PACKAGE@
@@ -397,25 +400,25 @@ ping_rpmsg_SOURCES = ping_rpmsg.c
 mmrpc_test_SOURCES = mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
-MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c
+MessageQApp_omap54xx_smp_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_tci6614_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_tci6638_SOURCES = $(common_sources) MessageQApp.c
 
 # list of sources for the 'MessageQBench' binary
-MessageQBench_omap4430_SOURCES = $(common_sources) MessageQBench.c
+MessageQBench_omap54xx_smp_SOURCES = $(common_sources) MessageQBench.c
 MessageQBench_omapl138_SOURCES = $(common_sources) MessageQBench.c
 MessageQBench_tci6614_SOURCES = $(common_sources) MessageQBench.c
 MessageQBench_tci6638_SOURCES = $(common_sources) MessageQBench.c
 
 # list of sources for the 'MessageQMulti' binary
-MessageQMulti_omap4430_SOURCES = $(common_sources) MessageQMulti.c
+MessageQMulti_omap54xx_smp_SOURCES = $(common_sources) MessageQMulti.c
 MessageQMulti_omapl138_SOURCES = $(common_sources) MessageQMulti.c
 MessageQMulti_tci6614_SOURCES = $(common_sources) MessageQMulti.c
 MessageQMulti_tci6638_SOURCES = $(common_sources) MessageQMulti.c
 
 # list of sources for the 'NameServerApp' binary
-NameServerApp_omap4430_SOURCES = $(nameServer_common_sources)
+NameServerApp_omap54xx_smp_SOURCES = $(nameServer_common_sources)
 NameServerApp_omapl138_SOURCES = $(nameServer_common_sources)
 NameServerApp_tci6614_SOURCES = $(nameServer_common_sources)
 NameServerApp_tci6638_SOURCES = $(nameServer_common_sources)
@@ -433,8 +436,8 @@ ping_rpmsg_LDADD = -lrt
 mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
-MessageQApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQApp_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 
 MessageQApp_omapl138_LDADD = $(common_libraries) \
@@ -451,8 +454,8 @@ MessageQApp_tci6638_LDADD = $(common_libraries) \
 
 
 # the additional libraries needed to link MessageQBench
-MessageQBench_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la -lrt \
+MessageQBench_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la -lrt \
                 $(AM_LDFLAGS)
 
 MessageQBench_omapl138_LDADD = $(common_libraries) \
@@ -469,8 +472,8 @@ MessageQBench_tci6638_LDADD = $(common_libraries) \
 
 
 # the additional libraries needed to link MessageQMulti
-MessageQMulti_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQMulti_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 
 MessageQMulti_omapl138_LDADD = $(common_libraries) \
@@ -487,8 +490,8 @@ MessageQMulti_tci6638_LDADD = $(common_libraries) \
 
 
 # the additional libraries needed to link NameServerApp
-NameServerApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+NameServerApp_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 
 NameServerApp_omapl138_LDADD = $(common_libraries) \
@@ -571,9 +574,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-MessageQApp_omap4430$(EXEEXT): $(MessageQApp_omap4430_OBJECTS) $(MessageQApp_omap4430_DEPENDENCIES) 
-	@rm -f MessageQApp_omap4430$(EXEEXT)
-	$(LINK) $(MessageQApp_omap4430_LDFLAGS) $(MessageQApp_omap4430_OBJECTS) $(MessageQApp_omap4430_LDADD) $(LIBS)
+MessageQApp_omap54xx_smp$(EXEEXT): $(MessageQApp_omap54xx_smp_OBJECTS) $(MessageQApp_omap54xx_smp_DEPENDENCIES) 
+	@rm -f MessageQApp_omap54xx_smp$(EXEEXT)
+	$(LINK) $(MessageQApp_omap54xx_smp_LDFLAGS) $(MessageQApp_omap54xx_smp_OBJECTS) $(MessageQApp_omap54xx_smp_LDADD) $(LIBS)
 MessageQApp_omapl138$(EXEEXT): $(MessageQApp_omapl138_OBJECTS) $(MessageQApp_omapl138_DEPENDENCIES) 
 	@rm -f MessageQApp_omapl138$(EXEEXT)
 	$(LINK) $(MessageQApp_omapl138_LDFLAGS) $(MessageQApp_omapl138_OBJECTS) $(MessageQApp_omapl138_LDADD) $(LIBS)
@@ -583,9 +586,9 @@ MessageQApp_tci6614$(EXEEXT): $(MessageQApp_tci6614_OBJECTS) $(MessageQApp_tci66
 MessageQApp_tci6638$(EXEEXT): $(MessageQApp_tci6638_OBJECTS) $(MessageQApp_tci6638_DEPENDENCIES) 
 	@rm -f MessageQApp_tci6638$(EXEEXT)
 	$(LINK) $(MessageQApp_tci6638_LDFLAGS) $(MessageQApp_tci6638_OBJECTS) $(MessageQApp_tci6638_LDADD) $(LIBS)
-MessageQBench_omap4430$(EXEEXT): $(MessageQBench_omap4430_OBJECTS) $(MessageQBench_omap4430_DEPENDENCIES) 
-	@rm -f MessageQBench_omap4430$(EXEEXT)
-	$(LINK) $(MessageQBench_omap4430_LDFLAGS) $(MessageQBench_omap4430_OBJECTS) $(MessageQBench_omap4430_LDADD) $(LIBS)
+MessageQBench_omap54xx_smp$(EXEEXT): $(MessageQBench_omap54xx_smp_OBJECTS) $(MessageQBench_omap54xx_smp_DEPENDENCIES) 
+	@rm -f MessageQBench_omap54xx_smp$(EXEEXT)
+	$(LINK) $(MessageQBench_omap54xx_smp_LDFLAGS) $(MessageQBench_omap54xx_smp_OBJECTS) $(MessageQBench_omap54xx_smp_LDADD) $(LIBS)
 MessageQBench_omapl138$(EXEEXT): $(MessageQBench_omapl138_OBJECTS) $(MessageQBench_omapl138_DEPENDENCIES) 
 	@rm -f MessageQBench_omapl138$(EXEEXT)
 	$(LINK) $(MessageQBench_omapl138_LDFLAGS) $(MessageQBench_omapl138_OBJECTS) $(MessageQBench_omapl138_LDADD) $(LIBS)
@@ -595,9 +598,9 @@ MessageQBench_tci6614$(EXEEXT): $(MessageQBench_tci6614_OBJECTS) $(MessageQBench
 MessageQBench_tci6638$(EXEEXT): $(MessageQBench_tci6638_OBJECTS) $(MessageQBench_tci6638_DEPENDENCIES) 
 	@rm -f MessageQBench_tci6638$(EXEEXT)
 	$(LINK) $(MessageQBench_tci6638_LDFLAGS) $(MessageQBench_tci6638_OBJECTS) $(MessageQBench_tci6638_LDADD) $(LIBS)
-MessageQMulti_omap4430$(EXEEXT): $(MessageQMulti_omap4430_OBJECTS) $(MessageQMulti_omap4430_DEPENDENCIES) 
-	@rm -f MessageQMulti_omap4430$(EXEEXT)
-	$(LINK) $(MessageQMulti_omap4430_LDFLAGS) $(MessageQMulti_omap4430_OBJECTS) $(MessageQMulti_omap4430_LDADD) $(LIBS)
+MessageQMulti_omap54xx_smp$(EXEEXT): $(MessageQMulti_omap54xx_smp_OBJECTS) $(MessageQMulti_omap54xx_smp_DEPENDENCIES) 
+	@rm -f MessageQMulti_omap54xx_smp$(EXEEXT)
+	$(LINK) $(MessageQMulti_omap54xx_smp_LDFLAGS) $(MessageQMulti_omap54xx_smp_OBJECTS) $(MessageQMulti_omap54xx_smp_LDADD) $(LIBS)
 MessageQMulti_omapl138$(EXEEXT): $(MessageQMulti_omapl138_OBJECTS) $(MessageQMulti_omapl138_DEPENDENCIES) 
 	@rm -f MessageQMulti_omapl138$(EXEEXT)
 	$(LINK) $(MessageQMulti_omapl138_LDFLAGS) $(MessageQMulti_omapl138_OBJECTS) $(MessageQMulti_omapl138_LDADD) $(LIBS)
@@ -607,9 +610,9 @@ MessageQMulti_tci6614$(EXEEXT): $(MessageQMulti_tci6614_OBJECTS) $(MessageQMulti
 MessageQMulti_tci6638$(EXEEXT): $(MessageQMulti_tci6638_OBJECTS) $(MessageQMulti_tci6638_DEPENDENCIES) 
 	@rm -f MessageQMulti_tci6638$(EXEEXT)
 	$(LINK) $(MessageQMulti_tci6638_LDFLAGS) $(MessageQMulti_tci6638_OBJECTS) $(MessageQMulti_tci6638_LDADD) $(LIBS)
-NameServerApp_omap4430$(EXEEXT): $(NameServerApp_omap4430_OBJECTS) $(NameServerApp_omap4430_DEPENDENCIES) 
-	@rm -f NameServerApp_omap4430$(EXEEXT)
-	$(LINK) $(NameServerApp_omap4430_LDFLAGS) $(NameServerApp_omap4430_OBJECTS) $(NameServerApp_omap4430_LDADD) $(LIBS)
+NameServerApp_omap54xx_smp$(EXEEXT): $(NameServerApp_omap54xx_smp_OBJECTS) $(NameServerApp_omap54xx_smp_DEPENDENCIES) 
+	@rm -f NameServerApp_omap54xx_smp$(EXEEXT)
+	$(LINK) $(NameServerApp_omap54xx_smp_LDFLAGS) $(NameServerApp_omap54xx_smp_OBJECTS) $(NameServerApp_omap54xx_smp_LDADD) $(LIBS)
 NameServerApp_omapl138$(EXEEXT): $(NameServerApp_omapl138_OBJECTS) $(NameServerApp_omapl138_DEPENDENCIES) 
 	@rm -f NameServerApp_omapl138$(EXEEXT)
 	$(LINK) $(NameServerApp_omapl138_LDFLAGS) $(NameServerApp_omapl138_OBJECTS) $(NameServerApp_omapl138_LDADD) $(LIBS)

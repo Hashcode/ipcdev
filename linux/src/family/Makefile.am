@@ -41,8 +41,8 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -D_GNU_SOURCE -Wall @AM_CFLAGS@
 # the library names to build (note we are building shared libs)
 lib_LTLIBRARIES =
 
-if OMAP4430
-  lib_LTLIBRARIES += libtiipccfg_omap4430.la
+if OMAP54XX_SMP
+  lib_LTLIBRARIES += libtiipccfg_omap54xx_smp.la
 else 
 if OMAPL138
   lib_LTLIBRARIES += libtiipccfg_omapl138.la
@@ -54,7 +54,7 @@ if TCI6638
   lib_LTLIBRARIES += libtiipccfg_tci6638.la
 else 
   lib_LTLIBRARIES += \
-                libtiipccfg_omap4430.la libtiipccfg_omapl138.la \
+                libtiipccfg_omap54xx_smp.la libtiipccfg_omapl138.la \
                 libtiipccfg_tci6614.la libtiipccfg_tci6638.la
 endif
 endif
@@ -66,13 +66,13 @@ common_install_headers = $(top_srcdir)/linux/include/Std.h
 common_sources = $(top_srcdir)/linux/include/_MultiProc.h
 
 # where to install the headers on the system
-libtiipccfg_omap4430_ladir = $(includedir)
+libtiipccfg_omap54xx_smp_ladir = $(includedir)
 libtiipccfg_omapl138_ladir = $(includedir)
 libtiipccfg_tci6614_ladir = $(includedir)
 libtiipccfg_tci6638_ladir = $(includedir)
 
 # the list of header files that belong to the library (to be installed later)
-libtiipccfg_omap4430_la_HEADERS =	\
+libtiipccfg_omap54xx_smp_la_HEADERS =	\
                         $(common_install_headers)
 
 libtiipccfg_omapl138_la_HEADERS =	\
@@ -85,10 +85,10 @@ libtiipccfg_tci6638_la_HEADERS =	\
                         $(common_install_headers)
 
 # the sources to add to the library and to add to the source distribution
-libtiipccfg_omap4430_la_SOURCES =	\
-                        $(libtiipccfg_omap4430_la_HEADERS) \
+libtiipccfg_omap54xx_smp_la_SOURCES =	\
+                        $(libtiipccfg_omap54xx_smp_la_HEADERS) \
                         $(common_sources) \
-                        SystemCfg_omap4430.c
+                        SystemCfg_omap54xx_smp.c
 
 libtiipccfg_omapl138_la_SOURCES =	\
                         $(libtiipccfg_omapl138_la_HEADERS) \
@@ -106,7 +106,7 @@ libtiipccfg_tci6638_la_SOURCES =	\
                         SystemCfg_tci6638.c
 
 # Add version info to the shared library
-libtiipccfg_omap4430_la_LDFLAGS = -version-info 1:0:0
+libtiipccfg_omap54xx_smp_la_LDFLAGS = -version-info 1:0:0
 libtiipccfg_omapl138_la_LDFLAGS = -version-info 1:0:0
 libtiipccfg_tci6614_la_LDFLAGS = -version-info 1:0:0
 libtiipccfg_tci6638_la_LDFLAGS = -version-info 1:0:0

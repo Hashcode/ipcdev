@@ -42,9 +42,9 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages  \
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg mmrpc_test
 
-if OMAP4430
-  bin_PROGRAMS += MessageQApp_omap4430 MessageQBench_omap4430 \
-                MessageQMulti_omap4430 NameServerApp_omap4430
+if OMAP54XX_SMP
+  bin_PROGRAMS += MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
+                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp
 else
 if OMAPL138
   bin_PROGRAMS += MessageQApp_omapl138 MessageQBench_omapl138 \
@@ -61,8 +61,8 @@ if TCI6638
   bin_PROGRAMS += MessageQApp_tci6638 MessageQBench_tci6638 \
                 MessageQMulti_tci6638 NameServerApp_tci6638
 else
-  bin_PROGRAMS += MessageQApp_omap4430 MessageQBench_omap4430 \
-                MessageQMulti_omap4430 NameServerApp_omap4430 \
+  bin_PROGRAMS += MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
+                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp \
                 MessageQApp_omapl138 MessageQBench_omapl138 \
                 MessageQMulti_omapl138 NameServerApp_omapl138 \
                 MessageQApp_tci6614 MessageQBench_tci6614 \
@@ -96,25 +96,25 @@ ping_rpmsg_SOURCES = ping_rpmsg.c
 mmrpc_test_SOURCES = mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
-MessageQApp_omap4430_SOURCES = $(common_sources) MessageQApp.c
+MessageQApp_omap54xx_smp_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_tci6614_SOURCES = $(common_sources) MessageQApp.c
 MessageQApp_tci6638_SOURCES = $(common_sources) MessageQApp.c
 
 # list of sources for the 'MessageQBench' binary
-MessageQBench_omap4430_SOURCES = $(common_sources) MessageQBench.c
+MessageQBench_omap54xx_smp_SOURCES = $(common_sources) MessageQBench.c
 MessageQBench_omapl138_SOURCES = $(common_sources) MessageQBench.c
 MessageQBench_tci6614_SOURCES  = $(common_sources) MessageQBench.c
 MessageQBench_tci6638_SOURCES  = $(common_sources) MessageQBench.c
 
 # list of sources for the 'MessageQMulti' binary
-MessageQMulti_omap4430_SOURCES = $(common_sources) MessageQMulti.c
+MessageQMulti_omap54xx_smp_SOURCES = $(common_sources) MessageQMulti.c
 MessageQMulti_omapl138_SOURCES = $(common_sources) MessageQMulti.c
 MessageQMulti_tci6614_SOURCES  = $(common_sources) MessageQMulti.c
 MessageQMulti_tci6638_SOURCES  = $(common_sources) MessageQMulti.c
 
 # list of sources for the 'NameServerApp' binary
-NameServerApp_omap4430_SOURCES = $(nameServer_common_sources)
+NameServerApp_omap54xx_smp_SOURCES = $(nameServer_common_sources)
 NameServerApp_omapl138_SOURCES = $(nameServer_common_sources)
 NameServerApp_tci6614_SOURCES  = $(nameServer_common_sources)
 NameServerApp_tci6638_SOURCES  = $(nameServer_common_sources)
@@ -132,8 +132,8 @@ ping_rpmsg_LDADD = -lrt
 mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
-MessageQApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQApp_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 MessageQApp_omapl138_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
@@ -146,8 +146,8 @@ MessageQApp_tci6638_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQBench
-MessageQBench_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la -lrt \
+MessageQBench_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la -lrt \
                 $(AM_LDFLAGS)
 MessageQBench_omapl138_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la -lrt \
@@ -160,8 +160,8 @@ MessageQBench_tci6638_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQMulti
-MessageQMulti_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+MessageQMulti_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 MessageQMulti_omapl138_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
@@ -174,8 +174,8 @@ MessageQMulti_tci6638_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link NameServerApp
-NameServerApp_omap4430_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap4430.la \
+NameServerApp_omap54xx_smp_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 NameServerApp_omapl138_LDADD = $(common_libraries) \
                 $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
