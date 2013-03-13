@@ -1677,7 +1677,7 @@ _init_rpmsg_dce_device (int num)
 static
 Void
 _rpmsg_dce_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
-                      UInt32 endpoint, Bool create)
+                      UInt32 endpoint, Char * desc, Bool create)
 {
     Int i = 0;
     Bool found = FALSE;
@@ -1715,7 +1715,7 @@ _rpmsg_dce_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
 static
 Void
 _rpmsg_dce_conn_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
-                           UInt32 endpoint, Bool create)
+                           UInt32 endpoint, Char * desc, Bool create)
 {
     rpmsg_dce_state.conn_remote_endpoint = endpoint;
 }

@@ -246,17 +246,7 @@ typedef struct rpmsg_omx_name {
     char name[RPMSG_NAME_SIZE];
 }rpmsg_omx_name_t;
 
-static struct rpmsg_omx_name rpmsg_omx_names[] = {
-#if defined(SYSLINK_SYSBIOS_SMP)
-        {.name = "rpmsg-omx1"},
-#else
-        {.name = "rpmsg-omx0"},
-        {.name = "rpmsg-omx1"},
-#endif
-        {.name = "rpmsg-omx2"}
-};
-
-#define NUM_RPMSG_OMX_QUEUES sizeof(rpmsg_omx_names)/sizeof(*rpmsg_omx_names)
+#define RPMSG_OMX_MODULE_NAME "rpmsg-omx"
 
 /*!
  *  @brief  rpmsg-omx Module state object
@@ -272,7 +262,7 @@ typedef struct rpmsg_omx_ModuleObject_tag {
     /*!< List for all user processes registered. */
     rpmsg_omx_conn_object * objects [MultiProc_MAXPROCESSORS];
     /*!< List of all remote connections. */
-    MessageQCopy_Handle mqHandle[NUM_RPMSG_OMX_QUEUES];
+    MessageQCopy_Handle mqHandle;
     /*!< Local mq handle associated with this module */
     UInt32 endpoint;
     /*!< Local endpoint associated with the mq handle */
@@ -1852,9 +1842,9 @@ _init_rpmsg_omx_device (char * name)
 static
 Void
 _rpmsg_omx_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
-                      UInt32 endpoint, Bool create)
+                      UInt32 endpoint, Char * desc, Bool create)
 {
-    Int status = 0, i = 0, j = 0;
+    Int status = 0, i = 0;
     Bool found = FALSE;
     rpmsg_omx_conn_object * obj = NULL;
 
@@ -1865,13 +1855,7 @@ _rpmsg_omx_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
         }
     }
 
-    for (j = 0; j < NUM_RPMSG_OMX_QUEUES; j++) {
-        if (rpmsg_omx_state.mqHandle[j] == handle) {
-            break;
-        }
-    }
-
-    if (found && j < NUM_RPMSG_OMX_QUEUES) {
+    if (found) {
         /* found a space to save this mq handle, allocate memory */
         obj = Memory_calloc (NULL, sizeof (rpmsg_omx_conn_object), 0x0, NULL);
         if (obj) {
@@ -1890,9 +1874,9 @@ _rpmsg_omx_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
                 obj->addr = endpoint;
 
                 /* create a /dev/rpmsg-omx instance for users to open */
-                obj->dev = _init_rpmsg_omx_device(rpmsg_omx_names[j].name);
+                obj->dev = _init_rpmsg_omx_device(desc);
                 if (obj->dev == NULL) {
-                    Osal_printf("Failed to create %s", rpmsg_omx_names[j].name);
+                    Osal_printf("Failed to create %s", desc);
                     ProcMgr_close(&obj->procH);
                     Memory_free(NULL, obj, sizeof(rpmsg_omx_object));
                 }
@@ -1982,40 +1966,36 @@ rpmsg_omx_setup (Void)
                         0,
                         (sizeof (rpmsg_omx_conn_object *)
                          *  MultiProc_MAXPROCESSORS));
-            for (i = 0; i < NUM_RPMSG_OMX_QUEUES; i++) {
-                /* create a local handle and register for notifications with MessageQCopy */
-                rpmsg_omx_state.mqHandle[i] = MessageQCopy_create (
-                                                   MessageQCopy_ADDRANY,
-                                                   rpmsg_omx_names[i].name,
-                                                   _rpmsg_omx_module_cb,
-                                                   NULL,
-                                                   &rpmsg_omx_state.endpoint);
-                if (rpmsg_omx_state.mqHandle[i] == NULL) {
-                    /*! @retval OMX_FAIL Failed to create MessageQCopy handle! */
+            /* create a local handle and register for notifications with MessageQCopy */
+            rpmsg_omx_state.mqHandle = MessageQCopy_create (
+                                               MessageQCopy_ADDRANY,
+                                               RPMSG_OMX_MODULE_NAME,
+                                               _rpmsg_omx_module_cb,
+                                               NULL,
+                                               &rpmsg_omx_state.endpoint);
+            if (rpmsg_omx_state.mqHandle == NULL) {
+                /*! @retval OMX_FAIL Failed to create MessageQCopy handle! */
+                status = -ENOMEM;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "rpmsg_omx_setup",
+                                     status,
+                                     "Failed to create MessageQCopy handle!");
+            }
+            else {
+                /* TBD: This could be replaced with a messageqcopy_open type call, one for
+                 * each core */
+                status = MessageQCopy_registerNotify (rpmsg_omx_state.mqHandle,
+                                                      _rpmsg_omx_notify_cb);
+                if (status < 0) {
+                    MessageQCopy_delete (&rpmsg_omx_state.mqHandle);
+                    /*! @retval OMX_FAIL Failed to register MQCopy handle! */
                     status = -ENOMEM;
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
                                          "rpmsg_omx_setup",
                                          status,
-                                         "Failed to create MessageQCopy handle!");
-                    break;
-                }
-                else {
-                    /* TBD: This could be replaced with a messageqcopy_open type call, one for
-                     * each core */
-                    status = MessageQCopy_registerNotify (rpmsg_omx_state.mqHandle[i],
-                                                        _rpmsg_omx_notify_cb);
-                    if (status < 0) {
-                        MessageQCopy_delete (&rpmsg_omx_state.mqHandle[i]);
-                        /*! @retval OMX_FAIL Failed to register MQCopy handle! */
-                        status = -ENOMEM;
-                        GT_setFailureReason (curTrace,
-                                             GT_4CLASS,
-                                             "rpmsg_omx_setup",
-                                             status,
-                                             "Failed to register MQCopy handle!");
-                        break;
-                    }
+                                         "Failed to register MQCopy handle!");
                 }
             }
             if (status >= 0){
@@ -2035,9 +2015,7 @@ rpmsg_omx_setup (Void)
                 rpmsg_omx_state.isSetup = TRUE;
             }
             else {
-                for (; i > 0; --i) {
-                    MessageQCopy_delete (&rpmsg_omx_state.mqHandle[i]);
-                }
+                MessageQCopy_delete (&rpmsg_omx_state.mqHandle);
                 rpmsg_omx_state.run = FALSE;
             }
         }
@@ -2133,11 +2111,9 @@ rpmsg_omx_destroy (Void)
         OsalSemaphore_delete(&rpmsg_omx_state.sem);
     }
 
-    for (i = 0; i < NUM_RPMSG_OMX_QUEUES; i++) {
-        if (rpmsg_omx_state.mqHandle[i]) {
-            //MessageQCopy_unregisterNotify();
-            MessageQCopy_delete(&rpmsg_omx_state.mqHandle[i]);
-        }
+    if (rpmsg_omx_state.mqHandle) {
+        //MessageQCopy_unregisterNotify();
+        MessageQCopy_delete(&rpmsg_omx_state.mqHandle);
     }
 
     if (rpmsg_omx_state.gateHandle != NULL) {

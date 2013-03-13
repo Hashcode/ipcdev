@@ -1225,7 +1225,7 @@ static
 static
 Void
 _rpmsg_resmgr_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
-                         UInt32 endpoint, Bool create)
+                         UInt32 endpoint, Char * desc, Bool create)
 {
     int status = EOK;
     Int i = 0;
