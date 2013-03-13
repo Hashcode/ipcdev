@@ -299,7 +299,8 @@ void mqcopy_client_test_cb(MessageQCopy_Handle handle, void * data, int len, voi
     }
 }
 
-void mqcopy_client_test_notify_cb (MessageQCopy_Handle handle, UInt16 procId, UInt32 endpoint, Bool create)
+void mqcopy_client_test_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
+                                   UInt32 endpoint, Char * desc, Bool create)
 {
     Int i = 0;
     Bool found = FALSE;
@@ -362,7 +363,8 @@ void mqcopy_error_test_cb(MessageQCopy_Handle handle, void * data, int len, void
                  handle, srcProc, src);
 }
 
-void mqcopy_error_test_notify_cb (MessageQCopy_Handle handle, UInt16 procId, UInt32 endpoint, Bool create)
+void mqcopy_error_test_notify_cb (MessageQCopy_Handle handle, UInt16 procId,
+                                  UInt32 endpoint, Char * desc, Bool create)
 {
     Osal_printf ("mqcopy_error_test_notify_cb for handle %d from procId %d endpoint %d",
                  handle, procId, endpoint);

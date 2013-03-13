@@ -141,6 +141,8 @@ typedef struct MessageQCopy_Object_tag {
     /*!< Address (endpoint) of this MessageQCopy instance */
     Char                name [RPMSG_NAME_SIZE];
     /*!< Name of this MessageQCopy instance (may not be set) */
+    Char                desc [RPMSG_NAME_SIZE];
+    /*!< Desc of this MessageQCopy instance (may not be set) */
     Bool                announce;
     /*!< Flag to indicate if creation/deletion of this instance should be
          announced to the remote cores. */
@@ -148,7 +150,7 @@ typedef struct MessageQCopy_Object_tag {
     /*!< Callback to invoke when a message is received for this addr.  */
     Void              * priv;
     /*!< Private data that is passed to the callback */
-    Void (*notifyCb)(MessageQCopy_Handle, UInt16, UInt32, Bool);
+    Void (*notifyCb)(MessageQCopy_Handle, UInt16, UInt32, Char *, Bool);
     /*!< Optional callback that can be registered to request notification when
          MQCopy objects of the same name are created */
 } MessageQCopy_Object;
@@ -170,7 +172,7 @@ _MessageQCopy_callback_bufReady (VirtQueue_Handle vq, void *arg);
 static
 MessageQCopy_Handle
 _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
-                      String name,
+                      String name, String desc,
                       Void (*cb)(MessageQCopy_Handle,
                                  Void *, Int, Void *, UInt32, UInt16),
                       Void *priv, UInt32 * endpoint);
@@ -732,7 +734,7 @@ MessageQCopy_detach (UInt16 remoteProcId)
 static
 MessageQCopy_Handle
 _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
-           String name,
+           String name, String desc,
            void (*cb)(MessageQCopy_Handle, void *, int, void *, UInt32, UInt16),
            Void *priv, UInt32 * endpoint)
 {
@@ -745,11 +747,12 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
     MessageQCopy_Handle *       mq              = NULL;
     Bool                        announce        = FALSE;
 
-    GT_4trace (curTrace, GT_ENTER, "_MessageQCopy_create",
-               handle, reserved, name, endpoint);
+    GT_5trace (curTrace, GT_ENTER, "_MessageQCopy_create",
+               handle, reserved, name, desc, endpoint);
 
     GT_assert (curTrace, (endpoint != NULL));
     /* name is optional and may be NULL. */
+    /* desc is optional and may be NULL. */
     /* handle is optional and may be NULL. */
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -784,6 +787,16 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
                              "_MessageQCopy_create",
                              status,
                              "Invalid name argument provided");
+    }
+    else if (desc && String_nlen(desc, RPMSG_NAME_SIZE - 1) == -1) {
+        /*! @retval  MessageQCopy_E_INVALIDARG Invalid name argument
+                                         provided. */
+        status = MessageQCopy_E_INVALIDARG;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_MessageQCopy_create",
+                             status,
+                             "Invalid desc argument provided");
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -830,6 +843,11 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
                 }
                 else
                     obj->name[0] = '\0';
+                if (desc) {
+                    String_cpy (obj->desc, desc);
+                }
+                else
+                    obj->desc[0] = '\0';
 
                 mq[queueIndex] = obj;
 
@@ -842,6 +860,10 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
                     msg.addr = obj->addr;
                     msg.flags = RPMSG_NS_CREATE;
                     String_ncpy (msg.name, obj->name, RPMSG_NAME_SIZE);
+                    if (obj->desc)
+                        String_ncpy (msg.desc, obj->desc, RPMSG_NAME_SIZE);
+                    else
+                        msg.desc[0] = '\0';
 
                     /* Send to all procs */
                     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
@@ -879,6 +901,7 @@ _MessageQCopy_create (MessageQCopyTransport_Handle handle, UInt32 reserved,
                                                      MessageQCopy_module->mq[i],
                                                      obj->procId,
                                                      obj->addr,
+                                                     obj->desc,
                                                      TRUE);
                             }
                         }
@@ -941,7 +964,8 @@ MessageQCopy_create (UInt32 reserved, String name,
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
-        obj = _MessageQCopy_create (NULL, reserved, name, cb, priv, endpoint);
+        obj = _MessageQCopy_create (NULL, reserved, name, NULL, cb, priv,
+                                    endpoint);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         if (obj == NULL) {
@@ -1048,6 +1072,10 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
                 msg.addr = obj->addr;
                 msg.flags = RPMSG_NS_DESTROY;
                 String_ncpy(msg.name, obj->name, RPMSG_NAME_SIZE);
+                if (obj->desc)
+                    String_ncpy(msg.desc, obj->desc, RPMSG_NAME_SIZE);
+                else
+                    msg.desc[0] = '\0';
 
                 /* Send to all procs */
                 for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
@@ -1082,6 +1110,7 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
                                                      MessageQCopy_module->mq[i],
                                                      obj->procId,
                                                      obj->addr,
+                                                     obj->desc,
                                                      FALSE);
                         }
                     }
@@ -1121,7 +1150,7 @@ MessageQCopy_delete (      MessageQCopy_Handle * handlePtr)
 /* Register to be notified of a MQ created on the remote core. */
 Int
 MessageQCopy_registerNotify (MessageQCopy_Handle handle,
-                          Void (*cb)(MessageQCopy_Handle, UInt16, UInt32, Bool))
+                  Void (*cb)(MessageQCopy_Handle, UInt16, UInt32, Char *, Bool))
 {
     Int32                               status      = MessageQCopy_S_SUCCESS;
     MessageQCopyTransport_Object *      obj         = NULL;
@@ -1210,7 +1239,8 @@ MessageQCopy_registerNotify (MessageQCopy_Handle handle,
                                                   obj->mq[i]->name,
                                                   RPMSG_NAME_SIZE) ) {
                                     /* call the callback */
-                                    cb(handle, j, obj->mq[i]->addr, TRUE);
+                                    cb(handle, j, obj->mq[i]->addr,
+                                       obj->mq[i]->desc, TRUE);
                                 }
                             }
                         }
@@ -1481,7 +1511,7 @@ MessageQCopy_send (UInt16 dstProc, UInt16 srcProc, UInt32 dstEndpt,
             }
             else {
                 if (!_MessageQCopy_create (transport, msg->addr, msg->name,
-                                           NULL, NULL, &endpoint)) {
+                                           msg->desc, NULL, NULL, &endpoint)) {
                     GT_0trace (curTrace, GT_4CLASS,
                                "creating of MQ in NS Callback failed!");
                 }

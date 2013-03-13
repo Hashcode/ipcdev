@@ -350,7 +350,7 @@ Int MessageQCopy_delete (MessageQCopy_Handle * handlePtr);
  */
 Int MessageQCopy_registerNotify (MessageQCopy_Handle handle,
                                  void(* cb)(MessageQCopy_Handle,
-                                            UInt16, UInt32, Bool));
+                                            UInt16, UInt32, Char *, Bool));
 
 /* =============================================================================
  *  MessageQCopy Per-instance Functions

@@ -71,6 +71,7 @@ enum rpmsg_ns_flags {
 
 struct rpmsg_ns_msg {
     char name[RPMSG_NAME_SIZE];
+    char desc[RPMSG_NAME_SIZE];
     uint32_t addr;
     uint32_t flags;
 } __packed;
