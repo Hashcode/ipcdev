@@ -687,7 +687,6 @@ _rpmsg_omx_connect(resmgr_context_t *ctp, io_devctl_t *msg, rpmsg_omx_ocb_t *ocb
     else {
         hdr = (struct omx_msg_hdr *)buf;
         hdr->type = OMX_CONN_REQ;
-        hdr->flags = 0;
         hdr->len = sizeof(struct omx_conn_req);
         Memory_copy(hdr->data, cargs, sizeof(struct omx_conn_req));
 
@@ -743,7 +742,6 @@ _rpmsg_omx_disconnect(resmgr_context_t *ctp, io_devctl_t *msg, rpmsg_omx_ocb_t *
     else {
         hdr = (struct omx_msg_hdr *)buf;
         hdr->type = OMX_DISCONNECT;
-        hdr->flags = 0;
         hdr->len = sizeof(struct omx_conn_req);
         dreq = (struct omx_disc_req *)hdr->data;
         dreq->addr = omx->remoteAddr;
@@ -1677,7 +1675,6 @@ rpmsg_omx_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     }
 
     msg_hdr->type = OMX_RAW_MSG;
-    msg_hdr->flags = 0;
     msg_hdr->len = bytes;
 
     status = MessageQCopy_send(omx->conn->procId, MultiProc_self(),

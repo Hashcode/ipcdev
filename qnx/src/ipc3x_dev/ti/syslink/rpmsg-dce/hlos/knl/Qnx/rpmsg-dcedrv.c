@@ -1374,7 +1374,6 @@ rpmsg_dce_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     }
 
     msg_hdr->type = OMX_RAW_MSG;
-    msg_hdr->flags = 0;
     msg_hdr->len = bytes;
 
     status = MessageQCopy_send(dce->conn->procId, MultiProc_self(),

@@ -110,7 +110,6 @@ enum omx_state {
  */
 struct omx_msg_hdr {
     uint32_t type;
-    uint32_t flags;
     uint32_t len;
     char data[0];
 } __packed;
