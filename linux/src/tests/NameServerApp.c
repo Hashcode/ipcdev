@@ -58,8 +58,8 @@
  *  Macros and types
  *  ============================================================================
  */
-#define NSNAME "MessageQ"
-#define NSNAME2 "MessageQ2"
+#define NSNAME "MyNS"
+#define NSNAME2 "MyNS2"
 
 /** ============================================================================
  *  Globals
