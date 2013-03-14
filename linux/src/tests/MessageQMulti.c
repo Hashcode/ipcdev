@@ -189,8 +189,7 @@ int main (int argc, char ** argv)
 {
     struct thread_info threads[MAX_NUM_THREADS];
     int ret,i;
-    void *res;
-    Int32   status = 0;
+    Int32 status = 0;
 
     /* Parse Args: */
     numLoops = NUM_LOOPS_DFLT;
@@ -246,14 +245,12 @@ int main (int argc, char ** argv)
 
     /* Join all threads: */
     for (i = 0; i < numThreads; i++) {
-        ret = pthread_join(threads[i].thread_id, &res);
+        ret = pthread_join(threads[i].thread_id, NULL);
         if (ret != 0) {
             printf("MessageQMulti: failed to join thread: %d, %s\n",
                     i, strerror(ret));
         }
-        printf("MessageQMulti: Joined with thread %d; returned value was %s\n",
-                threads[i].thread_num, (char *) res);
-        free(res);      /* Free memory allocated by thread */
+        printf("MessageQMulti: Joined with thread %d\n",threads[i].thread_num);
     }
 
     Ipc_stop();
