@@ -72,7 +72,7 @@ extern "C" {
  *  @def    MessageQCopy_MAXMQS
  *  @brief  Maximum number of MQ handles (endpoints) per transport supported.
  */
-#define MessageQCopy_MAXMQS 256u
+#define MessageQCopy_MAXMQS 1280u
 
 /*!
  *  @def    MessageQCopy_NUMVIRTQS
@@ -113,7 +113,7 @@ extern "C" {
  *  @def    MessageQCopy_MAXRESERVEDEPT
  *  @brief  Maximum Value for System Reserved Endpoints.
  */
-#define MessageQCopy_MAXRESERVEDEPT    100
+#define MessageQCopy_MAXRESERVEDEPT    1024
 
 /*
  * The alignment to use between consumer and producer parts of vring.
