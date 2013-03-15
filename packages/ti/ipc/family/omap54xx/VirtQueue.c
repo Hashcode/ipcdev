@@ -211,11 +211,7 @@ extern Int OffloadM3_processSysM3Tasks(UArg msg);
 
 static inline Void * mapPAtoVA(UInt pa)
 {
-#ifndef DSPC674
-    return (Void *)((pa & 0x000fffffU) | 0xa0000000U);
-#else
-    return (Void *)((pa & 0x000fffffU) | 0x9fb00000U);
-#endif
+    return (Void *)((pa & 0x000fffffU) | IPC_MEM_VRING0);
 }
 
 static inline UInt mapVAtoPA(Void * va)
