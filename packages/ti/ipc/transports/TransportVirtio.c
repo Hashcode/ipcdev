@@ -104,7 +104,7 @@ Int TransportVirtio_Instance_init(TransportVirtio_Object *obj,
     obj->remoteProcId = remoteProcId;
 
     /* Announce our "MessageQ" service to the HOST: */
-    NameMap_register(RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
+    NameMap_register(RPMSG_SOCKET_NAME, RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
 
     /* Associate incomming messages with this transport's callback fxn: */
     obj->msgqHandle = MessageQCopy_create(RPMSG_MESSAGEQ_PORT,
@@ -143,7 +143,8 @@ Void TransportVirtio_Instance_finalize(TransportVirtio_Object *obj, Int status)
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
     /* Announce our "MessageQ" service is going away: */
-    NameMap_unregister(RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
+    NameMap_unregister(RPMSG_SOCKET_NAME, RPMSG_SOCKET_NAME,
+            RPMSG_MESSAGEQ_PORT);
 
     switch(status) {
         case 0: /* MessageQ_registerTransport succeeded */

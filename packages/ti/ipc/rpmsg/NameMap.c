@@ -44,6 +44,7 @@ typedef unsigned int u32;
 
 struct rpmsg_ns_msg {
     char name[RPMSG_NAME_SIZE]; /* name of service including terminal '\0' */
+    char desc[RPMSG_NAME_SIZE]; /* description of service including '\0' */
     u32 addr;                   /* address of the service */
     u32 flags;                  /* see below */
 } __packed;
@@ -53,13 +54,16 @@ enum rpmsg_ns_flags {
     RPMSG_NS_DESTROY = 1
 };
 
-static void sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
+static void
+sendMessage(Char * name, Char *desc, UInt32 port, enum rpmsg_ns_flags flags)
 {
     struct rpmsg_ns_msg nsMsg;
     Int s;
 
     strncpy(nsMsg.name, name, (RPMSG_NAME_SIZE - 1));
     nsMsg.name[RPMSG_NAME_SIZE-1] = '\0';
+    strncpy(nsMsg.desc, desc, (RPMSG_NAME_SIZE - 1));
+    nsMsg.desc[RPMSG_NAME_SIZE-1] = '\0';
     nsMsg.addr = port;
     nsMsg.flags = flags;
 
@@ -71,14 +75,16 @@ static void sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
     }
 }
 
-void NameMap_register(Char * name, UInt32 port)
+void NameMap_register(Char * name, Char * desc, UInt32 port)
 {
-    System_printf("registering %s service on %d with HOST\n", name, port);
-    sendMessage(name, port, RPMSG_NS_CREATE);
+    System_printf("registering %s:%s service on %d with HOST\n", name, desc,
+                                                                 port);
+    sendMessage(name, desc, port, RPMSG_NS_CREATE);
 }
 
-void NameMap_unregister(Char * name, UInt32 port)
+void NameMap_unregister(Char * name, Char * desc, UInt32 port)
 {
-    System_printf("un-registering %s service on %d with HOST\n", name, port);
-    sendMessage(name, port, RPMSG_NS_DESTROY);
+    System_printf("un-registering %s:%s service on %d with HOST\n", name, desc,
+                                                                    port);
+    sendMessage(name, desc, port, RPMSG_NS_DESTROY);
 }

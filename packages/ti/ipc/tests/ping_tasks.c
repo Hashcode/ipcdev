@@ -69,7 +69,7 @@ Void copyTaskFxn(UArg arg0, UArg arg1)
     /* Create the messageQ for receiving (and get our endpoint for sending). */
     handle = MessageQCopy_create(arg0, NULL, NULL, &myEndpoint);
 
-    NameMap_register("rpmsg-client-sample", arg0);
+    NameMap_register("rpmsg-client-sample", "sample-desc", arg0);
 
     for (i = 0; i < APP_NUM_ITERATIONS; i++) {
        /* Await a character message: */

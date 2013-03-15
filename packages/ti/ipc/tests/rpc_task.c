@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,21 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== test_omx.c ========
+ *  ======== rpc_task.c ========
  *
- *  Example of setting up an "OMX" service with the ServiceMgr, allowing clients
- *  to instantiate OMX instances.
+ *  Example of setting up a 'RPC' service with the ServiceMgr, allowing clients
+ *  to instantiate the example RPC instance.
  *
- *  Works with the test_omx.c Linux user space application over the rpmsg_omx\
- *  driver.
  */
 
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Diags.h>
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <ti/ipc/MultiProc.h>
 #include <ti/sysbios/BIOS.h>
@@ -51,21 +53,17 @@
 #include <ti/grcm/RcmTypes.h>
 #include <ti/grcm/RcmServer.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #include <ti/srvmgr/ServiceMgr.h>
+#include <ti/srvmgr/omaprpc/OmapRpc.h>
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/omx_packet.h>
 
 /* Turn on/off printf's */
 #define CHATTER 0
 
+#define RPC_MGR_PORT    59
+
 /* Legacy function to allow Linux side rpmsg sample tests to work: */
-extern void start_ping_tasks();
-extern void start_resmgr_task();
-extern void start_hwSpinlock_task();
 extern void start_rpc_task();
 
 /*
@@ -82,51 +80,64 @@ typedef enum {
 } map_info_type;
 
 /*
- *  ======== fxnDouble used by omx_benchmark test app ========
+ *  ======== fxnTriple used by omx_benchmark test app ========
  */
 typedef struct {
     Int a;
-} FxnDoubleArgs;
-
-static Int32 fxnDouble(UInt32 size, UInt32 *data);
-
-/* ==========================================================================
- * OMX Fxns, adapted from rpc_omx_skel.c.
- *
- * These defines are to illustrate reuse of RPC_SKEL fxns with ServiceMgr.
- *===========================================================================*/
+} FxnTripleArgs;
 
 #define H264_DECODER_NAME   "H264_decoder"
 
 #define OMX_VIDEO_THREAD_PRIORITY    5
 
-typedef Int32  RPC_OMX_ERRORTYPE;
 typedef UInt32 OMX_HANDLETYPE;
 
-static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *, UInt32 size, UInt32 *data);
-static RPC_OMX_ERRORTYPE RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
-static RPC_OMX_ERRORTYPE RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
+static Int32 RPC_SKEL_Init(Void *, UInt32 size, UInt32 *data);
+static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data);
+static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
+static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
+static Int32 fxnTriple(UInt32 size, UInt32 *data);
 
-
-
+#if 0
 /* RcmServer static function table */
-static RcmServer_FxnDesc OMXServerFxnAry[] = {
-//    {"RPC_SKEL_GetHandle"   , RPC_SKEL_GetHandle},  // Set at runtime.
-    {"RPC_SKEL_GetHandle"   , NULL},
+static RcmServer_FxnDesc RPCServerFxnAry[] = {
+    {"RPC_SKEL_Init", NULL}, /* filled in dynamically */
     {"RPC_SKEL_SetParameter", RPC_SKEL_SetParameter},
     {"RPC_SKEL_GetParameter", RPC_SKEL_GetParameter},
-    {"fxnDouble", fxnDouble },
+    {"fxnTriple", fxnTriple },
 };
 
-#define OMXServerFxnAryLen (sizeof OMXServerFxnAry / sizeof OMXServerFxnAry[0])
+#define RPCServerFxnAryLen (sizeof RPCServerFxnAry / sizeof RPCServerFxnAry[0])
 
-static const RcmServer_FxnDescAry OMXServer_fxnTab = {
-    OMXServerFxnAryLen,
-    OMXServerFxnAry
+static const RcmServer_FxnDescAry RPCServer_fxnTab = {
+    RPCServerFxnAryLen,
+    RPCServerFxnAry
+};
+#endif
+
+#define RPC_SVR_NUM_FXNS 2
+OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
+{
+    { RPC_SKEL_Init2,
+        { "RPC_SKEL_Init2", 3,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1},
+                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1},
+            },
+        },
+    },
+    { fxnTriple,
+        { "fxnTriple", 2,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1}, // return
+            },
+        },
+    },
 };
 
-
-static RPC_OMX_ERRORTYPE RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
+static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
 {
 #if CHATTER
     System_printf("RPC_SKEL_SetParameter: Called\n");
@@ -135,7 +146,7 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
     return(0);
 }
 
-static RPC_OMX_ERRORTYPE RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
+static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
 {
 #if CHATTER
     System_printf("RPC_SKEL_GetParameter: Called\n");
@@ -144,12 +155,16 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
     return(0);
 }
 
+Void RPC_SKEL_SrvDelNotification()
+{
+    System_printf("RPC_SKEL_SrvDelNotification: Nothing to cleanup\n");
+}
+
 #define CALLBACK_DATA      "OMX_Callback"
 #define PAYLOAD_SIZE       sizeof(CALLBACK_DATA)
 #define CALLBACK_DATA_SIZE (HDRSIZE + OMXPACKETSIZE + PAYLOAD_SIZE)
 
-static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
-                                           UInt32 *data)
+static Int32 RPC_SKEL_Init(Void *srvc, UInt32 size, UInt32 *data)
 {
     char              cComponentName[128] = {0};
     OMX_HANDLETYPE    hComp;
@@ -201,80 +216,37 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
     return(0);
 }
 
-/*
- *  ======== fxnDouble ========
- */
-Int32 fxnDouble(UInt32 size, UInt32 *data)
+static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
 {
-    FxnDoubleArgs *args;
+    System_printf("RPC_SKEL_Init2: size = 0x%x data = 0x%x\n", size,
+                                                            (UInt32)data);
+}
+
+/*
+ *  ======== fxnTriple ========
+ */
+Int32 fxnTriple(UInt32 size, UInt32 *data)
+{
+    FxnTripleArgs *args;
     Int a;
 
 #if CHATTER
-    System_printf("fxnDouble: Executing fxnDouble \n");
+    System_printf("fxnTriple: Executing fxnTriple \n");
 #endif
 
-    args = (FxnDoubleArgs *)((UInt32)data + sizeof(map_info_type));
+    args = (FxnTripleArgs *)((UInt32)data + sizeof(map_info_type));
     a = args->a;
 
-    return a * 2;
+    return a * 3;
 }
 
-Int main(Int argc, char* argv[])
+Void start_rpc_task()
 {
-    RcmServer_Params  rcmServerParams;
+    /* Init service manager */
+    System_printf("%s initializing OMAPRPC based service manager endpoint\n",
+                    MultiProc_getName(MultiProc_self()));
 
-    System_printf("%s starting..\n", MultiProc_getName(MultiProc_self()));
-
-    /*
-     * Enable use of runtime Diags_setMask per module:
-     *
-     * Codes: E = ENTRY, X = EXIT, L = LIFECYCLE, F = INFO, S = STATUS
-     */
-    Diags_setMask("ti.ipc.rpmsg.MessageQCopy=EXLFS");
-
-    /* Setup the table of services, so clients can create and connect to
-     * new service instances:
-     */
-    ServiceMgr_init();
-
-    /* initialize RcmServer create params */
-    RcmServer_Params_init(&rcmServerParams);
-
-    /* The first function, at index 0, is a special create function, which
-     * gets passed a Service_Handle argument.
-     * We set this at run time as our C compiler is not allowing named union
-     * field initialization:
-     */
-    OMXServer_fxnTab.elem[0].addr.createFxn = RPC_SKEL_GetHandle;
-
-    rcmServerParams.priority    = Thread_Priority_ABOVE_NORMAL;
-    rcmServerParams.fxns.length = OMXServer_fxnTab.length;
-    rcmServerParams.fxns.elem   = OMXServer_fxnTab.elem;
-
-    /* Register an OMX service to create and call new OMX components: */
-    ServiceMgr_register("OMX", &rcmServerParams);
-
-    /* Some background ping testing tasks, used by rpmsg samples: */
-    start_ping_tasks();
-
-#if 0 /* DSP or CORE0 or IPU */
-    /* Run a background task to test rpmsg_resmgr service */
-    start_resmgr_task();
-#endif
-
-#if 0  /* DSP or CORE0 or IPU */
-    /* Run a background task to test hwspinlock */
-    start_hwSpinlock_task();
-#endif
-
-    /* Start the ServiceMgr services */
-    ServiceMgr_start(0);
-
-#if IPU
-    start_rpc_task();
-#endif
-
-    BIOS_start();
-
-    return (0);
+    OmapRpc_createChannel("rpc_example", MultiProc_getId("HOST"),
+                          RPC_MGR_PORT, RPC_SVR_NUM_FXNS, RPCServerFxns,
+                          (OmapRpc_SrvDelNotifyFxn)RPC_SKEL_SrvDelNotification);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This calls MessageQCopy_init() once before BIOS_start(): */
-xdc.loadPackage('ti.ipc.ipcmgr');
-var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+/*
+ *  ======== package.xdc ========
+ *
+ */
 
-xdc.loadPackage('ti.srvmgr');
-xdc.useModule('ti.srvmgr.omx.OmxSrvMgr');
-xdc.loadPackage('ti.srvmgr.omaprpc');
+/*!
+ *  ======== ti.srvmgr.omaprpc ========
+ *  Generic RPC communication.
+ *
+ */
 
-/* ti.grcm Configuration */
-var rcmSettings = xdc.useModule('ti.grcm.Settings');
-rcmSettings.ipc = rcmSettings.IpcSupport_ti_sdo_ipc;
-xdc.useModule('ti.grcm.RcmServer');
-
-xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
-
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 12 * 0x400;
+package ti.srvmgr.omaprpc [1,0,0] {
+}

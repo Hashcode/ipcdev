@@ -33,7 +33,7 @@
 #ifndef _NAMEMAP_H_
 #define _NAMEMAP_H_
 
-extern void NameMap_register(Char * name, UInt32 value);
-extern void NameMap_unregister(Char * name, UInt32 value);
+extern void NameMap_register(Char * name, Char * desc, UInt32 value);
+extern void NameMap_unregister(Char * name, Char * desc, UInt32 value);
 
 #endif

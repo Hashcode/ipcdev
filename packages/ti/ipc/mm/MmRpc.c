@@ -34,7 +34,12 @@
  *  ======== MmRpc.c ========
  */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "MmRpc.h"
 
@@ -42,7 +47,7 @@
  *  ======== MmRpc_Object ========
  */
 typedef struct {
-    int         reserved;
+    int         fd;             /* device file descriptor */
 } MmRpc_Object;
 
 /*
@@ -62,6 +67,8 @@ MmRpc_Handle MmRpc_create(const char *proc, const char *service,
     int                 status = MmRpc_S_SUCCESS;
     MmRpc_Object *      obj;
 
+    printf("MmRpc_create: -->\n");
+
     /* allocate the instance object */
     obj = (MmRpc_Object *)calloc(1, sizeof(MmRpc_Object));
 
@@ -70,7 +77,26 @@ MmRpc_Handle MmRpc_create(const char *proc, const char *service,
         goto leave;
     }
 
+    /* open the driver */
+    obj->fd = open("/dev/rpc_example", O_RDWR);
+
+    if (obj->fd < 0) {
+        printf("MmRpc_create: Error: open failed\n");
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
 leave:
+    if (status < 0) {
+        if ((obj != NULL) && (obj->fd >= 0)) {
+            close(obj->fd);
+        }
+        if (obj != NULL) {
+            free(obj);
+        }
+    }
+
+    printf("MmRpc_create: <--\n");
     return((MmRpc_Handle)obj);
 }
 
@@ -80,10 +106,20 @@ leave:
 int MmRpc_delete(MmRpc_Handle *handlePtr)
 {
     int status = MmRpc_S_SUCCESS;
+    MmRpc_Object *obj;
+
+    printf("MmRpc_delete: -->\n");
+    obj = (MmRpc_Object *)(*handlePtr);
+
+    /* close the device */
+    if ((obj != NULL) && (obj->fd >= 0)) {
+        close(obj->fd);
+    }
 
     /* free the instance object */
     free((void *)(*handlePtr));
     *handlePtr = NULL;
 
+    printf("MmRpc_delete: <--\n");
     return(status);
 }

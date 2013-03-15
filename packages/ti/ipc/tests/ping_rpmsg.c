@@ -81,7 +81,7 @@ Void pingTaskFxn(UArg arg0, UArg arg1)
     }
 
     /* Announce we are here: */
-    NameMap_register("rpmsg-proto", arg0);
+    NameMap_register("rpmsg-proto", "rpmsg-proto", arg0);
 
     /* Note: we don't get a chance to teardown with MessageQCopy_destroy() */
 }

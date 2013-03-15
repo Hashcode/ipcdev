@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,51 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This calls MessageQCopy_init() once before BIOS_start(): */
-xdc.loadPackage('ti.ipc.ipcmgr');
-var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
+/*
+ *  ======== package.xs ========
+ *
+ */
 
-xdc.loadPackage('ti.srvmgr');
-xdc.useModule('ti.srvmgr.omx.OmxSrvMgr');
-xdc.loadPackage('ti.srvmgr.omaprpc');
+/*
+ *  ======== getLibs ========
+ */
+function getLibs(prog)
+{
+    var suffix;
+    var file;
+    var libAry = [];
+    var profile = this.profile;
+    var smp = "";
 
-/* ti.grcm Configuration */
-var rcmSettings = xdc.useModule('ti.grcm.Settings');
-rcmSettings.ipc = rcmSettings.IpcSupport_ti_sdo_ipc;
-xdc.useModule('ti.grcm.RcmServer');
+    suffix = prog.build.target.findSuffix(this);
+    if (suffix == null) {
+        return "";  /* nothing to contribute */
+    }
 
-xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
+    if (prog.platformName.match(/ipu/)) {
+        smp = "_smp";
+    }
 
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 12 * 0x400;
+    /* make sure the library exists, else fallback to a built library */
+    file = "lib/" + profile + "/ti.srvmgr.omaprpc" + smp + ".a" + suffix;
+    if (java.io.File(this.packageBase + file).exists()) {
+        libAry.push(file);
+    }
+    else {
+        file = "lib/release/ti.srvmgr.omaprpc" + smp + ".a" + suffix;
+        if (java.io.File(this.packageBase + file).exists()) {
+            libAry.push(file);
+        }
+        else {
+            /* fallback to a compatible library built by this package */
+            for (var p in this.build.libDesc) {
+                if (suffix == this.build.libDesc[p].suffix) {
+                    libAry.push(p);
+                    break;
+                }
+            }
+        }
+    }
+
+    return libAry.join(";");
+}
