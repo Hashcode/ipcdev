@@ -139,6 +139,11 @@ all:
 # build everything in the Bios IPC package
 	@ $(XDC) -P $(LIST)
 
+libs:
+	@ echo #
+	@ echo # Making $@ ...
+	@ $(XDC) -P $(LIST) .libraries
+
 release:
 	@ echo building ipc packages ...
 # create a XDC release for the Bios IPC package
