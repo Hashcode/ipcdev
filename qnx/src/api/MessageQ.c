@@ -722,6 +722,7 @@ Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
 {
     Int     status = MessageQ_S_SUCCESS;
     int     ipcFd;
+    int     err;
 
     PRINTVERBOSE1("MessageQ_attach: remoteProcId: %d\n", remoteProcId)
 
@@ -746,10 +747,16 @@ Int MessageQ_attach (UInt16 remoteProcId, Ptr sharedAddr)
                 ipcFd)
             MessageQ_module->ipcFd[remoteProcId] = ipcFd;
             /*
-             * Connect to the remote endpoint and bind a reserved address as
+             * Connect to the remote endpoint and bind any reserved address as
              * local endpoint
              */
             Connect(ipcFd, remoteProcId, MESSAGEQ_RPMSG_PORT);
+            err = BindAddr(ipcFd, TIIPC_ADDRANY);
+            if (err < 0) {
+                status = MessageQ_E_FAIL;
+                printf ("MessageQ_attach: bind failed: %d, %s\n",
+                    errno, strerror(errno));
+            }
         }
     }
     else {

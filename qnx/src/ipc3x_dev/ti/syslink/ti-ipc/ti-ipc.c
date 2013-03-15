@@ -83,8 +83,6 @@
 
 #define TIIPC_DEVICE_NAME "/dev/tiipc"
 
-#define MESSAGEQ_RPMSG_PORT       61
-#define RPMSG_RESERVED_ADDRESSES  1024
 
 /* structure to hold rpmsg-rpc device information */
 typedef struct named_device {
@@ -1239,15 +1237,9 @@ ti_ipc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
         return (errno);
     }
 
-    /* TODO: Need to make generic instead of hardcoding the address */
-    if (obj->remoteAddr == MESSAGEQ_RPMSG_PORT){
-        status = MessageQCopy_send(obj->procId, MultiProc_self(), obj->remoteAddr,
-                                   RPMSG_RESERVED_ADDRESSES, buf, bytes, TRUE);
-    }
-    else {
-        status = MessageQCopy_send(obj->procId, MultiProc_self(), obj->remoteAddr,
+    status = MessageQCopy_send(obj->procId, MultiProc_self(), obj->remoteAddr,
                                    obj->addr, buf, bytes, TRUE);
-    }
+
     if (status < 0) {
         return (EIO);
     }
