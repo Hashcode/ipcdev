@@ -30,8 +30,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== Interrupt.c ========
- *  OMAP4430/Ducati Interrupt Manger
+ *  ======== InterruptDsp.c ========
+ *  Mailbox based interrupt manager
  */
 
 #include <xdc/std.h>
