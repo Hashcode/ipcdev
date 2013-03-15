@@ -125,7 +125,6 @@ NameServerDrv_ioctl (UInt32 cmd, Ptr args)
 {
     Int                     status = NameServer_S_SUCCESS;
     Int                     osStatus = 0;
-    Int                     apiStatus;
     NameServerDrv_CmdArgs * cargs = (NameServerDrv_CmdArgs *)args;
 
     GT_2trace (curTrace, GT_ENTER, "NameServerDrv_ioctl", cmd, args);

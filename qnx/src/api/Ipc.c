@@ -52,7 +52,6 @@
 
 /* User side headers */
 #include <ti/syslink/inc/usr/Qnx/IpcDrv.h>
-//#include <SysLink.h>
 
 /* IPC startup/shutdown stuff: */
 #include <ti/ipc/MultiProc.h>

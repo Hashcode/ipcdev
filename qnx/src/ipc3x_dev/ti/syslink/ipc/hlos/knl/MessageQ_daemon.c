@@ -145,18 +145,6 @@
 #include <_MessageQ.h>
 #include <_log.h>
 
-/* Log functionality not yet supported */
-/*#undef LOG1
-#undef LOG2
-#undef LOG0
-#define LOG1(x,y)
-#define LOG2(x,y,z)
-#define LOG0(x)
-/*#define LOG1(x,y)   Osal_printf(x,y);
-#define LOG2(x,y,z) Osal_printf(x,y,z);
-#define LOG0(x)     Osal_printf(x);
-*/
-
 /* =============================================================================
  * Macros/Constants
  * =============================================================================

@@ -75,17 +75,6 @@
 
 #include "ti/ipc/ti_ipc.h"
 
-/* Log functionality not yet supported */
-/*#undef LOG1
-#undef LOG2
-#undef LOG0
-#define LOG1(x,y)
-#define LOG2(x,y,z)
-#define LOG0(x)
-/*#define LOG1(x,y)    Osal_printf(x,y);
-#define LOG2(x,y,z)  Osal_printf(x,y,z);
-#define LOG0(x)      Osal_printf(x);*/
-
 #define MESSAGEQ_RPMSG_PORT       61
 #define NAME_SERVER_RPMSG_ADDR    0
 #define RPMSG_RESERVED_ADDRESSES  (1024)
