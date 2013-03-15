@@ -49,6 +49,12 @@ PLATFORM ?=
 # Path to TI Linux Utils package to locate the pre-built CMEM libraries (optional):
 CMEM_INSTALL_DIR ?=
 
+#################### IPC QNX ####################
+
+# Set up path to QNX tools installation
+QNX_INSTALL_DIR ?=
+
+
 #################### IPC Bios ####################
 
 # Set up required dependencies for IPC Bios builds

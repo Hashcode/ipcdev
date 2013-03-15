@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -84,7 +84,7 @@ struct syslink_attr;
 #include "ti/syslink/utils/List.h"
 #include <OsalThread.h>
 
-#define SYSLINK_DEVICE_PATH        "/dev/syslink"
+#define IPC_DEVICE_PATH        "/dev/ipc"
 
 #define NUM_REMOTE_PROCS 3
 

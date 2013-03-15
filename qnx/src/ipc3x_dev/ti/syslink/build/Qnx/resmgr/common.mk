@@ -110,6 +110,8 @@ EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
 		  $(SYSLINK_ROOT)/tiler/usr/memmgr/public	\
 		  $(SYSLINK_ROOT)/tiler/resmgr/tiler/public	\
 		  $(SYSLINK_ROOT)/ti/syslink/resources	\
+		  $(IPC_REPO)/qnx/include \
+		  $(IPC_REPO)/packages \
 
 #devctl for ipc, procmgr, utils
 EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl	\
@@ -177,6 +179,14 @@ LDFLAGS += -M
 EXTRA_LIBVPATH += $(INSTALL_ROOT_nto)/usr/lib
 
 EXTRA_LIBVPATH += $(SYSLINK_ROOT)/tiler/usr/memmgr/arm/so.le.v7
+
+ifeq ("$(SYSLINK_DEBUG)", "1")
+EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
+LIBS += utils_g
+else
+EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.le.v7
+LIBS += utils
+endif # ifeq ("$(SYSLINK_DEBUG)", "1")
 
 ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
 LIBS += powman camdrv login slog2

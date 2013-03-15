@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -66,12 +66,19 @@
 #include <ti/syslink/Std.h>
 #include "MessageQCopyDrvDefs.h"
 #include "HwSpinLockCmdBase.h"
+#include "NameServerDrvDefs.h"
+#include "MessageQDrvDefs.h"
+#include <ti/syslink/build/Qnx/resmgr/dcmd_syslink.h>
 
 #include <ti/syslink/utils/Trace.h>
 
 extern Int MessageQCopyDrv_devctl (resmgr_context_t *ctp, io_devctl_t *msg,
                                    syslink_ocb_t *ocb);
 extern Int GateHWSpinlockDrv_devctl (resmgr_context_t * ctp, io_devctl_t * msg,
+                                     syslink_ocb_t * ocb);
+extern int syslink_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                   syslink_ocb_t *ocb);
+extern int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                      syslink_ocb_t * ocb);
 
 /**
@@ -111,7 +118,12 @@ int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
         case HWSPINLOCKDRV_BASE_CMD:
             status = GateHWSpinlockDrv_devctl(ctp, msg, ocb);
             break;
-
+        case _DCMD_SYSLINK_NAMESERVER:
+            status = syslink_nameserver_devctl(ctp, msg, ocb);
+            break;
+        case _DCMD_SYSLINK_MESSAGEQ:
+            status = syslink_messageq_devctl(ctp, msg, ocb);
+            break;
         default:
             status = _RESMGR_ERRNO(ENOSYS);
             GT_1trace( curTrace, GT_3CLASS,
