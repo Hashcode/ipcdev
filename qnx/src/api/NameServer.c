@@ -44,7 +44,7 @@
 #include <time.h>
 
 #include <ti/ipc/NameServer.h>
-#include <_log.h>
+#include <_IpcLog.h>
 #include <_MultiProc.h>
 #include <ti/syslink/inc/IoctlDefs.h>
 #include <ti/syslink/inc/usr/Qnx/NameServerDrv.h>

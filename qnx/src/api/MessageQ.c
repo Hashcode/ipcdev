@@ -132,7 +132,7 @@
 #include <_MultiProc.h>
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
-#include <_log.h>
+#include <_IpcLog.h>
 #include <ti/syslink/inc/MessageQDrvDefs.h>
 
 #include <sys/select.h>

@@ -30,48 +30,20 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== _log.h ========
+ *  ======== IpcLog.c ========
+ *
+ *  Implementation of functions for log output.
  */
 
-#ifndef _log_
-#define _log_
+/* Standard headers */
+#include <Std.h>
 
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern Bool logFile;
-extern FILE *logPtr;
-
-/* macros for writing to log file: */
-#define LOG0(a)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a); fflush(logPtr); }
-
-#define LOG1(a, b)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a, b); fflush(logPtr); }
-
-#define LOG2(a, b, c)  \
-    if (logFile == TRUE) {  fprintf(logPtr, a, b, c); fflush(logPtr); }
-
-
-/* macros for generating verbose output: */
-#define PRINTVERBOSE0(a)  \
-    if (verbose == TRUE) {  printf(a); }
-
-#define PRINTVERBOSE1(a, b)  \
-    if (verbose == TRUE) {  printf(a, b); }
-
-#define PRINTVERBOSE2(a, b, c)  \
-    if (verbose == TRUE) {  printf(a, b, c); }
-
-#define PRINTVERBOSE3(a, b, c, d)  \
-    if (verbose == TRUE) {  printf(a, b, c, d); }
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+/*
+ * TODO: Currently hardcoded these, but in future we should expose on
+ * command line
+ */
+/* Set to TRUE to enable log output */
+Bool IpcLog_logFile = FALSE;
+FILE * IpcLog_logPtr = stdout;

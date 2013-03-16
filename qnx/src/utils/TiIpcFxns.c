@@ -52,7 +52,7 @@
 #include "ti/ipc/ti_ipc.h"
 
 /* For PRINTVERBOSE* */
-#include <_log.h>
+#include <_IpcLog.h>
 
 static Bool verbose = FALSE;
 

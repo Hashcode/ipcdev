@@ -30,20 +30,51 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== Log.c ========
- *
- *  Implementation of functions for log output.
+ *  ======== _IpcLog.h ========
  */
 
-/* Standard headers */
-#include <Std.h>
+#ifndef _IpcLog_
+#define _IpcLog_
 
 #include <stdio.h>
 
-/*
- * TODO: Currently hardcoded these, but in future we should expose on
- * command line
- */
-/* Set to TRUE to enable log output */
-Bool logFile = FALSE;
-FILE *logPtr = stdout;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern Bool IpcLog_logFile;
+extern FILE * IpcLog_logPtr;
+
+/* macros for writing to log file: */
+#define LOG0(a)  \
+    if (IpcLog_logFile == TRUE) \
+        {  fprintf(IpcLog_logPtr, a); fflush(IpcLog_logPtr); }
+
+#define LOG1(a, b)  \
+    if (IpcLog_logFile == TRUE) \
+        {  fprintf(IpcLog_logPtr, a, b); fflush(IpcLog_logPtr); }
+
+#define LOG2(a, b, c)  \
+    if (IpcLog_logFile == TRUE) \
+        {  fprintf(IpcLog_logPtr, a, b, c); fflush(IpcLog_logPtr); }
+
+
+/* macros for generating verbose output: */
+#define PRINTVERBOSE0(a)  \
+    if (verbose == TRUE) {  printf(a); }
+
+#define PRINTVERBOSE1(a, b)  \
+    if (verbose == TRUE) {  printf(a, b); }
+
+#define PRINTVERBOSE2(a, b, c)  \
+    if (verbose == TRUE) {  printf(a, b, c); }
+
+#define PRINTVERBOSE3(a, b, c, d)  \
+    if (verbose == TRUE) {  printf(a, b, c, d); }
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -68,7 +68,7 @@
 #include <_MessageQCopyDefs.h>
 #include <_NameServer.h>
 #include <_NameServerRemoteRpmsg.h>
-#include <_log.h>
+#include <_IpcLog.h>
 
 /* TI Ipc utils: */
 #include <TiIpcFxns.h>
