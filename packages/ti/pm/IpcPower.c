@@ -147,6 +147,7 @@ static inline Void IpcPower_sleepMode(IpcPower_SleepMode opt)
             if (refWakeLockCnt) {
                 refWakeLockCnt--;
             }
+            /* Fall through: */
         case IpcPower_SLEEP_MODE_DEEPSLEEP:
             if (!refWakeLockCnt) {
                 IpcPower_deepSleep = TRUE;

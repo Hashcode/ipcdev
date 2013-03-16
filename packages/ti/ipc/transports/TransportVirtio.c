@@ -90,7 +90,7 @@ Int TransportVirtio_Instance_init(TransportVirtio_Object *obj,
         UInt16 remoteProcId, const TransportVirtio_Params *params,
         Error_Block *eb)
 {
-    Bool        flag;
+    Bool        flag = FALSE;
     UInt32      myEndpoint = 0;
 
     Log_print1(Diags_INFO, FXNN": remoteProc: %d\n", remoteProcId);

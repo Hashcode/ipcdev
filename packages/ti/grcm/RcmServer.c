@@ -363,16 +363,18 @@ Int RcmServer_create(String name, RcmServer_Params *params,
 
     /* initialize the error block */
     Error_init(&eb);
+
+    if (NULL == handle) {
+        Log_error0(FXNN": Invalid pointer");
+        status = RcmServer_E_FAIL;
+        goto leave;
+    }
+
     *handle = (RcmServer_Handle)NULL;
 
     /* check for valid params */
     if (NULL == params) {
         Log_error0(FXNN": params ptr must not be NULL");
-        status = RcmServer_E_FAIL;
-        goto leave;
-    }
-    if (NULL == handle) {
-        Log_error0(FXNN": Invalid pointer");
         status = RcmServer_E_FAIL;
         goto leave;
     }
@@ -1178,7 +1180,7 @@ Int RcmServer_addSymbol(RcmServer_Object *obj, String funcName,
         slot->addr.fxn = addr;
         len = _strlen(funcName) + 1;
         slot->name = (String)xdc_runtime_Memory_alloc(
-            RcmServer_Module_heap(), len, sizeof(Char *), &eb);
+            RcmServer_Module_heap(), len, 0, &eb);
 
         if (Error_check(&eb)) {
             Log_error0(FXNN": unable to allocate function name");

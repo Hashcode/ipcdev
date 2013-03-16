@@ -146,7 +146,8 @@ Bool ServiceMgr_registerSrvTask(UInt16 reserved, Task_FuncPtr func,
         if (!serviceTasks[i].taken) {
             st = &serviceTasks[i];
             st->fxn = func;
-            strcpy(st->name, taskParams->instance->name);
+            strncpy(st->name, taskParams->instance->name, MAX_NAMELEN-1);
+            st->name[MAX_NAMELEN-1] = '\0';
 
             /* Deal with the Task_Params to avoid IInstance mismatch */
             params = &st->params;

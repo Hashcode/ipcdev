@@ -188,7 +188,7 @@ Void SysMin_putch(Char ch)
 #else
         if (module->getTime == TRUE) {
 #endif
-            uSec  = Clock_getTicks() * Clock_tickPeriod;
+            uSec  = Clock_getTicks() * (UInt64)Clock_tickPeriod;
             SysMin_output('[');
             if (uSec) {
                 sprintf(timeStamp, "%17llu\0", uSec);

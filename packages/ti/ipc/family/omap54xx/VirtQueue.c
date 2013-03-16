@@ -169,8 +169,8 @@ enum {
 #define ID_A9_TO_SYSM3      ID_A9_TO_SELF
 #define ID_DSP_TO_A9        ID_SELF_TO_A9
 #define ID_A9_TO_DSP        ID_A9_TO_SELF
-#define ID_APPM3_TO_A9      200
-#define ID_A9_TO_APPM3      201
+#define ID_APPM3_TO_A9      2
+#define ID_A9_TO_APPM3      3
 
 typedef struct VirtQueue_Object {
     /* Id for this VirtQueue_Object */
@@ -377,8 +377,11 @@ Void VirtQueue_isr(UArg msg)
 
             case (UInt)RP_MBOX_ABORT_REQUEST:
                 {
+                    /* Suppress Coverity Error: FORWARD_NULL: */
+                    // coverity[assign_zero]
                     Fxn f = (Fxn)0x0;
                     Log_print0(Diags_USER1, "Crash on demand ...\n");
+                    // coverity[var_deref_op]
                     f();
                 }
                 return;
@@ -469,7 +472,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     Void *vringAddr;
 
     vq = Memory_alloc(NULL, sizeof(VirtQueue_Object), 0, eb);
-    if (!vq) {
+    if (NULL == vq) {
         return (NULL);
     }
 
@@ -482,7 +485,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     if (MultiProc_self() == appm3ProcId) {
         /* vqindices that belong to AppM3 should be big so they don't
          * collide with SysM3's virtqueues */
-        vq->id += 200;
+         vq->id += 2;
     }
 #endif
 
@@ -506,12 +509,16 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
             vringAddr = (struct vring *) IPC_MEM_VRING3;
             break;
 #endif
+        default:
+            return (NULL);
     }
 
     Log_print3(Diags_USER1,
             "vring: %d 0x%x (0x%x)\n", vq->id, (IArg)vringAddr,
             RP_MSG_RING_SIZE);
 
+    /* See coverity related comment in vring_init() */
+    // coverity[overrun-call]
     vring_init(&(vq->vring), RP_MSG_NUM_BUFS, vringAddr, RP_MSG_VRING_ALIGN);
 
     /*
