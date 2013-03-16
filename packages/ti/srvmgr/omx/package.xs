@@ -78,9 +78,3 @@ function getLibs(prog)
 
     return libAry.join(";");
 }
-
-function close()
-{
-    /* TBD: just like the .c file, this only works for OMAP5 right now */
-    xdc.loadPackage('ti.ipc.family.omap54xx');
-}

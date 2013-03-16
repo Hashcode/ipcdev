@@ -47,8 +47,6 @@
 #include <ti/ipc/MultiProc.h>
 
 #include <ti/ipc/rpmsg/MessageQCopy.h>
-/* TBD: ONLY WORKS FORM OMAP5 FOR NOW! */
-#include <ti/ipc/family/omap54xx/VirtQueue.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/ServiceMgr.h>
@@ -85,9 +83,6 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
 
 #ifdef SMP
     NameMap_register("rpmsg-omx1", OMX_MGR_PORT);
-    System_printf("OmxSrvMgr: Proc#%d sending BOOTINIT_DONE\n",
-                        MultiProc_self());
-    VirtQueue_postInitDone();
 #else
     if (MultiProc_self() == MultiProc_getId("CORE0")) {
         NameMap_register("rpmsg-omx0", OMX_MGR_PORT);
@@ -97,13 +92,6 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     }
     if (MultiProc_self() == MultiProc_getId("DSP")) {
         NameMap_register("rpmsg-omx2", OMX_MGR_PORT);
-    }
-
-    if ((MultiProc_self() == MultiProc_getId("CORE1")) ||
-        (MultiProc_self() == MultiProc_getId("DSP"))) {
-        System_printf("OmxSrvMgr: Proc#%d sending BOOTINIT_DONE\n",
-                        MultiProc_self());
-        VirtQueue_postInitDone();
     }
 #endif
 

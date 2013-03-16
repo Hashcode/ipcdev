@@ -568,14 +568,6 @@ Void VirtQueue_postCrashToMailbox(Void)
     InterruptProxy_intSend(0, (UInt)RP_MSG_MBOX_CRASH);
 }
 
-/*!
- * ======== VirtQueue_postInitDone ========
- */
-Void VirtQueue_postInitDone(Void)
-{
-    InterruptProxy_intSend(0, (UInt)RP_MSG_BOOTINIT_DONE);
-}
-
 #define CACHE_WB_TICK_PERIOD    5
 
 /*!
