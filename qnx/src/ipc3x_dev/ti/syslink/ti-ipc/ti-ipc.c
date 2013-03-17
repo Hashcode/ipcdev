@@ -83,6 +83,7 @@
 
 #define TIIPC_DEVICE_NAME "/dev/tiipc"
 
+
 /* structure to hold rpmsg-rpc device information */
 typedef struct named_device {
     iofunc_mount_t      mattr;
@@ -1237,7 +1238,8 @@ ti_ipc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     }
 
     status = MessageQCopy_send(obj->procId, MultiProc_self(), obj->remoteAddr,
-                               obj->addr, buf, bytes, TRUE);
+                                   obj->addr, buf, bytes, TRUE);
+
     if (status < 0) {
         return (EIO);
     }

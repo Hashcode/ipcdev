@@ -8,7 +8,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2011-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -341,6 +341,14 @@ int init_syslink_device(syslink_dev_t *dev)
     attr->mount = &dev->syslink.mattr;
     iofunc_time_update(attr);
 
+    if (-1 == (dev->syslink.resmgr_id =
+        resmgr_attach(dev->dpp, &resmgr_attr,
+                      IPC_DEVICE_PATH, _FTYPE_ANY, 0,
+                      &dev->syslink.cfuncs,
+                      &dev->syslink.iofuncs, attr))) {
+        return(-1);
+    }
+
     for (i = 0; i < syslink_num_cores; i++) {
         iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_trace[i],
                          _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_trace[i]);
@@ -400,6 +408,12 @@ int deinit_syslink_device(syslink_dev_t *dev)
 {
     int status = EOK;
     int i = 0;
+
+    status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id, 0);
+    if (status < 0) {
+        Osal_printf("syslink: resmgr_detach failed %d", errno);
+        status = errno;
+    }
 
     for (i = 0; i < syslink_num_cores; i++) {
         status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_trace[i], 0);

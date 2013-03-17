@@ -51,7 +51,9 @@ EXTRA_INCVPATH+=$(SYSLINK_ROOT)	\
 				$(SYSLINK_ROOT)/ti/syslink/inc	\
 				$(SYSLINK_ROOT)/ti/syslink/inc/usr/$(SYSLINK_BUILDOS)	\
 				$(SYSLINK_ROOT)/ti/syslink/inc/usr	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS)
+				$(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS) \
+				$(IPC_REPO)/packages \
+				$(IPC_REPO)/qnx/include
 #SRCS:=$(CSRCS)
 
 #SRCDIRS=$(sort $(foreach i,$(CSRCS),$(shell dirname $i)))
