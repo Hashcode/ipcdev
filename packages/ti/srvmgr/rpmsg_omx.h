@@ -98,7 +98,6 @@ enum omx_error_codes {
 /**
  * struct omx_msg_hdr - common header for all OMX messages
  * @type:type of message, see enum omx_msg_types
- * @flags:currently unused, should be zero
  * @len:length of msg payload (in bytes)
  * @data:the msg payload (depends on the message type)
  *
@@ -107,13 +106,12 @@ enum omx_error_codes {
  */
 struct omx_msg_hdr {
     UInt32 type;
-    UInt32 flags;
     UInt32 len;
     Char   data[1];
 };
 
 /* define this here because we cannot use data[0] in struct above */
-#define HDRSIZE (3 * sizeof(UInt))
+#define HDRSIZE (2 * sizeof(UInt))
 
 struct omx_connect_req {
     Char name[48];

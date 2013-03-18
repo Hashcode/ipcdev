@@ -116,17 +116,17 @@ typedef enum OmapRpc_MsgType {
     OmapRpc_MsgType_FUNCTION_INFO = 3,
     /** Ask the ServiceMgr to create a new instance of the service.
      * No secondary data is needed. */
-    OmapRpc_MsgType_CREATE_INSTANCE = 4,
+    OmapRpc_MsgType_CREATE_INSTANCE = 6,
     /** The return message from OMAPRPC_CREATE_INSTANCE,
      * contains the new endpoint address in the OmapRpc_InstanceHandle */
-    OmapRpc_MsgType_INSTANCE_CREATED = 5,
+    OmapRpc_MsgType_INSTANCE_CREATED = 8,
     /** Ask the Service Mgr to destroy an instance */
-    OmapRpc_MsgType_DESTROY_INSTANCE = 6,
+    OmapRpc_MsgType_DESTROY_INSTANCE = 4,
     /** The return message from OMAPRPC_DESTROY_INSTANCE.
      * contains the old endpoint address in the OmapRpc_InstanceHandle */
     OmapRpc_MsgType_INSTANCE_DESTROYED = 7,
     /** Ask the Service Instance to call a particular function */
-    OmapRpc_MsgType_CALL_FUNCTION = 8,
+    OmapRpc_MsgType_CALL_FUNCTION = 5,
     /** The return values from a function call */
     OmapRpc_MsgType_FUNCTION_RETURN = 9,
     /** Returned from either the ServiceMgr or Service Instance

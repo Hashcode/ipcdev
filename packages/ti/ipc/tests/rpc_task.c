@@ -59,7 +59,7 @@
 #include <ti/srvmgr/omx_packet.h>
 
 /* Turn on/off printf's */
-#define CHATTER 0
+#define CHATTER 1
 
 #define RPC_MGR_PORT    59
 
@@ -83,8 +83,16 @@ typedef enum {
  *  ======== fxnTriple used by omx_benchmark test app ========
  */
 typedef struct {
+    Int size_a;
     Int a;
 } FxnTripleArgs;
+
+typedef struct {
+    Int size_a;
+    Int a;
+    Int size_b;
+    Int b;
+} FxnAddArgs;
 
 #define H264_DECODER_NAME   "H264_decoder"
 
@@ -97,6 +105,7 @@ static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data);
 static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
 static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
 static Int32 fxnTriple(UInt32 size, UInt32 *data);
+static Int32 fxnAdd(UInt32 size, UInt32 *data);
 
 #if 0
 /* RcmServer static function table */
@@ -115,7 +124,7 @@ static const RcmServer_FxnDescAry RPCServer_fxnTab = {
 };
 #endif
 
-#define RPC_SVR_NUM_FXNS 2
+#define RPC_SVR_NUM_FXNS 3
 OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
 {
     { RPC_SKEL_Init2,
@@ -123,18 +132,27 @@ OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
             {
                 {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
                 {OmapRpc_Direction_In, OmapRpc_Param_U32, 1},
-                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1},
-            },
-        },
+                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
+            }
+        }
     },
     { fxnTriple,
         { "fxnTriple", 2,
             {
                 {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1}
             },
         },
     },
+    { fxnAdd,
+        { "fxnAdd", 3,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_Param_S32, 1},
+                {OmapRpc_Direction_In, OmapRpc_Param_S32, 1}
+            }
+        }
+    }
 };
 
 static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
@@ -220,6 +238,7 @@ static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
 {
     System_printf("RPC_SKEL_Init2: size = 0x%x data = 0x%x\n", size,
                                                             (UInt32)data);
+    return 0;
 }
 
 /*
@@ -230,14 +249,34 @@ Int32 fxnTriple(UInt32 size, UInt32 *data)
     FxnTripleArgs *args;
     Int a;
 
-#if CHATTER
-    System_printf("fxnTriple: Executing fxnTriple \n");
-#endif
-
-    args = (FxnTripleArgs *)((UInt32)data + sizeof(map_info_type));
+//  args = (FxnTripleArgs *)((UInt32)data + sizeof(map_info_type));
+    args = (FxnTripleArgs *)data;
     a = args->a;
 
-    return a * 3;
+#if CHATTER
+    System_printf("fxnTriple: a=%d\n", a);
+#endif
+
+    return(a * 3);
+}
+
+/*
+ *  ======== fxnAdd ========
+ */
+Int32 fxnAdd(UInt32 size, UInt32 *data)
+{
+    FxnAddArgs *args;
+    Int a, b;
+
+    args = (FxnAddArgs *)data;
+    a = args->a;
+    b = args->b;
+
+#if CHATTER
+    System_printf("fxnAdd: a=%d, b=%d\n", a, b);
+#endif
+
+    return(a + b);
 }
 
 Void start_rpc_task()

@@ -208,7 +208,6 @@ Void ServiceMgr_send(Service_Handle srvc, Ptr data, UInt16 len)
     /* Set special rpmsg_omx header so Linux side can strip it off: */
     hdr->type    = OMX_RAW_MSG;
     hdr->len     = len;
-    hdr->flags   = 0;
 
     /* Send it off (and no response expected): */
     MessageQCopy_send(dstProc, remote, local, data, HDRSIZE+len);

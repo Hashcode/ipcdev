@@ -66,7 +66,6 @@
 extern void start_ping_tasks();
 extern void start_resmgr_task();
 extern void start_hwSpinlock_task();
-extern void start_rpc_task();
 
 /*
  * OMX packet expected to have its data payload start with a payload of
@@ -248,6 +247,7 @@ Int main(Int argc, char* argv[])
     OMXServer_fxnTab.elem[0].addr.createFxn = RPC_SKEL_GetHandle;
 
     rcmServerParams.priority    = Thread_Priority_ABOVE_NORMAL;
+    rcmServerParams.stackSize   = 0x1000;
     rcmServerParams.fxns.length = OMXServer_fxnTab.length;
     rcmServerParams.fxns.elem   = OMXServer_fxnTab.elem;
 
@@ -269,10 +269,6 @@ Int main(Int argc, char* argv[])
 
     /* Start the ServiceMgr services */
     ServiceMgr_start(0);
-
-#if IPU
-    start_rpc_task();
-#endif
 
     BIOS_start();
 

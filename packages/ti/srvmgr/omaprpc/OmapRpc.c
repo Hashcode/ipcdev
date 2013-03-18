@@ -264,6 +264,7 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName,
     obj->numFuncs = numFuncs+1;
     RcmServer_Params_init(&obj->rcmParams);
     obj->rcmParams.priority = Thread_Priority_ABOVE_NORMAL;
+    obj->rcmParams.stackSize = 0x1000;
     obj->rcmParams.fxns.length = obj->numFuncs;
     obj->rcmParams.fxns.elem = Memory_alloc(NULL, sizeof(RcmServer_FxnDesc)*obj->numFuncs, 0, NULL);
     if (obj->rcmParams.fxns.elem == NULL) {

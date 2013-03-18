@@ -88,6 +88,7 @@ typedef enum {
  */
 typedef struct {
     MmRpc_ParamType     type;   /*!< parameter type */
+
     union {
         struct {
             size_t      size;   /*!< size of the data */
@@ -119,7 +120,6 @@ typedef struct {
  */
 typedef struct {
     uint32_t    fxn_id;         /*!< The function to call. */
-    uint32_t    result;         /*!< The function return value. */
     uint32_t    num_params;     /*!< Number of elements in param array. */
     MmRpc_Param params[MmRpc_MAX_PARAMETERS];
                                 /*!< The array of parameters */
@@ -140,14 +140,14 @@ typedef struct {
  *  @brief      Invoke a remote procedure call
  *
  */
-int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx);
+int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret);
 
 /*!
  *  @brief      Create an MmRpc instance
  *
  */
-MmRpc_Handle MmRpc_create(const char *proc, const char *service,
-        const MmRpc_Params *params);
+int MmRpc_create(const char *proc, const char *service,
+        const MmRpc_Params *params, MmRpc_Handle *handlPtr);
 
 /*!
  *  @brief      Delete an MmRpc instance

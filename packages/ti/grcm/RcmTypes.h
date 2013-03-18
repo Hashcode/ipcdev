@@ -107,7 +107,6 @@
 /* Need to deal with this structure, as Linux side rpmsg_omx driver needs it: */
 struct rpmsg_omx_hdr {
     UInt32 type;
-    UInt32 flags;
     UInt32 len;
 };
 

@@ -38,16 +38,31 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
+
+#include <stdint.h> /* should be in linux/rpmsg_rpc.h */
+#include <stddef.h> /* should be in linux/rpmsg_rpc.h */
+#define RPPC_MAX_INST_NAMELEN (48) /* in kernel part of rpmsg_rpc.h */
+#include </db/vtree/rvh/OMAP5/Depot/ti_linux_3_8/include/linux/rpmsg_rpc.h>
+// #include <linux/rpmsg_rpc.h>
+
+/* this should be in rpmsg_rpc.h, currently in rpmsg_rpc_internal.h */
+struct rppc_create_instance {
+    char name[RPPC_MAX_INST_NAMELEN];
+};
 
 #include "MmRpc.h"
+
 
 /*
  *  ======== MmRpc_Object ========
  */
 typedef struct {
-    int         fd;             /* device file descriptor */
+    int                         fd;         /* device file descriptor */
+    struct rppc_create_instance connect;    /* connection object */
 } MmRpc_Object;
 
 /*
@@ -61,11 +76,11 @@ void MmRpc_Params_init(MmRpc_Params *params)
 /*
  *  ======== MmRpc_create ========
  */
-MmRpc_Handle MmRpc_create(const char *proc, const char *service,
-        const MmRpc_Params *params)
+int MmRpc_create(const char *proc, const char *service,
+        const MmRpc_Params *params, MmRpc_Handle *handlePtr)
 {
-    int                 status = MmRpc_S_SUCCESS;
-    MmRpc_Object *      obj;
+    int             status = MmRpc_S_SUCCESS;
+    MmRpc_Object *  obj;
 
     printf("MmRpc_create: -->\n");
 
@@ -78,10 +93,24 @@ MmRpc_Handle MmRpc_create(const char *proc, const char *service,
     }
 
     /* open the driver */
+    printf("MmRpc_create: open driver\n");
     obj->fd = open("/dev/rpc_example", O_RDWR);
 
     if (obj->fd < 0) {
         printf("MmRpc_create: Error: open failed\n");
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
+    strncpy(obj->connect.name, "rpc_example", (RPPC_MAX_INST_NAMELEN - 1));
+    obj->connect.name[RPPC_MAX_INST_NAMELEN - 1] = '\0';
+
+    /* create a server instance, rebind its address to this file descriptor */
+    printf("MmRpc_create: create server instance\n");
+    status = ioctl(obj->fd, RPPC_IOC_CREATE, &obj->connect);
+
+    if (status < 0) {
+        printf("MmRpc_create: Error: connect failed\n");
         status = MmRpc_E_FAIL;
         goto leave;
     }
@@ -94,10 +123,14 @@ leave:
         if (obj != NULL) {
             free(obj);
         }
+        *handlePtr = NULL;
+    }
+    else {
+        *handlePtr = (MmRpc_Handle)obj;
     }
 
     printf("MmRpc_create: <--\n");
-    return((MmRpc_Handle)obj);
+    return(status);
 }
 
 /*
@@ -121,5 +154,114 @@ int MmRpc_delete(MmRpc_Handle *handlePtr)
     *handlePtr = NULL;
 
     printf("MmRpc_delete: <--\n");
+    return(status);
+}
+
+/*
+ *  ======== MmRpc_call ========
+ */
+int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
+{
+    int status = MmRpc_S_SUCCESS;
+    MmRpc_Object *obj = (MmRpc_Object *)handle;
+    struct rppc_function *rpfxn;
+    struct rppc_function_return reply_msg;
+    void *msg;
+    int len;
+    int i;
+
+    printf("MmRpc_call: -->\n");
+
+    /* Combine function parameters and translation array into one contiguous
+     * message. TODO, modify driver to accept two separate buffers in order
+     * to eliminate this step. */
+    len = sizeof(struct rppc_function) +
+                (ctx->num_translations * sizeof(struct rppc_param_translation));
+    msg = (void *)calloc(len, sizeof(char));
+
+    if (msg == NULL) {
+        printf("MmRpc_call: Error: msg alloc failed\n");
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
+    /* copy function arguments into message */
+    rpfxn = (struct rppc_function *)msg;
+    rpfxn->fxn_id = ctx->fxn_id;
+    rpfxn->num_params = ctx->num_params;
+
+    for (i = 0; i < ctx->num_params; i++) {
+        switch (ctx->params[i].type) {
+
+            case MmRpc_ParamType_Atomic:
+                rpfxn->params[i].type = RPPC_PARAM_TYPE_ATOMIC;
+                rpfxn->params[i].size = ctx->params[i].param.atomic.size;
+                rpfxn->params[i].data = ctx->params[i].param.atomic.data;
+                rpfxn->params[i].base = 0;
+                rpfxn->params[i].reserved = 0;
+                break;
+
+            case MmRpc_ParamType_ShMemPtr:
+                /* TODO */
+                break;
+
+            case MmRpc_ParamType_Ptr:
+                rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
+                rpfxn->params[i].size = 0;
+                rpfxn->params[i].data = 0;
+                rpfxn->params[i].base = 0;
+                rpfxn->params[i].reserved = 0;
+                break;
+        }
+    }
+
+    if (rpfxn->fxn_id == 0x80000002) {
+        printf("MmRpc_call: params[0]=%d\n", rpfxn->params[0].data);
+        printf("MmRpc_call: params[1]=%d\n", rpfxn->params[1].data);
+    }
+
+    /* copy offset array into message */
+    for (i = 0; i < ctx->num_translations; i++) {
+        rpfxn->translations[i].index    = ctx->translations[i].index;
+        rpfxn->translations[i].offset   = ctx->translations[i].offset;
+        rpfxn->translations[i].base     = ctx->translations[i].base;
+        rpfxn->translations[i].reserved = 0;
+    }
+
+    /* send message for remote execution */
+    status = write(obj->fd, msg, len);
+
+    if (status < 0) {
+        printf("MmRpc_call: Error: write failed\n");
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+
+    /* wait for return status from remote service */
+    status = read(obj->fd, &reply_msg, sizeof(struct rppc_function_return));
+
+    if (status < 0) {
+        printf("MmRpc_call: Error: read failed\n");
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+    else if (status != sizeof(struct rppc_function_return)) {
+        printf("MmRpc_call: Error: reply bytes=%d, expected %d\n",
+                status, sizeof(struct rppc_function_return));
+        status = MmRpc_E_FAIL;
+        goto leave;
+    }
+    else {
+        status = MmRpc_S_SUCCESS;
+    }
+
+    *ret = (int32_t)reply_msg.status;
+
+leave:
+    if (msg != NULL) {
+        free(msg);
+    }
+
+    printf("MmRpc_call: <-- status=%d\n", status);
     return(status);
 }
