@@ -65,7 +65,7 @@
 #include <GateHWSpinlock.h>
 #include <ti/syslink/utils/Trace.h>
 
-#define SYSLINK_DRIVER_NAME         "/dev/syslink"
+#define IPC_DRIVER_NAME         "/dev/ipc"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -89,7 +89,7 @@ int initSYSKLINKHandler(int *SyslinkDrv_handle)
 
     pthread_mutex_lock(&mutex);
     if (ref_cnt++ == 0) {
-        *SyslinkDrv_handle = open (SYSLINK_DRIVER_NAME,
+        *SyslinkDrv_handle = open (IPC_DRIVER_NAME,
                                         O_SYNC | O_RDWR);
         if (*SyslinkDrv_handle < 0) {
             GT_setFailureReason (curTrace,

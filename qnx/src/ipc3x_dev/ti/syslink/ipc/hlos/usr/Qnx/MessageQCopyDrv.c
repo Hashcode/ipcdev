@@ -82,7 +82,7 @@ extern "C" {
 /*!
  *  @brief  Driver name for MessageQCopy.
  */
-#define MESSAGEQCOPY_DRIVER_NAME         "/dev/syslink"
+#define MESSAGEQCOPY_DRIVER_NAME         "/dev/ipc"
 
 
 /** ============================================================================
