@@ -85,7 +85,6 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     NameMap_register("rpmsg-omx", "rpmsg-omx1", OMX_MGR_PORT);
     System_printf("OmxSrvMgr: Proc#%d sending BOOTINIT_DONE\n",
                         MultiProc_self());
-    VirtQueue_postInitDone();
 #else
     if (MultiProc_self() == MultiProc_getId("CORE0")) {
         NameMap_register("rpmsg-omx", "rpmsg-omx0", OMX_MGR_PORT);
