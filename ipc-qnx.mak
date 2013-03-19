@@ -31,11 +31,6 @@
 #  ======== ipc-qnx.mak ========
 #
 
-#
-# Where to export the binaries
-#
-DESTDIR ?= <UNDEFINED>
-
 include ./products.mak
 
 # Setup QNX paths
@@ -68,10 +63,11 @@ clean:
 	@echo "cleaning Qnx user libraries ..."
 	@make -C qnx clean
 
-#TODO: Implement Install goal
-#install:
-#	@ echo installing binaries to $(DESTDIR) ...
-#	@ mkdir -p $(DESTDIR)/$(prefix)/$(docdir)
-#	@ cp -rf $(wildcard ipc_*_release_notes.html) docs/* $(DESTDIR)/$(prefix)/$(docdir)
-#	@ mkdir -p $(DESTDIR)/$(prefix)/$(includedir)/ti/ipc
-#	@ cp -rf packages/ti/ipc/*.h $(DESTDIR)/$(prefix)/$(includedir)/ti/ipc
+install:
+	@echo installing binaries to $(DESTDIR) ...
+	@mkdir -p $(DESTDIR)
+	@make -C qnx \
+                IPC_REPO=`pwd` \
+                PLATFORM=$(*:.qnx,=) \
+		DESTDIR=$(DESTDIR) \
+		install

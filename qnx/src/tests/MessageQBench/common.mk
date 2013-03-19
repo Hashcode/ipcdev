@@ -40,8 +40,7 @@ define PINFO
 PINFO DESCRIPTION=IPC QNX MESSAGEQ SAMPLE
 endef
 
-# don't install the binaries, they are copied in base makefile
-INSTALLDIR = /dev/null
+INSTALLDIR = bin
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX
 

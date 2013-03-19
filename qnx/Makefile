@@ -47,6 +47,13 @@ ipc3x_dev: utils
 	@cd src/ipc3x_dev; \
             make SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
 
+install:
+	@cd src/ipc3x_dev; make SYSLINK_PLATFORM=omap5430 \
+		TILER_PLATFORM=omap5430 SMP=1 USE_INSTALL_ROOT=1 \
+		INSTALL_ROOT_nto=$(DESTDIR) install
+	@cd src/tests; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
+		INSTALL_ROOT_nto=$(DESTDIR) install
+
 clean:
 	@cd src/family; make clean
 	@cd src/api; make clean

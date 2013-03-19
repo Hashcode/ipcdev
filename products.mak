@@ -53,7 +53,8 @@ CMEM_INSTALL_DIR ?=
 
 # Set up path to QNX tools installation
 QNX_INSTALL_DIR ?=
-
+# Set up destination for target binaries
+DESTDIR ?=
 
 #################### IPC Bios ####################
 
