@@ -1,7 +1,7 @@
 rpmsg-rpc Stress Test
 
 Syntax:
-  rpmsg-rpc-stress -t <test_no> [-c <id>] [-x <num>] [-l <num>]
+  rpmsg-rpc-stress -t <test_no> [-c <id>] [-f <func_id>] [-x <num>] [-l <num>]
 
   Where:
     -t <test_no>    Test number to be run. Valid values are 1-3.
@@ -10,8 +10,12 @@ Syntax:
                     3: Run select test
     -c <id>         Core ID with which to communicate.
                     0: IPU CORE0 (default)
-                    1: IPU CORE1
+                    1: IPU CORE1 or IPU SMP
                     2: DSP
+    -f <func_id>    1: FxnTriple (default)
+                    2: FxnAdd
+                    3: FxnAdd3
+                    4: FxnAddX
     -x <num>        For tests 1 and 3, the number of RPMSGRPC ServiceMgr instances.
                     Default is 1.
     -l <num>        For test 2, the number of threads communicating with the
