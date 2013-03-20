@@ -47,7 +47,7 @@ INSTALLDIR = /dev/null
 CCOPTS += -DSYSLINK_BUILDOS_QNX
 
 # source path
-EXTRA_SRCVPATH = $(IPC_REPO)/linux/src/tests
+EXTRA_SRCVPATH = $(IPC_REPO)/packages/ti/ipc/tests
 SRCS = mmrpc_test.c
 
 EXCLUDE_OBJS =

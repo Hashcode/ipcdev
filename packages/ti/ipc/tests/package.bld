@@ -37,6 +37,8 @@
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
+Pkg.otherFiles = [ "mmrpc_test.c" ];
+
 /* when constructing a release, release everything */
 Pkg.attrs.exportAll = true;
 
