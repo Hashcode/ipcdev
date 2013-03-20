@@ -66,7 +66,6 @@
 #include <devctl.h>
 
 /* Module headers */
-//#include <ti/ipc/omap_rpc.h>
 #include <ti/ipc/rpmsg_rpc.h>
 #include <ti/ipc/MessageQCopy.h>
 #include <_MessageQCopy.h>
@@ -205,11 +204,25 @@ typedef struct rpmsg_rpc_EventCbck_tag {
 } rpmsg_rpc_EventCbck ;
 
 /*!
+ *  @brief  Structure of Fxn Info for reverse translations.
+ */
+typedef struct rpmsg_rpc_FxnInfo_tag {
+    List_Elem              element;
+    /*!< List element header */
+    UInt16                 msgId;
+    /*!< Unique msgId of the rpc fxn call */
+    struct rppc_function   func;
+    /*!< rpc function information. */
+} rpmsg_rpc_FxnInfo ;
+
+/*!
  *  @brief  Keeps the information related to Event.
  */
 typedef struct rpmsg_rpc_EventState_tag {
     List_Handle            bufList;
     /*!< Head of received event list. */
+    List_Handle            fxnList;
+    /*!< Head of received msg list. */
     UInt32                 pid;
     /*!< User process ID. */
     rpmsg_rpc_object *     rpc;
@@ -342,6 +355,13 @@ static void put_uBuf(rpmsg_rpc_EventPacket * uBuf)
     return;
 }
 
+/** ============================================================================
+ *  Function Prototypes
+ *  ============================================================================
+ */
+int
+_rpmsg_rpc_translate (ProcMgr_Handle handle, char *data, pid_t pid,
+                      bool reverse);
 
 /** ============================================================================
  *  Globals
@@ -364,6 +384,8 @@ static rpmsg_rpc_ModuleObject rpmsg_rpc_state =
     .tail = NULL,
     .run  = 0
 };
+
+static uint16_t msg_id = 0xFFFF;
 
 extern dispatch_t * syslink_dpp;
 
@@ -811,6 +833,7 @@ _rpmsg_rpc_attach (rpmsg_rpc_object * rpc)
     Bool                 flag     = FALSE;
     Bool                 isInit   = FALSE;
     List_Object *        bufList  = NULL;
+    List_Object *        fxnList  = NULL;
     IArg                 key      = 0;
     List_Params          listparams;
     UInt32               i;
@@ -830,12 +853,14 @@ _rpmsg_rpc_attach (rpmsg_rpc_object * rpc)
     if (isInit == FALSE) {
         List_Params_init (&listparams);
         bufList = List_create (&listparams) ;
+        fxnList = List_create (&listparams) ;
         /* Search for an available slot for user process. */
         for (i = 0 ; i < MAX_PROCESSES ; i++) {
             if (rpmsg_rpc_state.eventState [i].rpc == NULL) {
                 rpmsg_rpc_state.eventState [i].rpc = rpc;
                 rpmsg_rpc_state.eventState [i].refCount = 1;
                 rpmsg_rpc_state.eventState [i].bufList = bufList;
+                rpmsg_rpc_state.eventState [i].fxnList = fxnList;
                 flag = TRUE;
                 break;
             }
@@ -858,11 +883,14 @@ _rpmsg_rpc_attach (rpmsg_rpc_object * rpc)
             if (bufList != NULL) {
                 List_delete (&bufList);
             }
+            if (fxnList != NULL) {
+                List_delete (&fxnList);
+            }
         }
     }
     IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
 
-    GT_1trace (curTrace, GT_LEAVE, "rpmsgDrv_attach", status);
+    GT_1trace (curTrace, GT_LEAVE, "_rpmsg_rpc_attach", status);
 
     /*! @retval Notify_S_SUCCESS Operation successfully completed. */
     return status ;
@@ -884,6 +912,7 @@ Int
 _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
                         UInt32             src,
                         UInt32             pid,
+                        UInt16             msgId,
                         void *             data,
                         UInt32             len)
 {
@@ -894,6 +923,8 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
     UInt32                  i;
     WaitingReaders_t *item;
     MsgList_t *msgItem;
+    List_Elem * elem = NULL;
+    List_Elem * temp = NULL;
 
     GT_5trace (curTrace,
                GT_ENTER,
@@ -949,6 +980,23 @@ _rpmsg_rpc_addBufByPid (rpmsg_rpc_object *rpc,
         }
         else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+            key = IGateProvider_enter (rpmsg_rpc_state.gateHandle);
+            List_traverse_safe(elem, temp, rpmsg_rpc_state.eventState [i].fxnList) {
+                if (((rpmsg_rpc_FxnInfo *)elem)->msgId == msgId) {
+                    List_remove(rpmsg_rpc_state.eventState [i].fxnList, elem);
+                    break;
+                }
+            }
+            IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
+
+            if (elem != (List_Elem *)rpmsg_rpc_state.eventState [i].fxnList) {
+                struct rppc_function * function;
+                function = &(((rpmsg_rpc_FxnInfo *)elem)->func);
+                _rpmsg_rpc_translate(NULL, (char *)function, pid, true);
+                Memory_free(NULL, elem, sizeof(rpmsg_rpc_FxnInfo) +\
+                            RPPC_TRANS_SIZE(function->num_translations));
+            }
+
             List_elemClear (&(uBuf->element));
             GT_assert (curTrace,
                        (rpmsg_rpc_state.eventState [i].bufList != NULL));
@@ -1112,6 +1160,7 @@ _rpmsg_rpc_cb (MessageQCopy_Handle handle, void * data, int len, void * priv,
             _rpmsg_rpc_addBufByPid (rpc,
                                     src,
                                     rpc->pid,
+                                    packet->msg_id,
                                     &packet->fxn_id,
                                     sizeof(packet->fxn_id) + sizeof(packet->result));
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -1242,6 +1291,7 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
     Int32                tmpStatus = EOK;
     Bool                 flag      = FALSE;
     List_Object *        bufList   = NULL;
+    List_Object *        fxnList   = NULL;
     UInt32               i;
     IArg                 key;
     MsgList_t          * item;
@@ -1278,6 +1328,11 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
         bufList = rpmsg_rpc_state.eventState [i].bufList;
 
         rpmsg_rpc_state.eventState [i].bufList = NULL;
+
+        /* Store in local variable to delete outside lock. */
+        fxnList = rpmsg_rpc_state.eventState [i].fxnList;
+
+        rpmsg_rpc_state.eventState [i].fxnList = NULL;
 
         IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
     }
@@ -1334,6 +1389,16 @@ _rpmsg_rpc_detach (rpmsg_rpc_object * rpc)
 
             /* Last client being unregistered with Notify module. */
             List_delete (&bufList);
+        }
+        if (fxnList != NULL) {
+            key = IGateProvider_enter (rpmsg_rpc_state.gateHandle);
+            rpmsg_rpc_FxnInfo * fxnInfo = NULL;
+            while ((fxnInfo = (rpmsg_rpc_FxnInfo *)List_dequeue (fxnList))) {
+                Memory_free (NULL, fxnInfo, sizeof(rpmsg_rpc_FxnInfo) +\
+                             RPPC_TRANS_SIZE(fxnInfo->func.num_translations));
+            }
+            IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
+            List_delete (&fxnList);
         }
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -1610,7 +1675,7 @@ _rpmsg_rpc_pa2da(ProcMgr_Handle handle, uint32_t pa)
 }
 
 int
-_rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, uint32_t bytes, pid_t pid)
+_rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
 {
     int status = EOK;
     struct rppc_function * function = NULL;
@@ -1623,6 +1688,7 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, uint32_t bytes, pid_t pi
     uintptr_t ptr;
     void * vptr[RPPC_MAX_PARAMETERS];
     uint32_t idx = 0;
+    uint32_t param_offset = 0;
 
     function = (struct rppc_function *)data;
     memset(vptr, 0, sizeof(void *) * RPPC_MAX_PARAMETERS);
@@ -1635,7 +1701,8 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, uint32_t bytes, pid_t pi
             status = -EINVAL;
             break;
         }
-        if (translation[i].offset + sizeof(uint32_t) > function->params[idx].size) {
+        param_offset = function->params[idx].data - function->params[idx].base;
+        if (translation[i].offset - param_offset + sizeof(uint32_t) > function->params[idx].size) {
             status = -EINVAL;
             break;
         }
@@ -1661,27 +1728,34 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, uint32_t bytes, pid_t pi
             }
         }
         /* Get physical address of the contents */
-        ptr = (uint32_t)vptr[idx] + translation[i].offset;
-        status = mem_offset64_peer(pid, *(uint32_t *)ptr, sizeof(uint32_t),
-                                   &phys_addr, &phys_len);
-        if (status >= 0 && phys_len == sizeof(uint32_t)) {
-            /* translate pa2da */
-            if ((ipu_addr =
-                    _rpmsg_rpc_pa2da(handle, (uint32_t)phys_addr)) != 0)
-                /* update vptr contents */
-                *(uint32_t *)ptr = ipu_addr;
+        ptr = (uint32_t)vptr[idx] + translation[i].offset - param_offset;
+        if (reverse) {
+            *(uint32_t *)ptr = translation[i].base;
+        }
+        else {
+            translation[i].base = *(uint32_t *)ptr;
+            status = mem_offset64_peer(pid, *(uint32_t *)ptr, sizeof(uint32_t),
+                                       &phys_addr, &phys_len);
+            if (status >= 0 && phys_len == sizeof(uint32_t)) {
+                /* translate pa2da */
+                if ((ipu_addr =
+                        _rpmsg_rpc_pa2da(handle, (uint32_t)phys_addr)) != 0)
+                    /* update vptr contents */
+                    *(uint32_t *)ptr = ipu_addr;
+                else {
+                    status = -EINVAL;
+                    break;
+                }
+            }
             else {
                 status = -EINVAL;
                 break;
             }
         }
-        else {
-            status = -EINVAL;
-            break;
-        }
     }
 
-    for (i = 0; i < function->num_params && status >= 0; i++) {
+    /* No need to do this for reverse translations */
+    for (i = 0; i < function->num_params && status >= 0 && !reverse; i++) {
         if (function->params[i].type == RPPC_PARAM_TYPE_PTR) {
             if (paddr[i]) {
                 phys_addr = paddr[i];
@@ -1690,7 +1764,8 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, uint32_t bytes, pid_t pi
                 /* translate the param pointer */
                 status = mem_offset64_peer(pid,
                                            (uintptr_t)(function->params[i].data),
-                                           function->params[i].size, &phys_addr, &phys_len);
+                                           function->params[i].size, &phys_addr,
+                                           &phys_len);
             }
             if (status >= 0) {
                 if ((ipu_addr =
@@ -1748,6 +1823,9 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     struct rppc_function *function = NULL;
     char usr_msg[MessageQCopy_BUFSIZE];
     int i = 0;
+    rpmsg_rpc_EventState * event_state = NULL;
+    rpmsg_rpc_FxnInfo * fxn_info = NULL;
+    IArg key = 0;
 
     if ((status = iofunc_write_verify(ctp, msg, io_ocb, NULL)) != EOK) {
         return (status);
@@ -1759,6 +1837,16 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
         return EINVAL;
     }
     _IO_SET_WRITE_NBYTES (ctp, bytes);
+
+    for (i = 0 ; i < MAX_PROCESSES ; i++) {
+        if (rpmsg_rpc_state.eventState [i].rpc == rpc) {
+            break;
+        }
+    }
+    if (i == MAX_PROCESSES) {
+        return EINVAL;
+    }
+    event_state = &rpmsg_rpc_state.eventState[i];
 
     msg_hdr = (struct rppc_msg_header *)buf;
     packet = (struct rppc_packet *)((UInt32)msg_hdr + sizeof(struct rppc_msg_header));
@@ -1772,9 +1860,7 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     }
     function = (struct rppc_function *)usr_msg;
 
-    if (bytes < sizeof(struct rppc_function) +
-        (function->num_translations * \
-         sizeof(struct rppc_param_translation))) {
+    if (bytes < RPPC_PARAM_SIZE(function->num_translations)) {
          return (EINVAL);
     }
 
@@ -1783,9 +1869,19 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
         return (EINVAL);
     }
 
-    status = _rpmsg_rpc_translate(rpc->conn->procH, (char *)function, bytes,
-                                  ctp->info.pid);
+    /* store the fxn info for use with reverse translation */
+    fxn_info = Memory_alloc (NULL, sizeof(rpmsg_rpc_FxnInfo) +\
+                             RPPC_TRANS_SIZE(function->num_translations),
+                             0, NULL);
+    List_elemClear(&(fxn_info->element));
+    Memory_copy (&(fxn_info->func), function,
+                 RPPC_PARAM_SIZE(function->num_translations));
+
+    status = _rpmsg_rpc_translate(rpc->conn->procH, (char *)function,
+                                  ctp->info.pid, false);
     if (status < 0) {
+        Memory_free(NULL, fxn_info, sizeof(rpmsg_rpc_FxnInfo) +\
+                    RPPC_TRANS_SIZE(function->num_translations));
         return -status;
     }
 
@@ -1794,7 +1890,7 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
 
     /* initialize the packet structure */
     packet->desc = RPPC_DESC_EXEC_SYNC;
-    packet->msg_id = 0;
+    packet->msg_id = msg_id == 0xFFFF ? msg_id = 1 : ++(msg_id);
     packet->flags = (0x8000);//OMAPRPC_POOLID_DEFAULT;
     packet->fxn_id = RPPC_SET_FXN_IDX(function->fxn_id);
     packet->result = 0;
@@ -1807,10 +1903,21 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     }
     msg_hdr->msg_len += packet->data_size;
 
+    fxn_info->msgId = packet->msg_id;
+    key = IGateProvider_enter (rpmsg_rpc_state.gateHandle);
+    List_enqueue(event_state->fxnList, &(fxn_info->element));
+    IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
+
     status = MessageQCopy_send(rpc->conn->procId, MultiProc_self(),
-                               rpc->remoteAddr, rpc->addr, buf,
-                               msg_hdr->msg_len + sizeof(struct rppc_msg_header), TRUE);
+                              rpc->remoteAddr, rpc->addr, buf,
+                              msg_hdr->msg_len + sizeof(struct rppc_msg_header),
+                              TRUE);
     if (status < 0) {
+        key = IGateProvider_enter (rpmsg_rpc_state.gateHandle);
+        List_remove(event_state->fxnList, &(fxn_info->element));
+        IGateProvider_leave (rpmsg_rpc_state.gateHandle, key);
+        Memory_free(NULL, fxn_info, sizeof(rpmsg_rpc_FxnInfo) +\
+                    RPPC_TRANS_SIZE(function->num_translations));
         return (EIO);
     }
 
