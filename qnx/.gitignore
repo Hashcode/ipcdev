@@ -1,0 +1,13 @@
+*.map
+*.o
+*.so
+*.a
+*.pinfo
+src/tests/MessageQApp/arm/o.g.le.v7/MessageQApp_g
+src/tests/MessageQApp/arm/o.le.v7/MessageQApp
+src/tests/MessageQBench/arm/o.g.le.v7/MessageQBench_g
+src/tests/MessageQBench/arm/o.le.v7/MessageQBench
+src/tests/MessageQMulti/arm/o.g.le.v7/MessageQMulti_g
+src/tests/MessageQMulti/arm/o.le.v7/MessageQMulti
+src/tests/NameServerApp/arm/o.g.le.v7/NameServerApp_g
+src/tests/NameServerApp/arm/o.le.v7/NameServerApp
