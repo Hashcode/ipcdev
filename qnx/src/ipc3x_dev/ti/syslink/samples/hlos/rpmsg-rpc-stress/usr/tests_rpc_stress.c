@@ -49,23 +49,39 @@
 #include <time.h>
 #include <stdbool.h>
 #include <semaphore.h>
+#include <dlfcn.h>
 
 #include "ti/ipc/rpmsg_rpc.h"
+#include "ti/shmemallocator/SharedMemoryAllocatorUsr.h"
 
 
 typedef struct {
     int a;
-} fxn_triple_args;
+    int b;
+    int c;
+} fxn_add3_args;
+
+typedef struct {
+    int num;
+    int *array;
+} fxn_addx_args;
 
 /* Note: Set bit 31 to indicate static function indicies:
  * This function order will be hardcoded on BIOS side, hence preconfigured:
  */
-#define FXN_IDX_FXNTRIPLE            (1 | 0x80000000)
+enum {
+    FXN_IDX_FXNTRIPLE = 1,
+    FXN_IDX_FXNADD,
+    FXN_IDX_FXNADD3,
+    FXN_IDX_FXNADDX,
+    FXN_IDX_MAX
+};
 
 #define NUM_ITERATIONS               20
 
 static int test_status = 0;
 static bool runTest = true;
+static int testFunc = FXN_IDX_FXNTRIPLE;
 
 int exec_cmd(int fd, char *msg, size_t len, char *reply_msg, int *reply_len)
 {
@@ -127,6 +143,7 @@ typedef struct test_exec_args {
     int test_num;
     sem_t * sem;
     int thread_num;
+    int func_idx;
 } test_exec_args;
 
 static pthread_t * clientThreads = NULL;
@@ -134,6 +151,53 @@ static sem_t * clientSems = NULL;
 static char **clientPackets = NULL;
 static bool *readMsg = NULL;
 static int *fds;
+
+void *sharedmemalloc_lib = NULL;
+int (*sharedmem_alloc)(int size, shm_buf *buf);
+int (*sharedmem_free)(shm_buf *buf);
+
+int deinit_sharedmem_funcs(void)
+{
+    int ret = 0;
+
+    if (sharedmemalloc_lib)
+        dlclose(sharedmemalloc_lib);
+    sharedmemalloc_lib = NULL;
+
+    return ret;
+}
+
+int init_sharedmem_funcs()
+{
+    int ret = 0;
+
+    if (sharedmemalloc_lib == NULL) {
+        sharedmemalloc_lib = dlopen("libsharedmemallocator.so",
+                                    RTLD_NOW | RTLD_GLOBAL);
+        if (sharedmemalloc_lib == NULL) {
+            perror("init_sharedmem_funcs: Error opening shared lib");
+            ret = -1;
+        }
+        else {
+            sharedmem_alloc = dlsym(sharedmemalloc_lib, "SHM_alloc");
+            if (sharedmem_alloc == NULL) {
+                perror("init_sharedmem_funcs: Error getting shared lib sym");
+                ret = -1;
+            }
+            else {
+                sharedmem_free = dlsym(sharedmemalloc_lib, "SHM_release");
+                if (sharedmem_free == NULL) {
+                    perror("init_sharedmem_funcs: Error getting shared lib sym");
+                    ret = -1;
+                }
+            }
+        }
+    }
+    if (ret < 0) {
+        deinit_sharedmem_funcs();
+    }
+    return ret;
+}
 
 void * test_exec_call(void * arg)
 {
@@ -146,15 +210,85 @@ void * test_exec_call(void * arg)
     int               fd = args->fd;
     struct rppc_function *function;
     struct rppc_function_return *returned;
+    shm_buf           buf, buf2;
+    void              *ptr = NULL, *ptr2 = NULL;
 
     for (i = args->start_num; i < args->start_num + NUM_ITERATIONS; i++) {
         function = (struct rppc_function *)packet_buf;
-        function->fxn_id = FXN_IDX_FXNTRIPLE;
-        function->num_params = 1;
-        function->params[0].type = RPPC_PARAM_TYPE_ATOMIC;
-        function->params[0].size = sizeof(int);
-        function->params[0].data = i;
-        function->num_translations = 0;
+        function->fxn_id = args->func_idx;
+        switch (function->fxn_id) {
+            case FXN_IDX_FXNTRIPLE:
+                function->num_params = 1;
+                function->params[0].type = RPPC_PARAM_TYPE_ATOMIC;
+                function->params[0].size = sizeof(int);
+                function->params[0].data = i;
+                function->num_translations = 0;
+                break;
+            case FXN_IDX_FXNADD:
+                function->num_params = 2;
+                function->params[0].type = RPPC_PARAM_TYPE_ATOMIC;
+                function->params[0].size = sizeof(int);
+                function->params[0].data = i;
+                function->params[1].type = RPPC_PARAM_TYPE_ATOMIC;
+                function->params[1].size = sizeof(int);
+                function->params[1].data = i+1;
+                function->num_translations = 0;
+                break;
+            case FXN_IDX_FXNADD3:
+                if (init_sharedmem_funcs() < 0)
+                    test_status = -1;
+                else {
+                    if ((*sharedmem_alloc)(sizeof(fxn_add3_args), &buf) < 0) {
+                        test_status = -1;
+                    }
+                    else {
+                        ptr = (fxn_add3_args *)(buf.vir_addr);
+                        ((fxn_add3_args *)ptr)->a = i;
+                        ((fxn_add3_args *)ptr)->b = i+1;
+                        ((fxn_add3_args *)ptr)->c = i+2;
+                        function->num_params = 1;
+                        function->params[0].type = RPPC_PARAM_TYPE_PTR;
+                        function->params[0].size = sizeof(fxn_add3_args);
+                        function->params[0].data = (size_t)ptr;
+                        function->params[0].base = (size_t)ptr;
+                        function->num_translations = 0;
+                    }
+                }
+                break;
+            case FXN_IDX_FXNADDX:
+                if (init_sharedmem_funcs() < 0)
+                    test_status = -1;
+                else {
+                    if ((*sharedmem_alloc)(sizeof(fxn_addx_args), &buf) < 0) {
+                        test_status = -1;
+                    }
+                    else if ((*sharedmem_alloc)(sizeof(int) * 3, &buf2) < 0) {
+                        test_status = -1;
+                    }
+                    else {
+                        ptr = (fxn_addx_args *)(buf.vir_addr);
+                        ptr2 = (int *)(buf2.vir_addr);
+                        ((fxn_addx_args *)ptr)->num = 3;
+                        ((fxn_addx_args *)ptr)->array = ptr2;
+                        ((int *)ptr2)[0] = i;
+                        ((int *)ptr2)[1] = i+1;
+                        ((int *)ptr2)[2] = i+2;
+                        function->num_params = 1;
+                        function->params[0].type = RPPC_PARAM_TYPE_PTR;
+                        function->params[0].size = sizeof(fxn_addx_args);
+                        function->params[0].data = (size_t)ptr;
+                        function->params[0].base = (size_t)ptr;
+                        function->num_translations = 1;
+                        function->translations[0].index = 0;
+                        function->translations[0].offset = (int)&(((fxn_addx_args *)ptr)->array) - (int)ptr;
+                        function->translations[0].base = ((fxn_addx_args *)ptr)->array;
+                    }
+                }
+                break;
+        }
+
+        if (test_status == -1)
+            break;
 
         returned = (struct rppc_function_return *)return_buf;
 
@@ -178,17 +312,79 @@ void * test_exec_call(void * arg)
             memcpy(return_buf, clientPackets[args->thread_num], 512);
             readMsg[args->thread_num] = true;
         }
-       if (i * 3 != returned->status) {
-           printf ("rpc_stress: "
-                   "called fxnTriple(%d), result = %d, expected %d\n",
-                        function->params[0].data, returned->status, i * 3);
-           test_status = -1;
-           break;
-       }
-       else {
-           printf ("rpc_stress: called fxnTriple(%d), result = %d\n",
-                        function->params[0].data, returned->status);
-       }
+        switch (function->fxn_id) {
+            case FXN_IDX_FXNTRIPLE:
+                if (i * 3 != returned->status) {
+                    printf ("rpc_stress: "
+                            "called fxnTriple(%d), result = %d, expected %d\n",
+                            function->params[0].data, returned->status, i * 3);
+                    test_status = -1;
+                }
+                else {
+                    printf ("rpc_stress: called fxnTriple(%d), result = %d\n",
+                            function->params[0].data, returned->status);
+                }
+                break;
+            case FXN_IDX_FXNADD:
+                if (i + (i+1) != returned->status) {
+                    printf ("rpc_stress: "
+                            "called fxnAdd(%d,%d), result = %d, expected %d\n",
+                            function->params[0].data, function->params[1].data,
+                            returned->status, i + (i+1));
+                    test_status = -1;
+                }
+                else {
+                    printf ("rpc_stress: called fxnAdd(%d,%d), result = %d\n",
+                            function->params[0].data, function->params[1].data,
+                            returned->status);
+                }
+                break;
+            case FXN_IDX_FXNADD3:
+                if (i + (i+1) + (i+2) != returned->status) {
+                    printf ("rpc_stress: "
+                            "called fxnAdd3(%d,%d,%d), result = %d, expected %d\n",
+                            ((fxn_add3_args *)ptr)->a,
+                            ((fxn_add3_args *)ptr)->b,
+                            ((fxn_add3_args *)ptr)->c, returned->status,
+                            i + (i+1) + (i+2));
+                    test_status = -1;
+                }
+                else {
+                    printf ("rpc_stress: called fxnAdd3(%d,%d,%d), result = %d\n",
+                            ((fxn_add3_args *)ptr)->a,
+                            ((fxn_add3_args *)ptr)->b,
+                            ((fxn_add3_args *)ptr)->c, returned->status);
+                }
+                (*sharedmem_free)(&buf);
+                break;
+            case FXN_IDX_FXNADDX:
+                if (i + (i+1) + (i+2) != returned->status) {
+                    printf ("rpc_stress: "
+                            "called fxnAddX(%d,%d,%d), result = %d, expected %d\n",
+                            ((int *)ptr2)[0], ((int *)ptr2)[1],
+                            ((int *)ptr2)[2], returned->status,
+                            i + (i+1) + (i+2));
+                    test_status = -1;
+                }
+                else {
+                    /* Check that reverse address translation is working */
+                    if (((fxn_addx_args *)ptr)->array != ptr2) {
+                        printf("rpc_stress: reverse addr translation failed, "
+                               "addr = 0x%x expected 0x%x\n",
+                               ((fxn_addx_args *)ptr)->array, ptr2);
+                        test_status = -1;
+                    }
+                    printf ("rpc_stress: called fxnAddX(%d,%d,%d), result = %d\n",
+                            ((int *)ptr2)[0], ((int *)ptr2)[1],
+                            ((int *)ptr2)[2], returned->status);
+                }
+                (*sharedmem_free)(&buf);
+                (*sharedmem_free)(&buf2);
+                break;
+        }
+        if (test_status == -1) {
+            break;
+        }
     }
 
     return NULL;
@@ -265,7 +461,20 @@ void * test_read_thread (void * arg)
             break;
 
         /* Decode reply: */
-        packet_id = ((rtn_packet->status / 3) - 1) / NUM_ITERATIONS;
+        switch (testFunc) {
+            case FXN_IDX_FXNTRIPLE:
+                packet_id = ((rtn_packet->status / 3) - 1) / NUM_ITERATIONS;
+                break;
+            case FXN_IDX_FXNADD:
+                packet_id = (((rtn_packet->status - 1) / 2) - 1) / NUM_ITERATIONS;
+                break;
+            case FXN_IDX_FXNADD3:
+                packet_id = (((rtn_packet->status - 3) / 3) - 1) / NUM_ITERATIONS;
+                break;
+            case FXN_IDX_FXNADDX:
+                packet_id = (((rtn_packet->status - 3) / 3) - 1) / NUM_ITERATIONS;
+                break;
+        }
         while (readMsg[packet_id] == false) {
             sleep(1);
         }
@@ -276,7 +485,7 @@ void * test_read_thread (void * arg)
     return NULL;
 }
 
-int test_rpc_stress_select(int core_id, int num_comps)
+int test_rpc_stress_select(int core_id, int num_comps, int func_idx)
 {
     int ret = 0;
     int i = 0, j = 0;
@@ -426,6 +635,7 @@ int test_rpc_stress_select(int core_id, int num_comps)
         args[i].test_num = 3;
         args[i].sem = &clientSems[i];
         args[i].thread_num = i;
+        args[i].func_idx = func_idx;
         readMsg[i] = true;
         ret = pthread_create(&clientThreads[i], NULL, test_exec_call,
                              (void *)&args[i]);
@@ -485,7 +695,7 @@ int test_rpc_stress_select(int core_id, int num_comps)
     return ret;
 }
 
-int test_rpc_stress_multi_threads(int core_id, int num_threads)
+int test_rpc_stress_multi_threads(int core_id, int num_threads, int func_idx)
 {
     int ret = 0;
     int i = 0, j = 0;
@@ -599,6 +809,7 @@ int test_rpc_stress_multi_threads(int core_id, int num_threads)
         args[i].test_num = 2;
         args[i].sem = &clientSems[i];
         args[i].thread_num = i;
+        args[i].func_idx = func_idx;
         readMsg[i] = true;
         ret = pthread_create(&clientThreads[i], NULL, test_exec_call,
                              (void *)&args[i]);
@@ -655,7 +866,7 @@ int test_rpc_stress_multi_threads(int core_id, int num_threads)
     return ret;
 }
 
-int test_rpc_stress_multi_srvmgr(int core_id, int num_comps)
+int test_rpc_stress_multi_srvmgr(int core_id, int num_comps, int func_idx)
 {
     int ret = 0;
     int i = 0, j = 0;
@@ -731,6 +942,7 @@ int test_rpc_stress_multi_srvmgr(int core_id, int num_comps)
         args[i].test_num = 1;
         args[i].sem = NULL;
         args[i].thread_num = i;
+        args[i].func_idx = func_idx;
         ret = pthread_create(&clientThreads[i], NULL, test_exec_call,
                              (void *)&args[i]);
         if (ret < 0) {
@@ -768,11 +980,12 @@ int main(int argc, char *argv[])
     int core_id = 0;
     int num_comps = 1;
     int num_threads = 1;
+    int func_idx = 1;
     int c;
 
     while (1)
     {
-        c = getopt (argc, argv, "t:c:x:l:");
+        c = getopt (argc, argv, "t:c:x:l:f:");
         if (c == -1)
             break;
 
@@ -790,6 +1003,9 @@ int main(int argc, char *argv[])
         case 'l':
             num_threads = atoi(optarg);
             break;
+        case 'f':
+            func_idx = atoi(optarg);
+            break;
         default:
             printf ("Unrecognized argument\n");
         }
@@ -799,6 +1015,12 @@ int main(int argc, char *argv[])
         printf("Invalid test id\n");
         return 1;
     }
+
+    if (func_idx < FXN_IDX_FXNTRIPLE || func_idx >= FXN_IDX_MAX) {
+        printf("Invalid function index\n");
+        return 1;
+    }
+    testFunc = func_idx;
 
     switch (test_id) {
         case 1:
@@ -811,7 +1033,7 @@ int main(int argc, char *argv[])
                 printf("Invalid num comps id\n");
                 return 1;
             }
-            ret = test_rpc_stress_multi_srvmgr(core_id, num_comps);
+            ret = test_rpc_stress_multi_srvmgr(core_id, num_comps, func_idx);
             break;
         case 2:
             /* Multiple threads, 1 RPMSG-RPC ServiceMgr instances */
@@ -823,7 +1045,7 @@ int main(int argc, char *argv[])
                 printf("Invalid num threads\n");
                 return 1;
             }
-            ret = test_rpc_stress_multi_threads(core_id, num_threads);
+            ret = test_rpc_stress_multi_threads(core_id, num_threads, func_idx);
             break;
         case 3:
             /* 1 thread using multiple RPMSG-RPC ServiceMgr instances */
@@ -835,7 +1057,7 @@ int main(int argc, char *argv[])
                 printf("Invalid num comps id\n");
                 return 1;
             }
-            ret = test_rpc_stress_select(core_id, num_comps);
+            ret = test_rpc_stress_select(core_id, num_comps, func_idx);
             break;
         default:
             break;
