@@ -58,6 +58,8 @@
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/omx_packet.h>
 
+#include <ti/sysbios/hal/Cache.h>
+
 /* Turn on/off printf's */
 #define CHATTER 1
 
@@ -83,16 +85,24 @@ typedef enum {
  *  ======== fxnTriple used by omx_benchmark test app ========
  */
 typedef struct {
-    Int size_a;
     Int a;
 } FxnTripleArgs;
 
 typedef struct {
-    Int size_a;
     Int a;
-    Int size_b;
     Int b;
 } FxnAddArgs;
+
+typedef struct {
+    Int a;
+    Int b;
+    Int c;
+} FxnAdd3Args;
+
+typedef struct {
+    Int num;
+    Int *array;
+} FxnAddXArgs;
 
 #define H264_DECODER_NAME   "H264_decoder"
 
@@ -106,6 +116,8 @@ static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
 static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
 static Int32 fxnTriple(UInt32 size, UInt32 *data);
 static Int32 fxnAdd(UInt32 size, UInt32 *data);
+static Int32 fxnAdd3(UInt32 size, UInt32 *data);
+static Int32 fxnAddX(UInt32 size, UInt32 *data);
 
 #if 0
 /* RcmServer static function table */
@@ -124,7 +136,7 @@ static const RcmServer_FxnDescAry RPCServer_fxnTab = {
 };
 #endif
 
-#define RPC_SVR_NUM_FXNS 3
+#define RPC_SVR_NUM_FXNS 5
 OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
 {
     { RPC_SKEL_Init2,
@@ -150,6 +162,22 @@ OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
                 {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
                 {OmapRpc_Direction_In, OmapRpc_Param_S32, 1},
                 {OmapRpc_Direction_In, OmapRpc_Param_S32, 1}
+            }
+        }
+    },
+    { fxnAdd3,
+        { "fxnAdd3", 2,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
+            }
+        }
+    },
+    { fxnAddX,
+        { "fxnAddX", 2,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
             }
         }
     }
@@ -246,12 +274,10 @@ static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
  */
 Int32 fxnTriple(UInt32 size, UInt32 *data)
 {
-    FxnTripleArgs *args;
+    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
     Int a;
 
-//  args = (FxnTripleArgs *)((UInt32)data + sizeof(map_info_type));
-    args = (FxnTripleArgs *)data;
-    a = args->a;
+    a = (Int)payload[0].data;
 
 #if CHATTER
     System_printf("fxnTriple: a=%d\n", a);
@@ -265,18 +291,77 @@ Int32 fxnTriple(UInt32 size, UInt32 *data)
  */
 Int32 fxnAdd(UInt32 size, UInt32 *data)
 {
-    FxnAddArgs *args;
+    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
     Int a, b;
 
-    args = (FxnAddArgs *)data;
-    a = args->a;
-    b = args->b;
+    a = (Int)payload[0].data;
+    b = (Int)payload[1].data;
 
 #if CHATTER
     System_printf("fxnAdd: a=%d, b=%d\n", a, b);
 #endif
 
     return(a + b);
+}
+
+/*
+ *  ======== fxnAdd3 ========
+ */
+Int32 fxnAdd3(UInt32 size, UInt32 *data)
+{
+    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
+    FxnAdd3Args *args;
+    Int a, b, c;
+
+    args = (FxnAdd3Args *)payload[0].data;
+
+    Cache_inv (args, sizeof(FxnAdd3Args), Cache_Type_ALL, TRUE);
+
+    a = args->a;
+    b = args->b;
+    c = args->c;
+
+#if CHATTER
+    System_printf("fxnAdd3: a=%d, b=%d, c=%d\n", a, b, c);
+#endif
+
+    return(a + b + c);
+}
+
+/*
+ *  ======== fxnAddX ========
+ */
+Int32 fxnAddX(UInt32 size, UInt32 *data)
+{
+    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
+    FxnAddXArgs *args;
+    Int num, i, sum = 0;
+    Int *array;
+
+    args = (FxnAddXArgs *)payload[0].data;
+
+    Cache_inv (args, sizeof(FxnAddXArgs), Cache_Type_ALL, TRUE);
+
+    num = args->num;
+    array = args->array;
+
+    Cache_inv (array, sizeof(Int) * num, Cache_Type_ALL, TRUE);
+
+#if CHATTER
+    System_printf("fxnAddX: ");
+#endif
+    for (i = 0; i < num; i++) {
+#if CHATTER
+        System_printf(" a[%d]=%d,", i, array[i]);
+#endif
+        sum += array[i];
+    }
+
+#if CHATTER
+    System_printf(" sum=%d\n", sum);
+#endif
+
+    return(sum);
 }
 
 Void start_rpc_task()
