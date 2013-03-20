@@ -68,6 +68,7 @@ AC_SUBST([AM_LDFLAGS])
 # Add config variables/options and check them
 AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6614' and 'tci6638'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
+AC_ARG_VAR(KERNEL_INSTALL_DIR, Installation path to the Linux kernel.)
 
 # Test platform variable for setting
 AS_IF([test "x$PLATFORM" = "xomapl138"],
@@ -82,9 +83,12 @@ AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
   [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])
 
+AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"], [AC_MSG_ERROR([Kernel path is not set])])
+
 # Export optional user variable to Makefile(s)
 AC_SUBST([PLATFORM])
 AC_SUBST([CMEM_INSTALL_DIR])
+AC_SUBST([KERNEL_INSTALL_DIR])
 
 # Define specific variables to be used in Makefile.am
 AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xomapl138"]) 

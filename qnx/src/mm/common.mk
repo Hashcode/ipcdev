@@ -29,29 +29,32 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+ifndef QCONFIG
+QCONFIG=qconfig.mk
+endif
+include $(QCONFIG)
 
-all:  utils ipc3x_dev libs tests
+NAME = mmrpc
 
-libs: ipc3x_dev
-	@cd src/api; make install
-	@cd src/family; make install
-	@cd src/mm; make install
+define PINFO
+PINFO DESCRIPTION=MmRpc User Library
+endef
 
-utils:
-	@cd src/utils; make install
+# don't install the binaries, they are copied in base makefile
+INSTALLDIR = /dev/null
 
-tests: libs
-	@cd src/tests; make install
+CCOPTS += -DSYSLINK_BUILDOS_QNX
 
-ipc3x_dev: utils
-	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
+# source path
+EXTRA_SRCVPATH = $(IPC_REPO)/packages/ti/ipc/mm
+SRCS = MmRpc.c
 
-clean:
-	@cd src/family; make clean
-	@cd src/api; make clean
-	@cd src/mm; make clean
-	@cd src/utils; make clean
-	@cd src/tests; make clean
-	@cd src/ipc3x_dev; \
-            make clean SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
+EXCLUDE_OBJS =
+
+# include path
+EXTRA_INCVPATH += \
+        $(IPC_REPO)/packages \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/inc
+
+include $(MKFILES_ROOT)/qtargets.mk
+OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)

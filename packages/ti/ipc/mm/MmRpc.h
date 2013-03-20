@@ -79,8 +79,8 @@ typedef struct MmRpc_Object *MmRpc_Handle;
  */
 typedef enum {
     MmRpc_ParamType_Atomic = 1, /*!< atomic data type */
-    MmRpc_ParamType_ShMemPtr,   /*!< shared memory pointer */
-    MmRpc_ParamType_Ptr         /*!< data pointer */
+    MmRpc_ParamType_Ptr,        /*!< data pointer */
+    MmRpc_ParamType_PtrOffset   /*!< pointer offset */
 } MmRpc_ParamType;
 
 /*!
@@ -97,15 +97,16 @@ typedef struct {
 
         struct {
             size_t      size;   /*!< size of the data */
-            size_t      data;   /*!< pointer to data */
-            size_t      base;   /*!< base address */
-            size_t      smh;    /*!< shared memory handle */
-        } shmem;
+            size_t      addr;   /*!< pointer value */
+            size_t      handle; /*!< memory allocator handle */
+        } ptr;
 
         struct {
             size_t      size;   /*!< size of the data */
-            size_t      ptr;    /*!< pointer to data */
-        } ptr;
+            size_t      offset; /*!< offset value */
+            size_t      base;   /*!< base pointer value */
+            size_t      handle; /*!< memory allocator handle */
+        } ptrOffset;
     } param;
 } MmRpc_Param;
 

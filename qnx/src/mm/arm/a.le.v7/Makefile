@@ -29,29 +29,6 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+include ../../common.mk
 
-all:  utils ipc3x_dev libs tests
-
-libs: ipc3x_dev
-	@cd src/api; make install
-	@cd src/family; make install
-	@cd src/mm; make install
-
-utils:
-	@cd src/utils; make install
-
-tests: libs
-	@cd src/tests; make install
-
-ipc3x_dev: utils
-	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
-
-clean:
-	@cd src/family; make clean
-	@cd src/api; make clean
-	@cd src/mm; make clean
-	@cd src/utils; make clean
-	@cd src/tests; make clean
-	@cd src/ipc3x_dev; \
-            make clean SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
+CCFLAGS += -O3

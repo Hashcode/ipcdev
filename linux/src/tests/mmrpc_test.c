@@ -38,18 +38,31 @@
 #include <ti/ipc/mm/MmRpc.h>
 
 
-/* module 'Mx' functions */
+/*
+ *  module 'Mx' functions
+ */
+
+/* compute structure */
+typedef struct {
+    uint32_t    coef;
+    int         size;
+    uint32_t *  inBuf;
+    uint32_t *  outBuf;
+} Mx_Compute;
+
 int Mx_initialize(void);
 void Mx_finalize(void);
 
 int32_t Mx_triple(uint32_t a);
 int32_t Mx_add(int32_t a, int32_t b);
+int32_t Mx_compute(Mx_Compute *compute);
 
 MmRpc_Handle Mx_rpcDsp = NULL;
 
 /* static function indicies */
 #define Mx_Fxn_triple   (0x80000000 | 1)
 #define Mx_Fxn_add      (0x80000000 | 2)
+#define Mx_Fxn_compute  (0x80000000 | 3)
 
 
 /*
@@ -59,6 +72,8 @@ int main(int argc, char **argv)
 {
     int status;
     int32_t ret;
+//  int i;
+//  Mx_Compute *compute;
 
     printf("mmrpc_test: --> main\n");
 
@@ -93,6 +108,36 @@ int main(int argc, char **argv)
         status = -1;
         goto leave;
     }
+
+#if 0
+    /* allocate a compute structure in shared memory */
+//  compute = ...;
+    compute->coef = 0x80400000;
+    compute->size = 0x1000;
+
+    /* allocate an input buffer in shared memory */
+//  compute->inBuf = ...;
+
+    for (i = 0; i < compute->size; i++) {
+        compute->inBuf[i] = 0x2010;
+    }
+
+    /* allocate an output buffer in shared memory */
+//  compute->outBuf = ...;
+
+    /* process the buffer */
+    ret = Mx_compute(compute);
+
+    if (ret < 0) {
+        status = -1;
+        goto leave;
+    }
+
+    /* free resources */
+//  free(compute->outBuf);
+//  free(compute->inBuf);
+//  free(compute);
+#endif
 
 leave:
     /* finalize Mx module (destroy rpc connection) */
@@ -195,6 +240,46 @@ int32_t Mx_add(int32_t a, int32_t b)
     fxnCtx->params[1].param.atomic.size = sizeof(int);
     fxnCtx->params[1].param.atomic.data = b;
     fxnCtx->num_translations = 0;
+
+    /* invoke the remote function call */
+    status = MmRpc_call(Mx_rpcDsp, fxnCtx, &fxnRet);
+
+    if (status < 0) {
+        printf("mmrpc_test: Error: MmRpc_call failed\n");
+        fxnRet = -1;
+    }
+
+    return(fxnRet);
+}
+
+/*
+ *  ======== Mx_compute ========
+ */
+int32_t Mx_compute(Mx_Compute *compute)
+{
+    MmRpc_FxnCtx *fxnCtx;
+    MmRpc_Txlt tlxtTable[2];
+    int32_t fxnRet;
+    char send_buf[512] = {0};
+    int status;
+
+    /* marshall function arguments into the send buffer */
+    fxnCtx = (MmRpc_FxnCtx *)send_buf;
+
+    fxnCtx->fxn_id = Mx_Fxn_compute;
+    fxnCtx->num_params = 1;
+    fxnCtx->params[0].type = MmRpc_ParamType_Ptr;
+    fxnCtx->params[0].param.ptr.size = sizeof(void *);
+    fxnCtx->params[0].param.ptr.addr = (size_t)compute;
+//  fxnCtx->params[0].param.ptr.handle = ...;
+
+    fxnCtx->num_translations = 2;
+    fxnCtx->translations = tlxtTable;
+
+    fxnCtx->translations[0].index = 0;
+    fxnCtx->translations[0].offset = 8;
+    fxnCtx->translations[1].index = 0;
+    fxnCtx->translations[1].offset = 12;
 
     /* invoke the remote function call */
     status = MmRpc_call(Mx_rpcDsp, fxnCtx, &fxnRet);

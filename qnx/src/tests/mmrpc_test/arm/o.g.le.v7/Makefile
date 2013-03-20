@@ -29,29 +29,20 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+include ../../common.mk
 
-all:  utils ipc3x_dev libs tests
+$(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/mm/arm/a.g.le.v7/libmmrpc_g.a
 
-libs: ipc3x_dev
-	@cd src/api; make install
-	@cd src/family; make install
-	@cd src/mm; make install
+# link with syslink static library, dynamic for others
+LIBPREF_mmrpc_g = -Bstatic
+LIBPOST_mmrpc_g = -Bdynamic
 
-utils:
-	@cd src/utils; make install
+# add libpath and libs
+EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/mm/arm/a.g.le.v7
+LIBS += mmrpc_g
 
-tests: libs
-	@cd src/tests; make install
-
-ipc3x_dev: utils
-	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
-
-clean:
-	@cd src/family; make clean
-	@cd src/api; make clean
-	@cd src/mm; make clean
-	@cd src/utils; make clean
-	@cd src/tests; make clean
-	@cd src/ipc3x_dev; \
-            make clean SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
+# copy and rename executables to suit our preferences (TODO: where do we copy the executables)
+#POST_BUILD = \
+#        $(CP_HOST) \
+#        $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQApp_g \
+#        $(PROJECT_ROOT)/../bin/debug/MessageQApp

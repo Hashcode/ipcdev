@@ -45,14 +45,36 @@
 
 #include <stdint.h> /* should be in linux/rpmsg_rpc.h */
 #include <stddef.h> /* should be in linux/rpmsg_rpc.h */
+
+
+
+#if defined(KERNEL_INSTALL_DIR)
+
+#ifdef linux
+#define _linux_ linux
+#undef linux
+#endif
+#define linux_include(kd,m) <kd/include/linux/m.h>
+#include linux_include(KERNEL_INSTALL_DIR,rpmsg_rpc)
+#ifdef _linux_
+#define linux _linux
+#undef _linux_
+#endif
+
 #define RPPC_MAX_INST_NAMELEN (48) /* in kernel part of rpmsg_rpc.h */
-#include </db/vtree/rvh/OMAP5/Depot/ti_linux_3_8/include/linux/rpmsg_rpc.h>
-// #include <linux/rpmsg_rpc.h>
 
 /* this should be in rpmsg_rpc.h, currently in rpmsg_rpc_internal.h */
 struct rppc_create_instance {
     char name[RPPC_MAX_INST_NAMELEN];
 };
+
+#elif defined(SYSLINK_BUILDOS_QNX)
+
+#include <ti/ipc/rpmsg_rpc.h>
+
+#else
+#error Unsupported Operating System
+#endif
 
 #include "MmRpc.h"
 
@@ -166,6 +188,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     MmRpc_Object *obj = (MmRpc_Object *)handle;
     struct rppc_function *rpfxn;
     struct rppc_function_return reply_msg;
+    MmRpc_Param *arg;
     void *msg;
     int len;
     int i;
@@ -191,33 +214,33 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     rpfxn->num_params = ctx->num_params;
 
     for (i = 0; i < ctx->num_params; i++) {
-        switch (ctx->params[i].type) {
+        arg = &ctx->params[i];
 
+        switch (arg->type) {
             case MmRpc_ParamType_Atomic:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_ATOMIC;
-                rpfxn->params[i].size = ctx->params[i].param.atomic.size;
-                rpfxn->params[i].data = ctx->params[i].param.atomic.data;
+                rpfxn->params[i].size = arg->param.atomic.size;
+                rpfxn->params[i].data = arg->param.atomic.data;
                 rpfxn->params[i].base = 0;
                 rpfxn->params[i].reserved = 0;
-                break;
-
-            case MmRpc_ParamType_ShMemPtr:
-                /* TODO */
                 break;
 
             case MmRpc_ParamType_Ptr:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
-                rpfxn->params[i].size = 0;
-                rpfxn->params[i].data = 0;
-                rpfxn->params[i].base = 0;
-                rpfxn->params[i].reserved = 0;
+                rpfxn->params[i].size = arg->param.ptr.size;
+                rpfxn->params[i].data = arg->param.ptr.addr;
+                rpfxn->params[i].base = arg->param.ptr.addr;
+                rpfxn->params[i].reserved = arg->param.ptr.handle;
+                break;
+
+            case MmRpc_ParamType_PtrOffset:
+                rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
+                rpfxn->params[i].size = arg->param.ptrOffset.size;
+                rpfxn->params[i].data = arg->param.ptrOffset.offset;
+                rpfxn->params[i].base = arg->param.ptrOffset.base;
+                rpfxn->params[i].reserved = arg->param.ptrOffset.handle;
                 break;
         }
-    }
-
-    if (rpfxn->fxn_id == 0x80000002) {
-        printf("MmRpc_call: params[0]=%d\n", rpfxn->params[0].data);
-        printf("MmRpc_call: params[1]=%d\n", rpfxn->params[1].data);
     }
 
     /* copy offset array into message */

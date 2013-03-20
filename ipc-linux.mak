@@ -40,14 +40,16 @@ config:
 	./configure --host=$(TOOLCHAIN_LONGNAME) \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
-            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR)
+            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)
 
 config-static:
 	@echo "Configuring Linux Ipc static only libaries ..."
 	./configure --host=$(TOOLCHAIN_LONGNAME) --disable-shared \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
-            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR)
+            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)
 
 
 config-shared:
@@ -55,4 +57,5 @@ config-shared:
 	./configure --host=$(TOOLCHAIN_LONGNAME) --disable-static \
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
-            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR)
+            CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)

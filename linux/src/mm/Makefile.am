@@ -32,7 +32,7 @@
 ##
 
 # additional include paths necessary to compile the library
-AM_CFLAGS = -Wall @AM_CFLAGS@
+AM_CFLAGS = -Wall @AM_CFLAGS@ -DKERNEL_INSTALL_DIR="$(KERNEL_INSTALL_DIR)"
 
 ###############################################################################
 # THE LIBRARIES TO BUILD
