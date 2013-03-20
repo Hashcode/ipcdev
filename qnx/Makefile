@@ -41,7 +41,7 @@ utils:
 	@cd src/utils; make install
 
 tests: libs
-	@cd src/tests; make install
+	@cd src/tests; make
 
 ipc3x_dev: utils
 	@cd src/ipc3x_dev; \
