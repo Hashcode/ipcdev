@@ -56,6 +56,7 @@
 extern "C" {
 #endif
 
+#include <ti/ipc/rpmsg_rpc.h>
 
 /* =============================================================================
  *  Macros and types
@@ -111,6 +112,11 @@ struct rppc_instance_handle {
 struct rppc_channel_info {
     UInt32 num_funcs;      /**< The number of functions supported on this endpoint */
 };
+
+#define RPPC_TRANS_SIZE(num)   (sizeof(struct rppc_param_translation) * num)
+
+#define RPPC_PARAM_SIZE(num)   (sizeof(struct rppc_function) +\
+                                RPPC_TRANS_SIZE(num))
 
 /*!
  *  @brief  Max number of user processes supported

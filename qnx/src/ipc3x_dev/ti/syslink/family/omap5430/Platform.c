@@ -236,19 +236,15 @@ extern unsigned int syslink_dsp_mem_size;
 
 #define MAX_SIZE_OVERRIDE_PARAMS 500
 
-Char Syslink_Override_Params[MAX_SIZE_OVERRIDE_PARAMS];
-/*
+/*Char Syslink_Override_Params[MAX_SIZE_OVERRIDE_PARAMS];*/
+
 String Syslink_Override_Params = "ProcMgr.proc[CORE0].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[CORE0].carveoutAddr0=0x95800000;"
-                                 "ProcMgr.proc[CORE0].carveoutSize0=0xA400000;"
-                                 "ProcMgr.proc[CORE0].carveoutAddr1=0xBA300000;"
-                                 "ProcMgr.proc[CORE0].carveoutSize1=0x5A00000;"
+                                 "ProcMgr.proc[CORE0].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[CORE0].carveoutSize0=0x5A00000;"
                                  "ProcMgr.proc[DSP].mmuEnable=TRUE;"
-                                 "ProcMgr.proc[DSP].carveoutAddr0=0x95000000;"
-                                 "ProcMgr.proc[DSP].carveoutSize0=0x700000;"
-                                 "ProcMgr.proc[DSP].carveoutAddr1=0xBA300000;"
-                                 "ProcMgr.proc[DSP].carveoutSize1=0x5A00000";
-*/
+                                 "ProcMgr.proc[DSP].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[DSP].carveoutSize0=0x5A00000;";
+
 
 /** ============================================================================
  *  APIs.
@@ -318,7 +314,7 @@ Int32
 Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 {
     Int32  status = Platform_S_SUCCESS;
-    Char   hexString[16];
+    /*Char   hexString[16];*/
 
     GT_1trace (curTrace, GT_ENTER, "Platform_overrideConfig", config);
 
@@ -338,7 +334,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-
+/*
         String_cpy(Syslink_Override_Params,
                    "ProcMgr.proc[CORE0].mmuEnable=TRUE;");
         String_hexToStr(hexString, cfg->pAddr);
@@ -363,6 +359,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
                    "ProcMgr.proc[DSP].carveoutSize0=");
         String_cat(Syslink_Override_Params, hexString);
         String_cat(Syslink_Override_Params, ";");
+*/
         cfg->params = Memory_alloc(NULL,
                                    String_len(Syslink_Override_Params) + 1, 0,
                                    NULL);
