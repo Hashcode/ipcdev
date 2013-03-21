@@ -44,6 +44,7 @@ function close()
     xdc.useModule('ti.sysbios.knl.Swi');
     xdc.useModule('ti.sysbios.hal.Cache');
     xdc.loadPackage('ti.pm');
+    xdc.useModule('ti.sysbios.gates.GateAll');
 }
 
 /*
