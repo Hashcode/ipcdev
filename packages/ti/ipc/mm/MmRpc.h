@@ -60,14 +60,34 @@ extern "C" {
 #define MmRpc_E_FAIL (-1)
 
 /*!
+ *  @brief  Invalid parameter type
+ */
+#define MmRpc_E_INVALIDPARAM (-2)
+
+/*!
  *  @brief  Size of parameter array in function context structure
  */
-#define MmRpc_MAX_PARAMETERS (10)
+#define MmRpc_MAX_PARAMS (10)
 
 /*!
  *  @brief  Maximum size of translation array in function context structure
  */
 #define MmRpc_MAX_TRANSLATIONS (1024)
+
+/*!
+ *  @brief  Macro for computing offset to a field of a structure.
+ *
+ *          struct foobar {
+ *              int a;
+ *              int *p;
+ *          };
+ *
+ *          struct foobar *sp = ...;
+ *          offset = MmRpc_OFFSET(sp, &sp->p);
+ *          struct foobar st = ...;
+ *          offset = MmRpc_OFFSET(&st, &st.p);
+ */
+#define MmRpc_OFFSET(base, field) ((unsigned int)(field)-(unsigned int)(base))
 
 /*!
  *  @brief      MmRpc_Handle type
@@ -78,9 +98,9 @@ typedef struct MmRpc_Object *MmRpc_Handle;
  *  @brief      MmRpc_ParamType enum
  */
 typedef enum {
-    MmRpc_ParamType_Atomic = 1, /*!< atomic data type */
+    MmRpc_ParamType_Scalar = 1, /*!< pass by value */
     MmRpc_ParamType_Ptr,        /*!< data pointer */
-    MmRpc_ParamType_PtrOffset   /*!< pointer offset */
+    MmRpc_ParamType_Elem        /*!< array element */
 } MmRpc_ParamType;
 
 /*!
@@ -92,21 +112,23 @@ typedef struct {
     union {
         struct {
             size_t      size;   /*!< size of the data */
-            size_t      data;   /*!< atomic data */
-        } atomic;
+            size_t      data;   /*!< data (pass by value)*/
+        } scalar;
 
         struct {
-            size_t      size;   /*!< size of the data */
+            size_t      size;   /*!< size of the data referenced */
             size_t      addr;   /*!< pointer value */
             size_t      handle; /*!< memory allocator handle */
         } ptr;
 
+#if 0 /* TBD */
         struct {
-            size_t      size;   /*!< size of the data */
-            size_t      offset; /*!< offset value */
-            size_t      base;   /*!< base pointer value */
+            size_t      size;   /*!< size of the array element */
+            size_t      offset; /*!< offset to current array element */
+            size_t      base;   /*!< base address of array */
             size_t      handle; /*!< memory allocator handle */
-        } ptrOffset;
+        } elem;
+#endif
     } param;
 } MmRpc_Param;
 
@@ -114,20 +136,19 @@ typedef struct {
     uint32_t    index;  /*!< parameter index to base pointer */
     ptrdiff_t   offset; /*!< offset from the base address to pointer */
     size_t      base;   /*!< user virtual address */
-} MmRpc_Txlt;
+    size_t      handle; /*!< memory allocator handle */
+} MmRpc_Xlt;
 
 /*!
  *  @brief      Function call context structure
  */
 typedef struct {
-    uint32_t    fxn_id;         /*!< The function to call. */
-    uint32_t    num_params;     /*!< Number of elements in param array. */
-    MmRpc_Param params[MmRpc_MAX_PARAMETERS];
-                                /*!< The array of parameters */
-    uint32_t num_translations;
-                                /*!< The number of translations needed
-                                 *   in the offsets array */
-    MmRpc_Txlt *translations;   /*!< array of translations */
+    uint32_t    fxn_id;         /*!< function id to call */
+    uint32_t    num_params;     /*!< number of parameters in params array */
+    MmRpc_Param params[MmRpc_MAX_PARAMS];
+                                /*!< the array of parameters */
+    uint32_t    num_xlts;       /*!< number of translations in xltAry */
+    MmRpc_Xlt * xltAry;         /*!< array of translations */
 } MmRpc_FxnCtx;
 
 /*!
@@ -147,8 +168,8 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret);
  *  @brief      Create an MmRpc instance
  *
  */
-int MmRpc_create(const char *proc, const char *service,
-        const MmRpc_Params *params, MmRpc_Handle *handlPtr);
+int MmRpc_create(const char *service, const MmRpc_Params *params,
+        MmRpc_Handle *handlPtr);
 
 /*!
  *  @brief      Delete an MmRpc instance

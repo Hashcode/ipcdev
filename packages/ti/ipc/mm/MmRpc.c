@@ -98,13 +98,12 @@ void MmRpc_Params_init(MmRpc_Params *params)
 /*
  *  ======== MmRpc_create ========
  */
-int MmRpc_create(const char *proc, const char *service,
-        const MmRpc_Params *params, MmRpc_Handle *handlePtr)
+int MmRpc_create(const char *service, const MmRpc_Params *params,
+        MmRpc_Handle *handlePtr)
 {
     int             status = MmRpc_S_SUCCESS;
     MmRpc_Object *  obj;
-
-    printf("MmRpc_create: -->\n");
+    char            cbuf[RPPC_MAX_INST_NAMELEN+16];
 
     /* allocate the instance object */
     obj = (MmRpc_Object *)calloc(1, sizeof(MmRpc_Object));
@@ -115,8 +114,8 @@ int MmRpc_create(const char *proc, const char *service,
     }
 
     /* open the driver */
-    printf("MmRpc_create: open driver\n");
-    obj->fd = open("/dev/rpc_example", O_RDWR);
+    sprintf(cbuf, "/dev/%s", service);
+    obj->fd = open(cbuf, O_RDWR);
 
     if (obj->fd < 0) {
         printf("MmRpc_create: Error: open failed\n");
@@ -124,11 +123,10 @@ int MmRpc_create(const char *proc, const char *service,
         goto leave;
     }
 
-    strncpy(obj->connect.name, "rpc_example", (RPPC_MAX_INST_NAMELEN - 1));
+    strncpy(obj->connect.name, service, (RPPC_MAX_INST_NAMELEN - 1));
     obj->connect.name[RPPC_MAX_INST_NAMELEN - 1] = '\0';
 
     /* create a server instance, rebind its address to this file descriptor */
-    printf("MmRpc_create: create server instance\n");
     status = ioctl(obj->fd, RPPC_IOC_CREATE, &obj->connect);
 
     if (status < 0) {
@@ -151,7 +149,6 @@ leave:
         *handlePtr = (MmRpc_Handle)obj;
     }
 
-    printf("MmRpc_create: <--\n");
     return(status);
 }
 
@@ -163,7 +160,6 @@ int MmRpc_delete(MmRpc_Handle *handlePtr)
     int status = MmRpc_S_SUCCESS;
     MmRpc_Object *obj;
 
-    printf("MmRpc_delete: -->\n");
     obj = (MmRpc_Object *)(*handlePtr);
 
     /* close the device */
@@ -175,7 +171,6 @@ int MmRpc_delete(MmRpc_Handle *handlePtr)
     free((void *)(*handlePtr));
     *handlePtr = NULL;
 
-    printf("MmRpc_delete: <--\n");
     return(status);
 }
 
@@ -188,18 +183,16 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     MmRpc_Object *obj = (MmRpc_Object *)handle;
     struct rppc_function *rpfxn;
     struct rppc_function_return reply_msg;
-    MmRpc_Param *arg;
+    MmRpc_Param *param;
     void *msg;
     int len;
     int i;
-
-    printf("MmRpc_call: -->\n");
 
     /* Combine function parameters and translation array into one contiguous
      * message. TODO, modify driver to accept two separate buffers in order
      * to eliminate this step. */
     len = sizeof(struct rppc_function) +
-                (ctx->num_translations * sizeof(struct rppc_param_translation));
+                (ctx->num_xlts * sizeof(struct rppc_param_translation));
     msg = (void *)calloc(len, sizeof(char));
 
     if (msg == NULL) {
@@ -208,47 +201,56 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
         goto leave;
     }
 
-    /* copy function arguments into message */
+    /* copy function parameters into message */
     rpfxn = (struct rppc_function *)msg;
     rpfxn->fxn_id = ctx->fxn_id;
     rpfxn->num_params = ctx->num_params;
 
     for (i = 0; i < ctx->num_params; i++) {
-        arg = &ctx->params[i];
+        param = &ctx->params[i];
 
-        switch (arg->type) {
-            case MmRpc_ParamType_Atomic:
+        switch (param->type) {
+            case MmRpc_ParamType_Scalar:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_ATOMIC;
-                rpfxn->params[i].size = arg->param.atomic.size;
-                rpfxn->params[i].data = arg->param.atomic.data;
+                rpfxn->params[i].size = param->param.scalar.size;
+                rpfxn->params[i].data = param->param.scalar.data;
                 rpfxn->params[i].base = 0;
                 rpfxn->params[i].reserved = 0;
                 break;
 
             case MmRpc_ParamType_Ptr:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
-                rpfxn->params[i].size = arg->param.ptr.size;
-                rpfxn->params[i].data = arg->param.ptr.addr;
-                rpfxn->params[i].base = arg->param.ptr.addr;
-                rpfxn->params[i].reserved = arg->param.ptr.handle;
+                rpfxn->params[i].size = param->param.ptr.size;
+                rpfxn->params[i].data = param->param.ptr.addr;
+                rpfxn->params[i].base = param->param.ptr.addr;
+                rpfxn->params[i].reserved = param->param.ptr.handle;
                 break;
 
-            case MmRpc_ParamType_PtrOffset:
+#if 0 /* TBD */
+            case MmRpc_ParamType_Elem:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
-                rpfxn->params[i].size = arg->param.ptrOffset.size;
-                rpfxn->params[i].data = arg->param.ptrOffset.offset;
-                rpfxn->params[i].base = arg->param.ptrOffset.base;
-                rpfxn->params[i].reserved = arg->param.ptrOffset.handle;
+                rpfxn->params[i].size = param->param.elem.size;
+                rpfxn->params[i].data = param->param.elem.offset;
+                rpfxn->params[i].base = param->param.elem.base;
+                rpfxn->params[i].reserved = param->param.elem.handle;
+                break;
+#endif
+            default:
+                printf("MmRpc_call: Error: invalid parameter type\n");
+                status = MmRpc_E_INVALIDPARAM;
+                goto leave;
                 break;
         }
     }
 
     /* copy offset array into message */
-    for (i = 0; i < ctx->num_translations; i++) {
-        rpfxn->translations[i].index    = ctx->translations[i].index;
-        rpfxn->translations[i].offset   = ctx->translations[i].offset;
-        rpfxn->translations[i].base     = ctx->translations[i].base;
-        rpfxn->translations[i].reserved = 0;
+    rpfxn->num_translations = ctx->num_xlts;
+
+    for (i = 0; i < ctx->num_xlts; i++) {
+        rpfxn->translations[i].index    = ctx->xltAry[i].index;
+        rpfxn->translations[i].offset   = ctx->xltAry[i].offset;
+        rpfxn->translations[i].base     = ctx->xltAry[i].base;
+        rpfxn->translations[i].reserved = ctx->xltAry[i].handle;
     }
 
     /* send message for remote execution */
@@ -285,6 +287,5 @@ leave:
         free(msg);
     }
 
-    printf("MmRpc_call: <-- status=%d\n", status);
     return(status);
 }

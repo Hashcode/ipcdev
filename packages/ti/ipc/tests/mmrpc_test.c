@@ -37,6 +37,9 @@
 
 #include <ti/ipc/mm/MmRpc.h>
 
+#if defined(SYSLINK_BUILDOS_QNX)
+#include <ti/shmemallocator/SharedMemoryAllocatorUsr.h>
+#endif
 
 /*
  *  module 'Mx' functions
@@ -45,6 +48,7 @@
 /* compute structure */
 typedef struct {
     uint32_t    coef;
+    int         key;
     int         size;
     uint32_t *  inBuf;
     uint32_t *  outBuf;
@@ -57,13 +61,14 @@ int32_t Mx_triple(uint32_t a);
 int32_t Mx_add(int32_t a, int32_t b);
 int32_t Mx_compute(Mx_Compute *compute);
 
-MmRpc_Handle Mx_rpcDsp = NULL;
+MmRpc_Handle Mx_rpcIpu = NULL;
 
 /* static function indicies */
 #define Mx_Fxn_triple   (0x80000000 | 1)
 #define Mx_Fxn_add      (0x80000000 | 2)
-#define Mx_Fxn_compute  (0x80000000 | 3)
+#define Mx_Fxn_compute  (0x80000000 | 5)
 
+#define Mx_OFFSET(base, member) ((uint_t)(member) - (uint_t)(base))
 
 /*
  *  ======== main ========
@@ -71,9 +76,13 @@ MmRpc_Handle Mx_rpcDsp = NULL;
 int main(int argc, char **argv)
 {
     int status;
+    int i;
     int32_t ret;
-//  int i;
-//  Mx_Compute *compute;
+    uint32_t val;
+    Mx_Compute *compute;
+#if defined(SYSLINK_BUILDOS_QNX)
+    shm_buf shmCompute, shmInBuf, shmOutBuf;
+#endif
 
     printf("mmrpc_test: --> main\n");
 
@@ -109,34 +118,109 @@ int main(int argc, char **argv)
         goto leave;
     }
 
-#if 0
     /* allocate a compute structure in shared memory */
-//  compute = ...;
+#if defined(SYSLINK_BUILDOS_QNX)
+    SHM_alloc(sizeof(Mx_Compute), &shmCompute);
+    compute = (Mx_Compute *)(shmCompute.vir_addr);
+#else
+    compute = NULL;
+#endif
+
+    if (compute == NULL) {
+        /* temporary: memory alloc not implemented on Linux */
+        goto leave;
+    }
+
+    /* initialize compute structure */
     compute->coef = 0x80400000;
+    compute->key = 0xABA0;
     compute->size = 0x1000;
+    compute->inBuf = NULL;
+    compute->outBuf = NULL;
 
     /* allocate an input buffer in shared memory */
+#if defined(SYSLINK_BUILDOS_QNX)
+    SHM_alloc(compute->size * sizeof(uint32_t), &shmInBuf);
+    compute->inBuf = (uint32_t *)(shmInBuf.vir_addr);
+#else
 //  compute->inBuf = ...;
+#endif
 
+    if (compute->inBuf == NULL) {
+        printf("mmrpc_test: Error: inBuf == NULL\n");
+        status = -1;
+        goto leave;
+    }
+
+    /* fill input buffer with seed value */
     for (i = 0; i < compute->size; i++) {
         compute->inBuf[i] = 0x2010;
     }
 
     /* allocate an output buffer in shared memory */
+#if defined(SYSLINK_BUILDOS_QNX)
+    SHM_alloc(compute->size * sizeof(uint32_t), &shmOutBuf);
+    compute->outBuf = (uint32_t *)(shmOutBuf.vir_addr);
+#else
 //  compute->outBuf = ...;
+#endif
+
+    if (compute->outBuf == NULL) {
+        printf("mmrpc_test: Error: outBuf == NULL\n");
+        status = -1;
+        goto leave;
+    }
+
+    /* clear output buffer */
+    for (i = 0; i < compute->size; i++) {
+        compute->outBuf[i] = 0;
+    }
+
+    /* print some debug info */
+    printf("mmrpc_test: calling Mx_compute(0x%x)\n", (unsigned int)compute);
+    printf("mmrpc_test: compute->coef=0x%x\n", compute->coef);
+    printf("mmrpc_test: compute->key=0x%x\n", compute->key);
+    printf("mmrpc_test: compute->size=0x%x\n", compute->size);
+    printf("mmrpc_test: compute->inBuf=0x%x\n", (unsigned int)compute->inBuf);
+    printf("mmrpc_test: compute->outBuf=0x%x\n", (unsigned int)compute->outBuf);
 
     /* process the buffer */
     ret = Mx_compute(compute);
 
     if (ret < 0) {
         status = -1;
+        printf("mmrpc_test: Error: Mx_Compute() failed\n");
         goto leave;
     }
 
+    printf("mmrpc_test: after Mx_compute(0x%x)\n", (unsigned int)compute);
+    printf("mmrpc_test: compute->coef=0x%x\n", compute->coef);
+    printf("mmrpc_test: compute->key=0x%x\n", compute->key);
+    printf("mmrpc_test: compute->size=0x%x\n", compute->size);
+    printf("mmrpc_test: compute->inBuf=0x%x\n", (unsigned int)compute->inBuf);
+    printf("mmrpc_test: compute->outBuf=0x%x\n", (unsigned int)compute->outBuf);
+    printf("mmrpc_test: compute->inBuf[0]=0x%x\n",
+            (unsigned int)compute->inBuf[0]);
+    printf("mmrpc_test: compute->outBuf[0]=0x%x\n",
+            (unsigned int)compute->outBuf[0]);
+
+    /* check the output buffer */
+    for (i = 0; i < compute->size; i++) {
+        val = compute->outBuf[i] | compute->coef;
+        if (compute->outBuf[i] != val) {
+            status = -1;
+            printf("mmrpc_test: Error: incorrect outBuf\n");
+            break;
+        }
+    }
+
     /* free resources */
-//  free(compute->outBuf);
-//  free(compute->inBuf);
-//  free(compute);
+#if defined(SYSLINK_BUILDOS_QNX)
+    SHM_release(&shmOutBuf);
+    SHM_release(&shmInBuf);
+    SHM_release(&shmCompute);
+#else
+//  ...
 #endif
 
 leave:
@@ -158,12 +242,12 @@ leave:
 int Mx_initialize(void)
 {
     int status;
-    MmRpc_Params params;
+    MmRpc_Params args;
 
     /* create remote server insance */
-    MmRpc_Params_init(&params);
+    MmRpc_Params_init(&args);
 
-    status = MmRpc_create("DSP", "FooServer", &params, &Mx_rpcDsp);
+    status = MmRpc_create("rpc_example", &args, &Mx_rpcIpu);
 
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_create failed\n");
@@ -182,8 +266,8 @@ int Mx_initialize(void)
 void Mx_finalize(void)
 {
     /* delete remote server instance */
-    if (Mx_rpcDsp != NULL) {
-        MmRpc_delete(&Mx_rpcDsp);
+    if (Mx_rpcIpu != NULL) {
+        MmRpc_delete(&Mx_rpcIpu);
     }
 }
 
@@ -202,13 +286,14 @@ int32_t Mx_triple(uint32_t a)
 
     fxnCtx->fxn_id = Mx_Fxn_triple;
     fxnCtx->num_params = 1;
-    fxnCtx->params[0].type = MmRpc_ParamType_Atomic;
-    fxnCtx->params[0].param.atomic.size = sizeof(int);
-    fxnCtx->params[0].param.atomic.data = a;
-    fxnCtx->num_translations = 0;
+    fxnCtx->params[0].type = MmRpc_ParamType_Scalar;
+    fxnCtx->params[0].param.scalar.size = sizeof(int);
+    fxnCtx->params[0].param.scalar.data = a;
+    fxnCtx->num_xlts = 0;
+    fxnCtx->xltAry = NULL;
 
     /* invoke the remote function call */
-    status = MmRpc_call(Mx_rpcDsp, fxnCtx, &fxnRet);
+    status = MmRpc_call(Mx_rpcIpu, fxnCtx, &fxnRet);
 
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_call failed\n");
@@ -233,16 +318,16 @@ int32_t Mx_add(int32_t a, int32_t b)
 
     fxnCtx->fxn_id = Mx_Fxn_add;
     fxnCtx->num_params = 2;
-    fxnCtx->params[0].type = MmRpc_ParamType_Atomic;
-    fxnCtx->params[0].param.atomic.size = sizeof(int);
-    fxnCtx->params[0].param.atomic.data = a;
-    fxnCtx->params[1].type = MmRpc_ParamType_Atomic;
-    fxnCtx->params[1].param.atomic.size = sizeof(int);
-    fxnCtx->params[1].param.atomic.data = b;
-    fxnCtx->num_translations = 0;
+    fxnCtx->params[0].type = MmRpc_ParamType_Scalar;
+    fxnCtx->params[0].param.scalar.size = sizeof(int);
+    fxnCtx->params[0].param.scalar.data = a;
+    fxnCtx->params[1].type = MmRpc_ParamType_Scalar;
+    fxnCtx->params[1].param.scalar.size = sizeof(int);
+    fxnCtx->params[1].param.scalar.data = b;
+    fxnCtx->num_xlts = 0;
 
     /* invoke the remote function call */
-    status = MmRpc_call(Mx_rpcDsp, fxnCtx, &fxnRet);
+    status = MmRpc_call(Mx_rpcIpu, fxnCtx, &fxnRet);
 
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_call failed\n");
@@ -258,7 +343,7 @@ int32_t Mx_add(int32_t a, int32_t b)
 int32_t Mx_compute(Mx_Compute *compute)
 {
     MmRpc_FxnCtx *fxnCtx;
-    MmRpc_Txlt tlxtTable[2];
+    MmRpc_Xlt xltAry[2];
     int32_t fxnRet;
     char send_buf[512] = {0};
     int status;
@@ -269,20 +354,37 @@ int32_t Mx_compute(Mx_Compute *compute)
     fxnCtx->fxn_id = Mx_Fxn_compute;
     fxnCtx->num_params = 1;
     fxnCtx->params[0].type = MmRpc_ParamType_Ptr;
-    fxnCtx->params[0].param.ptr.size = sizeof(void *);
+    fxnCtx->params[0].param.ptr.size = sizeof(Mx_Compute);
     fxnCtx->params[0].param.ptr.addr = (size_t)compute;
+#if defined(SYSLINK_BUILDOS_QNX)
+    fxnCtx->params[0].param.ptr.handle = NULL;
+#else
 //  fxnCtx->params[0].param.ptr.handle = ...;
+#endif
 
-    fxnCtx->num_translations = 2;
-    fxnCtx->translations = tlxtTable;
+    fxnCtx->num_xlts = 2;
+    fxnCtx->xltAry = xltAry;
 
-    fxnCtx->translations[0].index = 0;
-    fxnCtx->translations[0].offset = 8;
-    fxnCtx->translations[1].index = 0;
-    fxnCtx->translations[1].offset = 12;
+    fxnCtx->xltAry[0].index = 0;
+    fxnCtx->xltAry[0].offset = MmRpc_OFFSET(compute, &compute->inBuf);
+    fxnCtx->xltAry[0].base = (size_t)(compute->inBuf);
+#if defined(SYSLINK_BUILDOS_QNX)
+    fxnCtx->xltAry[0].handle = NULL;
+#else
+//  fxnCtx->xltAry[0].handle = ...;
+#endif
+
+    fxnCtx->xltAry[1].index = 0;
+    fxnCtx->xltAry[1].offset = MmRpc_OFFSET(compute, &compute->outBuf);
+    fxnCtx->xltAry[1].base = (size_t)(compute->outBuf);
+#if defined(SYSLINK_BUILDOS_QNX)
+    fxnCtx->xltAry[1].handle = NULL;
+#else
+//  fxnCtx->xltAry[1].handle = ...;
+#endif
 
     /* invoke the remote function call */
-    status = MmRpc_call(Mx_rpcDsp, fxnCtx, &fxnRet);
+    status = MmRpc_call(Mx_rpcIpu, fxnCtx, &fxnRet);
 
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_call failed\n");

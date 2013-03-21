@@ -29,26 +29,21 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.bld ========
- *
+ *  ======== MmServiceMgr.c ========
  */
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld"
-];
+#include <xdc/std.h>
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+#include "MmServiceMgr.h"
+
+
+/*
+ *  ======== MmRpc_register ========
+ */
+Int MmRpc_register(Void)
+{
+    Int status = MmServiceMgr_S_SUCCESS;
+    return(status);
+}

@@ -40,9 +40,7 @@ define PINFO
 PINFO DESCRIPTION=MmRpc test program
 endef
 
-# don't install the binaries, they are copied in base makefile
-#INSTALLDIR = bin/tests
-INSTALLDIR = /dev/null
+INSTALLDIR = bin/tests
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX
 
@@ -54,7 +52,9 @@ EXCLUDE_OBJS =
 
 # include path
 EXTRA_INCVPATH += \
-        $(IPC_REPO)/packages
+        $(IPC_REPO)/packages \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/public \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/resmgr/public
 
 include $(MKFILES_ROOT)/qtargets.mk
 

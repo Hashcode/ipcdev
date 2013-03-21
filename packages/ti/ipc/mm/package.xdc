@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,13 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/*
- *  ======== package.bld ========
  *
  */
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld"
-];
+/*
+ *  ======== package.xdc ========
+ *
+ */
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+package ti.ipc.mm [1,0,0] {
+};

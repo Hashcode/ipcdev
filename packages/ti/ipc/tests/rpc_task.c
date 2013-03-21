@@ -65,33 +65,7 @@
 
 #define RPC_MGR_PORT    59
 
-/* Legacy function to allow Linux side rpmsg sample tests to work: */
-extern void start_rpc_task();
-
-/*
- * OMX packet expected to have its data payload start with a payload of
- * this value. Need to export this properly in a meaningful header file on
- * both HLOS and RTOS sides
- */
-typedef enum {
-    RPC_OMX_MAP_INFO_NONE       = 0,
-    RPC_OMX_MAP_INFO_ONE_BUF    = 1,
-    RPC_OMX_MAP_INFO_TWO_BUF    = 2,
-    RPC_OMX_MAP_INFO_THREE_BUF  = 3,
-    RPC_OMX_MAP_INFO_MAX        = 0x7FFFFFFF
-} map_info_type;
-
-/*
- *  ======== fxnTriple used by omx_benchmark test app ========
- */
-typedef struct {
-    Int a;
-} FxnTripleArgs;
-
-typedef struct {
-    Int a;
-    Int b;
-} FxnAddArgs;
+void start_rpc_task(); /* bootstrap function */
 
 typedef struct {
     Int a;
@@ -110,14 +84,15 @@ typedef struct {
 
 typedef UInt32 OMX_HANDLETYPE;
 
-static Int32 RPC_SKEL_Init(Void *, UInt32 size, UInt32 *data);
+//static Int32 RPC_SKEL_Init(Void *, UInt32 size, UInt32 *data);
 static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data);
-static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
-static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
+//static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
+//static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
 static Int32 fxnTriple(UInt32 size, UInt32 *data);
 static Int32 fxnAdd(UInt32 size, UInt32 *data);
 static Int32 fxnAdd3(UInt32 size, UInt32 *data);
 static Int32 fxnAddX(UInt32 size, UInt32 *data);
+static Int32 fxnCompute(UInt32 size, UInt32 *data);
 
 #if 0
 /* RcmServer static function table */
@@ -136,7 +111,7 @@ static const RcmServer_FxnDescAry RPCServer_fxnTab = {
 };
 #endif
 
-#define RPC_SVR_NUM_FXNS 5
+#define RPC_SVR_NUM_FXNS 6
 OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
 {
     { RPC_SKEL_Init2,
@@ -153,8 +128,8 @@ OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
             {
                 {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
                 {OmapRpc_Direction_In, OmapRpc_Param_U32, 1}
-            },
-        },
+            }
+        }
     },
     { fxnAdd,
         { "fxnAdd", 3,
@@ -180,9 +155,18 @@ OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
                 {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
             }
         }
+    },
+    { fxnCompute,
+        { "fxnCompute", 1,
+            {
+                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
+                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_VOID), 1}
+            }
+        }
     }
 };
 
+#if 0
 static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
 {
 #if CHATTER
@@ -191,7 +175,9 @@ static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
 
     return(0);
 }
+#endif
 
+#if 0
 static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
 {
 #if CHATTER
@@ -200,6 +186,7 @@ static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
 
     return(0);
 }
+#endif
 
 Void RPC_SKEL_SrvDelNotification()
 {
@@ -210,6 +197,7 @@ Void RPC_SKEL_SrvDelNotification()
 #define PAYLOAD_SIZE       sizeof(CALLBACK_DATA)
 #define CALLBACK_DATA_SIZE (HDRSIZE + OMXPACKETSIZE + PAYLOAD_SIZE)
 
+#if 0
 static Int32 RPC_SKEL_Init(Void *srvc, UInt32 size, UInt32 *data)
 {
     char              cComponentName[128] = {0};
@@ -261,6 +249,7 @@ static Int32 RPC_SKEL_Init(Void *srvc, UInt32 size, UInt32 *data)
 
     return(0);
 }
+#endif
 
 static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
 {
@@ -276,14 +265,16 @@ Int32 fxnTriple(UInt32 size, UInt32 *data)
 {
     struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
     Int a;
+    Int32 result;
 
     a = (Int)payload[0].data;
+    result = a * 3;
 
 #if CHATTER
-    System_printf("fxnTriple: a=%d\n", a);
+    System_printf("fxnTriple: a=%d, result=%d\n", a, result);
 #endif
 
-    return(a * 3);
+    return(result);
 }
 
 /*
@@ -293,15 +284,65 @@ Int32 fxnAdd(UInt32 size, UInt32 *data)
 {
     struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
     Int a, b;
+    Int32 result;
 
     a = (Int)payload[0].data;
     b = (Int)payload[1].data;
 
+    result = a + b;
+
 #if CHATTER
-    System_printf("fxnAdd: a=%d, b=%d\n", a, b);
+    System_printf("fxnAdd: a=%d, b=%d, result=%d\n", a, b, result);
 #endif
 
-    return(a + b);
+    return(result);
+}
+
+/*
+ *  ======== fxnCompute ========
+ */
+Int32 fxnCompute(UInt32 size, UInt32 *data)
+{
+    typedef struct {
+        uint32_t    coef;
+        int         key;
+        int         size;
+        uint32_t *  inBuf;
+        uint32_t *  outBuf;
+    } Mx_Compute;
+
+    struct OmapRpc_Parameter *payload;
+    Mx_Compute *compute;
+    Int32 result = 0;
+    Int i;
+
+    payload = (struct OmapRpc_Parameter *)data;
+    compute = (Mx_Compute *)payload[0].data;
+    Cache_inv(compute, sizeof(Mx_Compute), Cache_Type_ALL, TRUE);
+
+#if CHATTER
+    System_printf("fxnCompute: compute=0x%x\n", compute);
+    System_printf("fxnCompute: compute size=%d\n", (Int)payload[0].size);
+    System_printf("fxnCompute: coef=0x%x\n", compute->coef);
+    System_printf("fxnCompute: key=0x%x\n", compute->key);
+    System_printf("fxnCompute: size=0x%x\n", compute->size);
+    System_printf("fxnCompute: inBuf=0x%x\n", compute->inBuf);
+    System_printf("fxnCompute: outBuf=0x%x\n", compute->outBuf);
+#endif
+
+    Cache_inv(compute->inBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+    Cache_inv(compute->outBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+
+    for (i = 0; i < compute->size; i++) {
+        compute->outBuf[i] = compute->coef | compute->inBuf[i];
+    }
+
+    Cache_wbInv(compute->outBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+
+    return(result);
 }
 
 /*
@@ -364,7 +405,10 @@ Int32 fxnAddX(UInt32 size, UInt32 *data)
     return(sum);
 }
 
-Void start_rpc_task()
+/*
+ *  ======== start_rpc_task ========
+ */
+void start_rpc_task(void)
 {
     /* Init service manager */
     System_printf("%s initializing OMAPRPC based service manager endpoint\n",

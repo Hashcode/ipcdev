@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,47 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== package.bld ========
+ *  ======== package.xs ========
  *
  */
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld"
-];
+/*
+ *  ======== getLibs ========
+ */
+function getLibs(prog)
+{
+    var suffix;
+    var file;
+    var libAry = [];
+    var profile = this.profile;
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+    suffix = prog.build.target.findSuffix(this);
+    if (suffix == null) {
+        return("");  /* nothing to contribute */
+    }
+
+    /* make sure the library exists, else fallback to a built library */
+    file = "lib/" + profile + "/ti_ipc_mm.a" + suffix;
+    if (java.io.File(this.packageBase + file).exists()) {
+        libAry.push(file);
+    }
+    else {
+        file = "lib/release/ti_ipc_mm.a" + suffix;
+        if (java.io.File(this.packageBase + file).exists()) {
+            libAry.push(file);
+        }
+        else {
+            /* fallback to a compatible library built by this package */
+            for (var p in this.build.libDesc) {
+                if (suffix == this.build.libDesc[p].suffix) {
+                    libAry.push(p);
+                    break;
+                }
+            }
+        }
+    }
+
+    return libAry.join(";");
+}

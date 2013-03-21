@@ -29,26 +29,40 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== package.bld ========
+
+/** ============================================================================
+ *  @file       MmServiceMgr.h
  *
+ *  @brief      Multi-Media Service Manager
+ *
+ *  ============================================================================
  */
 
-Pkg.otherFiles = [
-    "GateMP.h",
-    "HeapBufMP.h",
-    "HeapMemMP.h",
-    "HeapMultiBufMP.h",
-    "Ipc.h",
-    "ListMP.h",
-    "MessageQ.h",
-    "MultiProc.h",
-    "NameServer.h",
-    "Notify.h",
-    "SharedRegion.h",
-    "package.bld"
-];
+#ifndef ti_ipc_mm_MmServiceMgr__include
+#define ti_ipc_mm_MmServiceMgr__include
 
-/* include source files in the release package */
-Pkg.attrs.exportSrc = true;
-Pkg.attrs.exportCfg = true;
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+/*!
+ *  @brief  Operation is successful
+ */
+#define MmServiceMgr_S_SUCCESS (0)
+
+/*!
+ *  @brief  Operation failed
+ */
+#define MmServiceMgr_E_FAIL (-1)
+
+/*!
+ *  @brief      Register a new service
+ *
+ */
+Int MmServiceMgr_register(Void);
+
+
+#if defined (__cplusplus)
+}
+#endif
+#endif /* ti_ipc_mm_MmServiceMgr__include */

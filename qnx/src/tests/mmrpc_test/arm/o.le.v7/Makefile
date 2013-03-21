@@ -34,17 +34,18 @@ include ../../common.mk
 CCFLAGS += -O3
 
 $(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/mm/arm/a.le.v7/libmmrpc.a
+$(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/so.le.v7/libsharedmemallocatorS.a
 
 # link with syslink static library, dynamic for others
 LIBPREF_mmrpc = -Bstatic
 LIBPOST_mmrpc = -Bdynamic
+LIBPREF_sharedmemallocatorS = -Bstatic
+LIBPOST_sharedmemallocatorS = -Bdynamic
 
 # add libpath and libs
-EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/mm/arm/a.le.v7
-LIBS += mmrpc
+EXTRA_LIBVPATH += \
+        $(IPC_REPO)/qnx/src/mm/arm/a.le.v7 \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/so.le.v7
 
-# copy and rename executables to suit our preferences (TODO: where do we copy the executables)
-#POST_BUILD = \
-#        $(CP_HOST) \
-#        $(PROJECT_ROOT)/arm/o.le.v7/MessageQApp \
-#        $(PROJECT_ROOT)/../bin/debug/MessageQApp
+LIBS += mmrpc
+LIBS += sharedmemallocatorS

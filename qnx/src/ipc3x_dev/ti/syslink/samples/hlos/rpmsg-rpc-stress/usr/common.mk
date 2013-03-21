@@ -46,15 +46,18 @@ SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../../..
 SYSLINK_BUILDOS = Qnx
 
 #Add extra include path
-EXTRA_INCVPATH+=$(SYSLINK_ROOT)	\
-				$(SYSLINK_ROOT)/ti/syslink/inc	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/usr/$(SYSLINK_BUILDOS)	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/usr	\
-				$(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS)
+EXTRA_INCVPATH += $(SYSLINK_ROOT) \
+        $(SYSLINK_ROOT)/ti/syslink/inc \
+        $(SYSLINK_ROOT)/ti/syslink/inc/usr/$(SYSLINK_BUILDOS) \
+        $(SYSLINK_ROOT)/ti/syslink/inc/usr \
+        $(SYSLINK_ROOT)/ti/syslink/inc/$(SYSLINK_BUILDOS) \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/public \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/resmgr/public
 
-EXTRA_SRCVPATH+=$(PROJECT_ROOT)/$(SYSLINK_BUILDOS)	\
-				$(PROJECT_ROOT)/..
+EXTRA_SRCVPATH += \
+        $(PROJECT_ROOT)/$(SYSLINK_BUILDOS) \
+        $(PROJECT_ROOT)/..
 
-CCOPTS+=-g -O0 -DSYSLINK_BUILDOS_QNX
+CCOPTS += -g -O0 -DSYSLINK_BUILDOS_QNX
 
 include $(MKFILES_ROOT)/qtargets.mk
