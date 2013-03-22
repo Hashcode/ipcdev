@@ -90,7 +90,7 @@
 #include <ti/sysbios/knl/Swi.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/heaps/HeapBuf.h>
-#include <ti/sysbios/gates/GateSwi.h>
+#include <ti/sysbios/gates/GateAll.h>
 
 #include <ti/sdo/utils/List.h>
 #include <ti/ipc/MultiProc.h>
@@ -137,7 +137,7 @@ typedef struct MessageQCopy_Object {
 /* Module_State */
 typedef struct MessageQCopy_Module {
     /* Instance gate: */
-    GateSwi_Handle gateSwi;
+    GateAll_Handle gateH;
     /* Array of messageQObjects in the system: */
     struct MessageQCopy_Object  *msgqObjects[MAXMESSAGEQOBJECTS];
     /* Heap from which to allocate free messages for copying: */
@@ -258,7 +258,7 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
 #define FXNN "MessageQCopy_init"
 Void MessageQCopy_init(UInt16 remoteProcId)
 {
-    GateSwi_Params gatePrms;
+    GateAll_Params gatePrms;
     HeapBuf_Params prms;
     int     i;
     Registry_Result result;
@@ -280,8 +280,8 @@ Void MessageQCopy_init(UInt16 remoteProcId)
                 (IArg)remoteProcId);
 
     /* Gate to protect module object and lists: */
-    GateSwi_Params_init(&gatePrms);
-    module.gateSwi = GateSwi_create(&gatePrms, NULL);
+    GateAll_Params_init(&gatePrms);
+    module.gateH = GateAll_create(&gatePrms, NULL);
 
     /* Initialize Module State: */
     for (i = 0; i < MAXMESSAGEQOBJECTS; i++) {
@@ -352,7 +352,7 @@ Void MessageQCopy_finalize()
 
     Swi_delete(&(transport.swiHandle));
 
-    GateSwi_delete(&module.gateSwi);
+    GateAll_delete(&module.gateH);
 
 exit:
     Log_print0(Diags_EXIT, "<-- "FXNN);
@@ -380,7 +380,7 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
 
     Assert_isTrue((curInit > 0) , NULL);
 
-    key = GateSwi_enter(module.gateSwi);
+    key = GateAll_enter(module.gateH);
 
     if (reserved == MessageQCopy_ASSIGN_ANY)  {
        /* Search the array for a free slot above reserved: */
@@ -430,7 +430,7 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
        }
     }
 
-    GateSwi_leave(module.gateSwi, key);
+    GateAll_leave(module.gateH, key);
 
     Log_print1(Diags_EXIT, "<-- "FXNN": 0x%x", (IArg)obj);
     return (obj);
@@ -470,9 +470,9 @@ Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
        }
 
        /* Null out our slot: */
-       key = GateSwi_enter(module.gateSwi);
+       key = GateAll_enter(module.gateH);
        module.msgqObjects[obj->queueId] = NULL;
-       GateSwi_leave(module.gateSwi, key);
+       GateAll_leave(module.gateH, key);
 
        Log_print1(Diags_LIFECYCLE, FXNN": endPt deleted: %d",
                         (IArg)obj->queueId);
@@ -569,10 +569,8 @@ Int MessageQCopy_send(UInt16 dstProc,
     if (dstProc != MultiProc_self()) {
         /* Send to remote processor: */
         do {
-            key = GateSwi_enter(module.gateSwi);  /* Protect vring structs */
             token = VirtQueue_getAvailBuf(transport.virtQueue_toHost,
                     (Void **)&msg, &length);
-            GateSwi_leave(module.gateSwi, key);
         } while (token < 0 && Semaphore_pend(transport.semHandle_toHost,
                                              BIOS_WAIT_FOREVER));
         if (token >= 0) {
@@ -584,11 +582,9 @@ Int MessageQCopy_send(UInt16 dstProc,
             msg->flags = 0;
             msg->reserved = 0;
 
-            key = GateSwi_enter(module.gateSwi);  // Protect vring structs.
             VirtQueue_addUsedBuf(transport.virtQueue_toHost, token,
                                                             RPMSG_BUF_SIZE);
             VirtQueue_kick(transport.virtQueue_toHost);
-            GateSwi_leave(module.gateSwi, key);
         }
         else {
             status = MessageQCopy_E_FAIL;
@@ -599,9 +595,9 @@ Int MessageQCopy_send(UInt16 dstProc,
         /* Put on a Message queue on this processor: */
 
         /* Protect from MessageQCopy_delete */
-        key = GateSwi_enter(module.gateSwi);
+        key = GateAll_enter(module.gateH);
         obj = module.msgqObjects[dstEndpt];
-        GateSwi_leave(module.gateSwi, key);
+        GateAll_leave(module.gateH, key);
 
         if (obj == NULL) {
             Log_print1(Diags_STATUS, FXNN": no object for endpoint: %d",
@@ -622,9 +618,9 @@ Int MessageQCopy_send(UInt16 dstProc,
             size = len + sizeof(Queue_elem);
 
             /* HeapBuf_alloc() is non-blocking, so needs protection: */
-            key = GateSwi_enter(module.gateSwi);
+            key = GateAll_enter(module.gateH);
             payload = (Queue_elem *)HeapBuf_alloc(module.heap, size, 0, NULL);
-            GateSwi_leave(module.gateSwi, key);
+            GateAll_leave(module.gateH, key);
 
             if (payload != NULL)  {
                 memcpy(payload->data, data, len);
