@@ -131,7 +131,7 @@ UInt ServiceMgr_start(UInt16 reserved);
  *
  *  @sa RcmServer_create
  */
-Bool ServiceMgr_register(String name, RcmServer_Params  *rcmServerParams);
+Bool ServiceMgr_register(String name, RcmServer_Params *rcmServerParams);
 
 /*
  *  ======== ServiceMgr_send ========

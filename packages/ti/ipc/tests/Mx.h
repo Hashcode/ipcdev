@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,74 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This calls MessageQCopy_init() once before BIOS_start(): */
-xdc.loadPackage('ti.ipc.ipcmgr');
-var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
-BIOS.addUserStartupFunction('&register_MxServer');
+/** ============================================================================
+ *  @file       Mx.h
+ *
+ *  @brief      Example of a host-side module which uses MmRpc to
+ *              invoke functions on a remote processor.
+ *
+ *  ============================================================================
+ */
 
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 0x2000;
+#ifndef Mx__include
+#define Mx__include
 
-xdc.loadPackage('ti.srvmgr');
-xdc.useModule('ti.srvmgr.omx.OmxSrvMgr');
-xdc.loadPackage('ti.srvmgr.omaprpc');
+#include <stddef.h>
+#include <stdint.h>
 
-/* ti.grcm Configuration */
-var rcmSettings = xdc.useModule('ti.grcm.Settings');
-rcmSettings.ipc = rcmSettings.IpcSupport_ti_sdo_ipc;
-xdc.useModule('ti.grcm.RcmServer');
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
+/*!
+ *  @brief      Operation is successful
+ */
+#define Mx_S_SUCCESS (0)
 
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 12 * 0x400;
+/*!
+ *  @brief      Operation failed
+ */
+#define Mx_E_FAIL (-1)
 
-xdc.loadPackage('ti.ipc.mm');
+/*!
+ *  @brief      Compute structure
+ */
+typedef struct {
+    uint32_t    coef;
+    int         key;
+    int         size;
+    uint32_t *  inBuf;
+    uint32_t *  outBuf;
+} Mx_Compute;
+
+/*!
+ *  @brief      Initialize the module, must be called first
+ */
+int Mx_initialize(void);
+
+/*!
+ *  @brief      Finalize the module, must be called last
+ */
+void Mx_finalize(void);
+
+/*!
+ *  @brief      Sample function which multiplies argument by three
+ */
+int32_t Mx_triple(uint32_t a);
+
+/*!
+ *  @brief      Sample function which addes two arguments
+ */
+int32_t Mx_add(int32_t a, int32_t b);
+
+/*!
+ *  @brief      Sample function which has pointer parameter to
+ *              a structure with two embedded pointers.
+ */
+int32_t Mx_compute(Mx_Compute *compute);
+
+
+#if defined(__cplusplus)
+}
+#endif
+#endif /* Mx__include */

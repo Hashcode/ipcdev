@@ -166,7 +166,7 @@ Bool ServiceMgr_registerSrvTask(UInt16 reserved, Task_FuncPtr func,
     return (found);
 }
 
-Bool ServiceMgr_register(String name, RcmServer_Params  *rcmServerParams)
+Bool ServiceMgr_register(String name, RcmServer_Params *rcmServerParams)
 {
     UInt              i;
     Bool              found = FALSE;

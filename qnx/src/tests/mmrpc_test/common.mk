@@ -46,7 +46,7 @@ CCOPTS += -DSYSLINK_BUILDOS_QNX
 
 # source path
 EXTRA_SRCVPATH = $(IPC_REPO)/packages/ti/ipc/tests
-SRCS = mmrpc_test.c
+SRCS = Mx.c mmrpc_test.c
 
 EXCLUDE_OBJS =
 

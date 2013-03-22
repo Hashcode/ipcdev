@@ -137,7 +137,8 @@ for (var i = 0; i < Build.targets.length; i++) {
             Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
                 cfgScript: "test_omx_ipu_omap5",
                 defs: "-D IPU -D OMAP5xxx"
-            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c"]);
+            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
+                    "MxServer.c"]);
         }
     }
 }

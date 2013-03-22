@@ -29,43 +29,26 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== rpc_task.c ========
  *
- *  Example of setting up a 'RPC' service with the ServiceMgr, allowing clients
- *  to instantiate the example RPC instance.
- *
+ *  Example of how to integrate the MxServer module with the
+ *  MmService manager.
  */
 
 #include <xdc/std.h>
-#include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Diags.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <ti/ipc/MultiProc.h>
-#include <ti/sysbios/BIOS.h>
-#include <ti/sysbios/knl/Task.h>
-
-#include <ti/grcm/RcmTypes.h>
 #include <ti/grcm/RcmServer.h>
-
-#include <ti/srvmgr/ServiceMgr.h>
-#include <ti/srvmgr/omaprpc/OmapRpc.h>
-#include <ti/srvmgr/rpmsg_omx.h>
-#include <ti/srvmgr/omx_packet.h>
-
+#include <ti/ipc/mm/MmType.h>
+#include <ti/ipc/mm/MmServiceMgr.h>
 #include <ti/sysbios/hal/Cache.h>
 
-/* Turn on/off printf's */
+#include "MxServer.h"
+
+/* turn on/off printf's */
 #define CHATTER 1
-
-#define RPC_MGR_PORT    59
-
-void start_rpc_task(); /* bootstrap function */
 
 typedef struct {
     Int a;
@@ -78,197 +61,104 @@ typedef struct {
     Int *array;
 } FxnAddXArgs;
 
-#define H264_DECODER_NAME   "H264_decoder"
 
-#define OMX_VIDEO_THREAD_PRIORITY    5
+#define SERVICE_NAME "rpc_example"
 
-typedef UInt32 OMX_HANDLETYPE;
-
-//static Int32 RPC_SKEL_Init(Void *, UInt32 size, UInt32 *data);
+/* MxServer skel function declarations */
 static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data);
-//static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data);
-//static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
-static Int32 fxnTriple(UInt32 size, UInt32 *data);
-static Int32 fxnAdd(UInt32 size, UInt32 *data);
+static Int32 MxServer_skel_triple(UInt32 size, UInt32 *data);
+static Int32 MxServer_skel_add(UInt32 size, UInt32 *data);
 static Int32 fxnAdd3(UInt32 size, UInt32 *data);
 static Int32 fxnAddX(UInt32 size, UInt32 *data);
-static Int32 fxnCompute(UInt32 size, UInt32 *data);
+static Int32 MxServer_skel_compute(UInt32 size, UInt32 *data);
 
-#if 0
-/* RcmServer static function table */
-static RcmServer_FxnDesc RPCServerFxnAry[] = {
-    {"RPC_SKEL_Init", NULL}, /* filled in dynamically */
-    {"RPC_SKEL_SetParameter", RPC_SKEL_SetParameter},
-    {"RPC_SKEL_GetParameter", RPC_SKEL_GetParameter},
-    {"fxnTriple", fxnTriple },
+/* MxServer skel function array */
+static RcmServer_FxnDesc mxSkelAry[] = {
+    { "RPC_SKEL_Init2",         RPC_SKEL_Init2          },
+    { "MxServer_triple",        MxServer_skel_triple    },
+    { "MxServer_add",           MxServer_skel_add       },
+    { "fxnAdd3",                fxnAdd3                 },
+    { "fxnAddX",                fxnAddX                 },
+    { "MxServer_compute",       MxServer_skel_compute   }
 };
 
-#define RPCServerFxnAryLen (sizeof RPCServerFxnAry / sizeof RPCServerFxnAry[0])
-
-static const RcmServer_FxnDescAry RPCServer_fxnTab = {
-    RPCServerFxnAryLen,
-    RPCServerFxnAry
+/* MxServer skel function table */
+static const RcmServer_FxnDescAry rpc_fxnTab = {
+    (sizeof(mxSkelAry) / sizeof(mxSkelAry[0])),
+    mxSkelAry
 };
-#endif
 
-#define RPC_SVR_NUM_FXNS 6
-OmapRpc_FuncDeclaration RPCServerFxns[RPC_SVR_NUM_FXNS] =
-{
-    { RPC_SKEL_Init2,
-        { "RPC_SKEL_Init2", 3,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1},
-                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
-            }
+static MmType_FxnSig rpc_sigAry[] = {
+    { "RPC_SKEL_Init2", 3,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_Param_U32, 1 },
+            { MmType_Dir_In,  MmType_PtrType(MmType_Param_U32), 1 }
         }
     },
-    { fxnTriple,
-        { "fxnTriple", 2,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_Param_U32, 1}
-            }
+    { "MxServer_triple", 2,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_Param_U32, 1 }
         }
     },
-    { fxnAdd,
-        { "fxnAdd", 3,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_Param_S32, 1},
-                {OmapRpc_Direction_In, OmapRpc_Param_S32, 1}
-            }
+    { "MxServer_add", 3,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_Param_S32, 1 },
+            { MmType_Dir_In,  MmType_Param_S32, 1 }
         }
     },
-    { fxnAdd3,
-        { "fxnAdd3", 2,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
-            }
+    { "fxnAdd3", 2,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_PtrType(MmType_Param_U32), 1 }
         }
     },
-    { fxnAddX,
-        { "fxnAddX", 2,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_U32), 1}
-            }
+    { "fxnAddX", 2,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_PtrType(MmType_Param_U32), 1 }
         }
     },
-    { fxnCompute,
-        { "fxnCompute", 1,
-            {
-                {OmapRpc_Direction_Out, OmapRpc_Param_S32, 1}, // return
-                {OmapRpc_Direction_In, OmapRpc_PtrType(OmapRpc_Param_VOID), 1}
-            }
+    { "MxServer_compute", 1,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_PtrType(MmType_Param_VOID), 1 }
         }
     }
 };
 
-#if 0
-static Int32 RPC_SKEL_SetParameter(UInt32 size, UInt32 *data)
-{
-#if CHATTER
-    System_printf("RPC_SKEL_SetParameter: Called\n");
-#endif
+static MmType_FxnSigTab rpc_fxnSigTab = {
+    MmType_NumElem(rpc_sigAry), rpc_sigAry
+};
 
-    return(0);
-}
-#endif
+/* the server create parameters, must be in persistent memory */
+static RcmServer_Params rpc_Params;
 
-#if 0
-static Int32 RPC_SKEL_GetParameter(UInt32 size, UInt32 *data)
-{
-#if CHATTER
-    System_printf("RPC_SKEL_GetParameter: Called\n");
-#endif
 
-    return(0);
-}
-#endif
-
-Void RPC_SKEL_SrvDelNotification()
+Void RPC_SKEL_SrvDelNotification(Void)
 {
     System_printf("RPC_SKEL_SrvDelNotification: Nothing to cleanup\n");
 }
 
-#define CALLBACK_DATA      "OMX_Callback"
-#define PAYLOAD_SIZE       sizeof(CALLBACK_DATA)
-#define CALLBACK_DATA_SIZE (HDRSIZE + OMXPACKETSIZE + PAYLOAD_SIZE)
-
-#if 0
-static Int32 RPC_SKEL_Init(Void *srvc, UInt32 size, UInt32 *data)
-{
-    char              cComponentName[128] = {0};
-    OMX_HANDLETYPE    hComp;
-    Char              cb_data[HDRSIZE + OMXPACKETSIZE + PAYLOAD_SIZE] =  {0};
-
-    /*
-     * Note: Currently, rpmsg_omx linux driver expects an omx_msg_hdr in front
-     * of the omx_packet data, so we allow space for this:
-     */
-    struct omx_msg_hdr * hdr = (struct omx_msg_hdr *)cb_data;
-    struct omx_packet  * packet = (struct omx_packet *)hdr->data;
-
-
-    //Marshalled:[>offset(cParameterName)|>pAppData|>offset(RcmServerName)|>pid|
-    //>--cComponentName--|>--CallingCorercmServerName--|
-    //<hComp]
-
-    strcpy(cComponentName, (char *)data + sizeof(map_info_type));
-
-#if CHATTER
-    System_printf("RPC_SKEL_GetHandle: Component Name received: %s\n",
-                  cComponentName);
-#endif
-
-    /* Simulate sending an async OMX callback message, passing an omx_packet
-     * structure.
-     */
-    packet->msg_id  = 99;   // Set to indicate callback instance, buffer id, etc.
-    packet->fxn_idx = 5;    // Set to indicate callback fxn
-    packet->data_size = PAYLOAD_SIZE;
-    strcpy((char *)packet->data, CALLBACK_DATA);
-
-#if CHATTER
-    System_printf("RPC_SKEL_GetHandle: Sending callback message id: %d, "
-                  "fxn_id: %d, data: %s\n",
-                  packet->msg_id, packet->fxn_idx, packet->data);
-#endif
-    ServiceMgr_send(srvc, cb_data, CALLBACK_DATA_SIZE);
-
-    /* Call OMX_Get_Handle() and return handle for future calls. */
-    //eCompReturn = OMX_GetHandle(&hComp, (OMX_STRING)&cComponentName[0], pAppData,&rpcCallBackInfo);
-    hComp = 0x5C0FFEE5;
-    data[0] = hComp;
-
-#if CHATTER
-    System_printf("RPC_SKEL_GetHandle: returning hComp: 0x%x\n", hComp);
-#endif
-
-    return(0);
-}
-#endif
-
 static Int32 RPC_SKEL_Init2(UInt32 size, UInt32 *data)
 {
-    System_printf("RPC_SKEL_Init2: size = 0x%x data = 0x%x\n", size,
-                                                            (UInt32)data);
-    return 0;
+    System_printf("RPC_SKEL_Init2: size=0x%x data=0x%x\n", size, data);
+    return(0);
 }
 
 /*
- *  ======== fxnTriple ========
+ *  ======== MxServer_skel_triple ========
  */
-Int32 fxnTriple(UInt32 size, UInt32 *data)
+Int32 MxServer_skel_triple(UInt32 size, UInt32 *data)
 {
-    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
-    Int a;
+    MmType_Param *payload = (MmType_Param *)data;
+    UInt32 a;
     Int32 result;
 
-    a = (Int)payload[0].data;
-    result = a * 3;
+    a = (UInt32)payload[0].data;
+    result = MxServer_triple(a);
 
 #if CHATTER
     System_printf("fxnTriple: a=%d, result=%d\n", a, result);
@@ -278,18 +168,18 @@ Int32 fxnTriple(UInt32 size, UInt32 *data)
 }
 
 /*
- *  ======== fxnAdd ========
+ *  ======== MxServer_skel_add ========
  */
-Int32 fxnAdd(UInt32 size, UInt32 *data)
+Int32 MxServer_skel_add(UInt32 size, UInt32 *data)
 {
-    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
-    Int a, b;
+    MmType_Param *payload = (MmType_Param *)data;
+    Int32 a, b;
     Int32 result;
 
-    a = (Int)payload[0].data;
-    b = (Int)payload[1].data;
+    a = (Int32)payload[0].data;
+    b = (Int32)payload[1].data;
 
-    result = a + b;
+    result = MxServer_add(a, b);
 
 #if CHATTER
     System_printf("fxnAdd: a=%d, b=%d, result=%d\n", a, b, result);
@@ -299,58 +189,11 @@ Int32 fxnAdd(UInt32 size, UInt32 *data)
 }
 
 /*
- *  ======== fxnCompute ========
- */
-Int32 fxnCompute(UInt32 size, UInt32 *data)
-{
-    typedef struct {
-        uint32_t    coef;
-        int         key;
-        int         size;
-        uint32_t *  inBuf;
-        uint32_t *  outBuf;
-    } Mx_Compute;
-
-    struct OmapRpc_Parameter *payload;
-    Mx_Compute *compute;
-    Int32 result = 0;
-    Int i;
-
-    payload = (struct OmapRpc_Parameter *)data;
-    compute = (Mx_Compute *)payload[0].data;
-    Cache_inv(compute, sizeof(Mx_Compute), Cache_Type_ALL, TRUE);
-
-#if CHATTER
-    System_printf("fxnCompute: compute=0x%x\n", compute);
-    System_printf("fxnCompute: compute size=%d\n", (Int)payload[0].size);
-    System_printf("fxnCompute: coef=0x%x\n", compute->coef);
-    System_printf("fxnCompute: key=0x%x\n", compute->key);
-    System_printf("fxnCompute: size=0x%x\n", compute->size);
-    System_printf("fxnCompute: inBuf=0x%x\n", compute->inBuf);
-    System_printf("fxnCompute: outBuf=0x%x\n", compute->outBuf);
-#endif
-
-    Cache_inv(compute->inBuf, compute->size * sizeof(uint32_t),
-            Cache_Type_ALL, TRUE);
-    Cache_inv(compute->outBuf, compute->size * sizeof(uint32_t),
-            Cache_Type_ALL, TRUE);
-
-    for (i = 0; i < compute->size; i++) {
-        compute->outBuf[i] = compute->coef | compute->inBuf[i];
-    }
-
-    Cache_wbInv(compute->outBuf, compute->size * sizeof(uint32_t),
-            Cache_Type_ALL, TRUE);
-
-    return(result);
-}
-
-/*
  *  ======== fxnAdd3 ========
  */
 Int32 fxnAdd3(UInt32 size, UInt32 *data)
 {
-    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
+    MmType_Param *payload = (MmType_Param *)data;
     FxnAdd3Args *args;
     Int a, b, c;
 
@@ -374,7 +217,7 @@ Int32 fxnAdd3(UInt32 size, UInt32 *data)
  */
 Int32 fxnAddX(UInt32 size, UInt32 *data)
 {
-    struct OmapRpc_Parameter *payload = (struct OmapRpc_Parameter *)data;
+    MmType_Param *payload = (MmType_Param *)data;
     FxnAddXArgs *args;
     Int num, i, sum = 0;
     Int *array;
@@ -406,15 +249,74 @@ Int32 fxnAddX(UInt32 size, UInt32 *data)
 }
 
 /*
- *  ======== start_rpc_task ========
+ *  ======== MxServer_skel_compute ========
  */
-void start_rpc_task(void)
+Int32 MxServer_skel_compute(UInt32 size, UInt32 *data)
 {
-    /* Init service manager */
-    System_printf("%s initializing OMAPRPC based service manager endpoint\n",
-                    MultiProc_getName(MultiProc_self()));
+    MmType_Param *payload;
+    MxServer_Compute *compute;
+    Int32 result = 0;
 
-    OmapRpc_createChannel("rpc_example", MultiProc_getId("HOST"),
-                          RPC_MGR_PORT, RPC_SVR_NUM_FXNS, RPCServerFxns,
-                          (OmapRpc_SrvDelNotifyFxn)RPC_SKEL_SrvDelNotification);
+    payload = (MmType_Param *)data;
+    compute = (MxServer_Compute *)payload[0].data;
+
+#if CHATTER
+    System_printf("skel_compute: compute=0x%x\n", compute);
+    System_printf("skel_compute: compute size=%d\n", (Int)payload[0].size);
+    System_printf("skel_compute: coef=0x%x\n", compute->coef);
+    System_printf("skel_compute: key=0x%x\n", compute->key);
+    System_printf("skel_compute: size=0x%x\n", compute->size);
+    System_printf("skel_compute: inBuf=0x%x\n", compute->inBuf);
+    System_printf("skel_compute: outBuf=0x%x\n", compute->outBuf);
+#endif
+
+    Cache_inv(compute->inBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+    Cache_inv(compute->outBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+
+    /* invoke the implementation function */
+    result = MxServer_compute(compute);
+
+    Cache_wbInv(compute->outBuf, compute->size * sizeof(uint32_t),
+            Cache_Type_ALL, TRUE);
+
+    return(result);
+}
+
+/*
+ *  ======== register_MxServer ========
+ *
+ *  Bootstrap function, must be configured in BIOS.addUserStartupFunctions.
+ */
+void register_MxServer(void)
+{
+    Int status = MmServiceMgr_S_SUCCESS;
+
+    System_printf("register_MxServer: -->\n");
+
+    /* must initialize these modules before using them */
+    RcmServer_init();
+    MmServiceMgr_init();
+
+    /* setup the server create params */
+    RcmServer_Params_init(&rpc_Params);
+    rpc_Params.priority = Thread_Priority_ABOVE_NORMAL;
+    rpc_Params.stackSize = 0x1000;
+    rpc_Params.fxns.length = rpc_fxnTab.length;
+    rpc_Params.fxns.elem = rpc_fxnTab.elem;
+
+    /* register an example service */
+    status = MmServiceMgr_register(SERVICE_NAME, &rpc_Params, &rpc_fxnSigTab,
+            RPC_SKEL_SrvDelNotification);
+
+    if (status < 0) {
+        System_printf("register_MxServer: MmServiceMgr_register failed, "
+                "status=%d\n", status);
+        status = -1;
+        goto leave;
+    }
+
+leave:
+    System_printf("register_MxServer: <--, status=%d\n", status);
 }

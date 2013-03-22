@@ -40,6 +40,7 @@
 #define ti_srvmgr_OmapRpc__include
 
 #include <ti/grcm/RcmServer.h>
+#include <ti/ipc/mm/MmType.h>
 
 
 #if defined (__cplusplus)
@@ -274,12 +275,15 @@ typedef struct OmapRpc_FuncDeclaration {
 typedef struct OmapRpc_Object *OmapRpc_Handle;
 typedef Void (*OmapRpc_SrvDelNotifyFxn)(Void);
 
-OmapRpc_Handle OmapRpc_createChannel(String channelName,
-                                     UInt16 dstProc,
-                                     UInt32 port,
-                                     UInt32 numFuncs,
-                                     OmapRpc_FuncDeclaration* fxns,
-                                     OmapRpc_SrvDelNotifyFxn func);
+#if 0
+OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
+        UInt32 port, UInt32 numFuncs, OmapRpc_FuncDeclaration* fxns,
+        OmapRpc_SrvDelNotifyFxn func);
+#else
+OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
+        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
+        OmapRpc_SrvDelNotifyFxn srvDelCBFunc);
+#endif
 
 Int OmapRpc_deleteChannel(OmapRpc_Handle handle);
 

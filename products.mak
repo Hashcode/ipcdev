@@ -40,7 +40,8 @@ DEPOT = _your_depot_folder_
 # Set up required cross compiler path for IPC Linux configuration and build
 TOOLCHAIN_LONGNAME ?=arm-none-linux-gnueabi
 TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
-TOOLCHAIN_PREFIX= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
+TOOLCHAIN_PREFIX = $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
+KERNEL_INSTALL_DIR =
 
 # Linux platform to build (optional)
 # Run './configure --help' for available PLATFORM options

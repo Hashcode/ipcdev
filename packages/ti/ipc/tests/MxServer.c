@@ -30,29 +30,56 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* This calls MessageQCopy_init() once before BIOS_start(): */
-xdc.loadPackage('ti.ipc.ipcmgr');
-var BIOS        = xdc.useModule('ti.sysbios.BIOS');
-BIOS.addUserStartupFunction('&IpcMgr_rpmsgStartup');
-BIOS.addUserStartupFunction('&register_MxServer');
+/*
+ *  ======== MxServer.c ========
+ *
+ *  Example implementation of the Mx module which runs on the host.
+ *  The Mx module will invoke these function here using MmRpc.
+ */
 
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 0x2000;
+#include <stddef.h>
+#include <stdint.h>
 
-xdc.loadPackage('ti.srvmgr');
-xdc.useModule('ti.srvmgr.omx.OmxSrvMgr');
-xdc.loadPackage('ti.srvmgr.omaprpc');
+#include "MxServer.h"
 
-/* ti.grcm Configuration */
-var rcmSettings = xdc.useModule('ti.grcm.Settings');
-rcmSettings.ipc = rcmSettings.IpcSupport_ti_sdo_ipc;
-xdc.useModule('ti.grcm.RcmServer');
+/*
+ *  ======== MxServer_triple ========
+ */
+int32_t MxServer_triple(uint32_t a)
+{
+    int32_t result;
 
-xdc.loadCapsule("ti/configs/omap54xx/IpcCommon.cfg.xs");
-xdc.includeFile("ti/configs/omap54xx/IpuSmp.cfg");
-xdc.includeFile("ti/configs/omap54xx/IpuAmmu.cfg");
+    result = a * 3;
 
-var Task = xdc.useModule('ti.sysbios.knl.Task');
-Task.defaultStackSize = 12 * 0x400;
+    return(result);
+}
 
-xdc.loadPackage('ti.ipc.mm');
+/*
+ *  ======== MxServer_add ========
+ */
+int32_t MxServer_add(int32_t a, int32_t b)
+{
+    int32_t result;
+
+    result = a + b;
+
+    return(result);
+}
+
+/*
+ *  ======== MxServer_compute ========
+ */
+int32_t MxServer_compute(MxServer_Compute *compute)
+{
+    int i;
+
+    /* process inBuf into outBuf */
+    for (i = 0; i < compute->size; i++) {
+        compute->outBuf[i] = compute->coef | compute->inBuf[i];
+    }
+
+    /* write a cookie into the key */
+    compute->key = 0xA0A0;
+
+    return(0);
+}

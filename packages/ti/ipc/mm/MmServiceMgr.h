@@ -41,6 +41,10 @@
 #ifndef ti_ipc_mm_MmServiceMgr__include
 #define ti_ipc_mm_MmServiceMgr__include
 
+#include <ti/grcm/RcmServer.h>
+#include <ti/ipc/mm/MmType.h>
+#include <ti/srvmgr/omaprpc/OmapRpc.h>
+
 #if defined (__cplusplus)
 extern "C" {
 #endif
@@ -55,11 +59,34 @@ extern "C" {
  */
 #define MmServiceMgr_E_FAIL (-1)
 
+typedef Void (*MmServiceMgr_DelFxn)(Void);
+
+
+/*!
+ *  @brief      Initialize the MmServiceMgr module
+ *
+ */
+Int MmServiceMgr_init(Void);
+
+/*!
+ *  @brief      Finalize the MmServiceMgr module
+ *
+ */
+Void MmServiceMgr_exit(Void);
+
 /*!
  *  @brief      Register a new service
  *
  */
-Int MmServiceMgr_register(Void);
+Int MmServiceMgr_register(const String name, RcmServer_Params *params,
+        MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn delFxn);
+
+/*!
+ *  @brief      Start the service manager listner task
+ *
+ */
+Int MmServiceMgr_start(const String name, Int aryLen,
+        OmapRpc_FuncSignature *sigAry);
 
 
 #if defined (__cplusplus)

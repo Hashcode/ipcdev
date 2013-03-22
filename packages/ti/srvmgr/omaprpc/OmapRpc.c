@@ -46,6 +46,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <ti/ipc/mm/MmType.h>
 #include <ti/ipc/rpmsg/MessageQCopy.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 #include <ti/srvmgr/ServiceMgr.h>
@@ -67,7 +68,7 @@ typedef struct OmapRpc_Object {
     OmapRpc_FuncSignature  *funcSigs;
 } OmapRpc_Object;
 
-static Int32 OmapRpc_GetSvrMgrHandle(Void *srvc, Int32 num, Int32 *params)
+Int32 OmapRpc_GetSvrMgrHandle(Void *srvc, Int32 num, Int32 *params)
 {
     System_printf("OMAPRPC: Calling RCM Service Manager Create Function!\n");
     return 0;
@@ -245,32 +246,54 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
     Semaphore_post(obj->exitSem);
 }
 
-OmapRpc_Handle OmapRpc_createChannel(String channelName,
-                                     UInt16 dstProc,
-                                     UInt32 port,
-                                     UInt32 numFuncs,
-                                     OmapRpc_FuncDeclaration *fxns,
-                                     OmapRpc_SrvDelNotifyFxn srvDelCBFunc)
+/*
+ *  ======== OmapRpc_createChannel ========
+ */
+#if 0
+OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
+        UInt32 port, UInt32 numFuncs, OmapRpc_FuncDeclaration *fxns,
+        OmapRpc_SrvDelNotifyFxn srvDelCBFunc)
+#else
+OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
+        UInt32 port, RcmServer_Params *rcmParams, MmType_FxnSigTab *fxnSigTab,
+        OmapRpc_SrvDelNotifyFxn srvDelCBFunc)
+#endif
 {
-    Task_Params          taskParams;
-    UInt32               func;
+    Task_Params taskParams;
+    UInt32      func;
 
     OmapRpc_Object *obj = Memory_alloc(NULL, sizeof(OmapRpc_Object), 0, NULL);
+
     if (obj == NULL) {
         System_printf("OMAPRPC: Failed to allocate memory for object!\n");
         goto unload;
     }
     _memset(obj, 0, sizeof(OmapRpc_Object));
-    obj->numFuncs = numFuncs+1;
+    obj->numFuncs = fxnSigTab->count + 1;
+#if 0
     RcmServer_Params_init(&obj->rcmParams);
     obj->rcmParams.priority = Thread_Priority_ABOVE_NORMAL;
     obj->rcmParams.stackSize = 0x1000;
     obj->rcmParams.fxns.length = obj->numFuncs;
-    obj->rcmParams.fxns.elem = Memory_alloc(NULL, sizeof(RcmServer_FxnDesc)*obj->numFuncs, 0, NULL);
+    obj->rcmParams.fxns.elem = Memory_alloc(NULL,
+            sizeof(RcmServer_FxnDesc) * obj->numFuncs, 0, NULL);
+
     if (obj->rcmParams.fxns.elem == NULL) {
         System_printf("OMAPRPC: Failed to allocate RCM function list!\n");
         goto unload;
     }
+#else
+    memcpy(&obj->rcmParams, rcmParams, sizeof(RcmServer_Params));
+    obj->rcmParams.fxns.length = obj->numFuncs;
+    obj->rcmParams.fxns.elem = Memory_calloc(NULL, obj->numFuncs *
+            sizeof(RcmServer_FxnDesc), 0, NULL);
+
+    if (obj->rcmParams.fxns.elem == NULL) {
+        System_printf("OMAPRPC: Failed to allocate RCM function list!\n");
+        goto unload;
+    }
+#endif
+
     // setup other variables...
     obj->shutdown = FALSE;
     obj->dstProc = dstProc;
@@ -278,67 +301,84 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName,
     strncpy(obj->channelName, channelName, OMAPRPC_MAX_CHANNEL_NAMELEN-1);
     obj->channelName[OMAPRPC_MAX_CHANNEL_NAMELEN-1]='\0';
     obj->srvDelCB = srvDelCBFunc;
-    obj->funcSigs = Memory_alloc(NULL, sizeof(OmapRpc_FuncSignature)*obj->numFuncs, 0, NULL);
+    obj->funcSigs = Memory_alloc(NULL, obj->numFuncs *
+            sizeof(OmapRpc_FuncSignature), 0, NULL);
+
     if (obj->funcSigs == NULL) {
         System_printf("OMAPRPC: Failed to allocate signtures list!\n");
         goto unload;
     }
-    // setup the RCM functions and Signatures
-    for (func = 0; func < obj->numFuncs; func++)
-    {
-        if (func == 0)
-        {
-            // assign the "first function"
-            obj->rcmParams.fxns.elem[func].name = OmapRpc_Stringerize(OmapRpc_GetSvrMgrHandle);
-            obj->rcmParams.fxns.elem[func].addr.createFxn = (RcmServer_MsgCreateFxn)OmapRpc_GetSvrMgrHandle;
 
-            strncpy(obj->funcSigs[func].name,
-                    obj->rcmParams.fxns.elem[0].name,
+    /* setup the RCM functions and Signatures */
+    for (func = 0; func < obj->numFuncs; func++) {
+        if (func == 0) {
+            // assign the "first function"
+            obj->rcmParams.fxns.elem[func].name =
+                    OmapRpc_Stringerize(OmapRpc_GetSvrMgrHandle);
+            obj->rcmParams.fxns.elem[func].addr.createFxn =
+                    (RcmServer_MsgCreateFxn)OmapRpc_GetSvrMgrHandle;
+
+            strncpy(obj->funcSigs[func].name, obj->rcmParams.fxns.elem[0].name,
                     OMAPRPC_MAX_CHANNEL_NAMELEN);
             obj->funcSigs[func].numParam = 0;
         }
-        else
-        {
+        else {
             // assign the other functions
-            obj->rcmParams.fxns.elem[func].name = fxns[func-1].signature.name;
-            obj->rcmParams.fxns.elem[func].addr.fxn = (RcmServer_MsgFxn)fxns[func-1].function;
+//          obj->rcmParams.fxns.elem[func].name = fxns[func-1].signature.name;
+            obj->rcmParams.fxns.elem[func].name =
+                    rcmParams->fxns.elem[func-1].name;
+//          obj->rcmParams.fxns.elem[func].addr.fxn =
+//                  (RcmServer_MsgFxn)fxns[func-1].function;
+            obj->rcmParams.fxns.elem[func].addr.fxn =
+                    rcmParams->fxns.elem[func-1].addr.fxn;
 
             // copy the signature
-            memcpy(&obj->funcSigs[func],
-                   &fxns[func-1].signature,
-                   sizeof(OmapRpc_FuncSignature));
+//          memcpy(&obj->funcSigs[func], &fxns[func-1].signature,
+//                  sizeof(OmapRpc_FuncSignature));
+            memcpy(&obj->funcSigs[func], &fxnSigTab->table[func - 1],
+                    sizeof(MmType_FxnSig));
         }
     }
 
     ServiceMgr_init();
+
     if (ServiceMgr_register(channelName, &obj->rcmParams) == TRUE) {
         System_printf("OMAPRPC: registered channel: %s\n", obj->channelName);
+
         obj->msgq = MessageQCopy_create(obj->port, NULL, NULL,&obj->localEndPt);
+
         if (obj->msgq == NULL) {
             goto unload;
         }
+
         Task_Params_init(&taskParams);
         taskParams.instance->name = channelName;
         taskParams.priority = 1;   /* Lowest priority thread */
         taskParams.arg0 = (UArg)obj;
+
         obj->exitSem = Semaphore_create(0, NULL, NULL);
+
         if (obj->exitSem == NULL) {
             goto unload;
         }
+
         obj->taskHandle = Task_create(omapRpcTask, &taskParams, NULL);
+
         if (obj->taskHandle == NULL) {
             goto unload;
         }
     }
     else {
         System_printf("OMAPRPC: FAILED to register channel: %s\n",
-                                                            obj->channelName);
+                obj->channelName);
     }
+
     System_printf("OMAPRPC: Returning Object %p\n", obj);
-    return obj;
+    return(obj);
+
 unload:
     OmapRpc_deleteChannel(obj);
-    return NULL;
+    return(NULL);
 }
 
 Int OmapRpc_deleteChannel(OmapRpc_Handle handle)
@@ -371,3 +411,90 @@ Int OmapRpc_deleteChannel(OmapRpc_Handle handle)
     Memory_free(NULL, obj, sizeof(*obj));
     return OmapRpc_S_SUCCESS;
 }
+
+#if 0
+/*
+ *  ======== OmapRpc_start ========
+ */
+Int OmapRpc_start(const String name, Int port, Int aryLen,
+        OmapRpc_FuncSignature *sigAry)
+{
+    Int status = OmapRpc_S_SUCCESS;
+    Task_Params taskParams;
+    OmapRpc_Object *obj;
+
+    /* create an instance */
+    obj = Memory_calloc(NULL, sizeof(OmapRpc_Object), 0, NULL);
+
+    if (obj == NULL) {
+        System_printf("OMAPRPC: Failed to allocate memory for object!\n");
+        status = OmapRpc_E_FAIL;
+        goto leave;
+    }
+
+    obj->numFuncs = aryLen + 1;
+    obj->shutdown = FALSE;
+    obj->dstProc = MultiProc_getId("HOST");
+    obj->port = port;
+    strncpy(obj->channelName, name, OMAPRPC_MAX_CHANNEL_NAMELEN-1);
+    obj->channelName[OMAPRPC_MAX_CHANNEL_NAMELEN-1]='\0';
+    obj->srvDelCB = srvDelCBFunc;
+    obj->funcSigs = Memory_alloc(NULL,
+            sizeof(OmapRpc_FuncSignature) * obj->numFuncs, 0, NULL);
+
+    if (obj->funcSigs == NULL) {
+        System_printf("OMAPRPC: Failed to allocate signtures list!\n");
+        goto unload;
+    }
+
+    /* setup the functions and signatures */
+    for (func = 0; func < obj->numFuncs; func++) {
+        if (func == 0) {
+            // assign the "first function"
+//          strncpy(obj->funcSigs[func].name, obj->rcmParams.fxns.elem[0].name,
+//                  OMAPRPC_MAX_CHANNEL_NAMELEN);
+            strncpy(obj->funcSigs[func].name,
+                    OmapRpc_Stringerize(OmapRpc_GetSvrMgrHandle),
+                    OMAPRPC_MAX_CHANNEL_NAMELEN);
+            obj->funcSigs[func].numParam = 0;
+        }
+        else {
+            // copy the signature
+            memcpy(&obj->funcSigs[func], &fxns[func-1].signature,
+                    sizeof(OmapRpc_FuncSignature));
+        }
+    }
+
+    obj->msgq = MessageQCopy_create(obj->port, NULL, NULL,&obj->localEndPt);
+
+    if (obj->msgq == NULL) {
+        goto unload;
+    }
+
+    Task_Params_init(&taskParams);
+    taskParams.instance->name = channelName;
+    taskParams.priority = 1;   /* Lowest priority thread */
+    taskParams.arg0 = (UArg)obj;
+
+    obj->exitSem = Semaphore_create(0, NULL, NULL);
+
+    if (obj->exitSem == NULL) {
+        goto unload;
+    }
+
+    obj->taskHandle = Task_create(omapRpcTask, &taskParams, NULL);
+
+    if (obj->taskHandle == NULL) {
+        goto unload;
+    }
+
+    System_printf("OMAPRPC: Returning Object %p\n", obj);
+    return(obj);
+
+leave:
+    if (status < 0) {
+        OmapRpc_deleteChannel(obj);
+    }
+    return(status);
+}
+#endif

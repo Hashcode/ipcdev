@@ -45,7 +45,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -185,7 +185,7 @@ void MmRpc_Params_init(MmRpc_Params *params);
 
 
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
 #endif /* ti_ipc_mm_MmRpc__include */
