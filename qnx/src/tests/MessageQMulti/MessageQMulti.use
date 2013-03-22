@@ -1,1 +1,7 @@
-Hello
+MessageQMulti Test
+
+Syntax:
+  MessageQMulti [<numThreads>] [<numLoops>] [<Process #>]
+
+Examples:
+  MessageQMulti 10 100        Create 10 threads and each thread sends 100 msgs concurrently to slave processor
