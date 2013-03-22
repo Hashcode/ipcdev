@@ -63,7 +63,10 @@ clean:
 	@echo "cleaning Qnx user libraries ..."
 	@make -C qnx clean
 
-install:
+install: .install,omap5432
+
+.install,%: PATH:=$(QNX_PATH):$(PATH)
+.install,%:
 	@echo installing binaries to $(DESTDIR) ...
 	@mkdir -p $(DESTDIR)
 	@make -C qnx \
