@@ -39,6 +39,14 @@
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
+/* add custom files to all releases */
+Pkg.attrs.exportSrc = true;
+Pkg.otherFiles = [
+    "OmapRpc.c",
+    "OmapRpc.h",
+    "package.bld"
+];
+
 /* clean lib folder */
 Pkg.generatedFiles.$add("lib/");
 Pkg.libDir = "package/";

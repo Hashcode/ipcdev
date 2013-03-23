@@ -47,9 +47,11 @@ Pkg.libDir = "package/";
 Pkg.attrs.exportSrc = false;
 Pkg.attrs.exportCfg = true;
 Pkg.otherFiles = [
+    "ServiceMgr.c",
     "ServiceMgr.h",
     "rpmsg_omx.h",
-    "omx_packet.h"
+    "omx_packet.h",
+    "package.bld"
 ];
 
 /* list of libraries to build */

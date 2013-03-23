@@ -44,7 +44,8 @@ Pkg.otherFiles = [
     "package.bld",
     "MmRpc.h",
     "MmRpc.c",
-    "MmServiceMgr.h"
+    "MmServiceMgr.h",
+    "MmType.h"
 ];
 
 var srcs = [ "MmServiceMgr.c" ];
