@@ -43,6 +43,7 @@ function module$use()
     xdc.useModule("ti.sysbios.knl.Swi");
     xdc.useModule("ti.sdo.ipc.family.da830.InterruptDsp");
     xdc.useModule("ti.ipc.remoteproc.Resource");
+    xdc.useModule("ti.sysbios.gates.GateAll");
 
     this.hostProcId = MultiProc.getIdMeta("HOST");
 }
