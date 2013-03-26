@@ -88,13 +88,14 @@
 
 import  ti.sysbios.knl.Swi;
 import  ti.sdo.utils.MultiProc;
+import  ti.sysbios.gates.GateAll;
 
 /*!
  *  ======== VirtQueue ========
  *
  */
 
-
+@InstanceInitError
 module VirtQueue
 {
     // -------- Module Constants --------
@@ -365,5 +366,6 @@ internal:   /* not for client use */
         UInt16 last_avail_idx;
         UInt16 last_used_idx;
         UInt16 procId;
+        GateAll.Handle gateH;
     };
 }

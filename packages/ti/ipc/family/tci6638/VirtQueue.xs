@@ -45,7 +45,7 @@ function module$use()
     xdc.useModule("ti.sysbios.knl.Swi");
     Interrupt = xdc.useModule("ti.ipc.family.tci6638.Interrupt");
     //xdc.useModule("ti.ipc.remoteproc.Resource");
-
+    xdc.useModule("ti.sysbios.gates.GateAll");
     if (MultiProc.id == MultiProc.INVALIDID) {
         var Startup = xdc.useModule('xdc.runtime.Startup');
         Startup.firstFxns.$add(VirtQueue.init);

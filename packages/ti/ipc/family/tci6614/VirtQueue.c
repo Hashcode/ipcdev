@@ -61,6 +61,7 @@
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
 #include <xdc/runtime/SysMin.h>
+#include <ti/sysbios/gates/GateAll.h>
 
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/family/c66/Cache.h>
@@ -143,17 +144,21 @@ Void VirtQueue_init()
 /*
  * ======== VirtQueue_Instance_init ========
  */
-Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
-                             const VirtQueue_Params *params)
+Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
+                             const VirtQueue_Params *params, Error_Block *eb)
 {
     void *vringAddr = NULL;
-    Error_Block eb;
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
+    /* Create the thread protection gate */
+    vq->gateH = GateAll_create(NULL, eb);
+    if (Error_check(eb)) {
+        Log_error0("VirtQueue_create: could not create gate object");
+        Error_raise(NULL, Error_E_generic, 0, 0);
+        return(0);
+    }
 
-    Error_init(&eb);
-
-    vq->vringPtr = Memory_calloc(NULL, sizeof(struct vring), 0, &eb);
+    vq->vringPtr = Memory_calloc(NULL, sizeof(struct vring), 0, eb);
     Assert_isTrue((vq->vringPtr != NULL), NULL);
 
     vq->callback = params->callback;
@@ -173,6 +178,12 @@ Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
             vringAddr = (struct vring *) (VirtQueue_CORE0_MEM_VRING1 +
                 (DNUM * VirtQueue_VRING_OFFSET));
             break;
+         default:
+            Log_error1("VirtQueue_create: invalid vq->id: %d", vq->id);
+            GateAll_delete(&vq->gateH);
+            Memory_free(NULL, vq->vringPtr, sizeof(struct vring));
+            Error_raise(NULL, Error_E_generic, 0, 0);
+            return(0);
     }
 
     Log_print3(Diags_USER1,
@@ -182,6 +193,7 @@ Void VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
     vring_init(vq->vringPtr, VirtQueue_RP_MSG_NUM_BUFS, vringAddr, VirtQueue_RP_MSG_VRING_ALIGN);
 
     queueRegistry[vq->id] = vq;
+    return(0);
 }
 
 /*
@@ -214,20 +226,24 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
 {
     struct vring_used_elem *used;
     struct vring *vring = vq->vringPtr;
+    IArg key;
 
+    key = GateAll_enter(vq->gateH);
     if ((head > vring->num) || (head < 0)) {
         Error_raise(NULL, Error_E_generic, 0, 0);
     }
+    else {
+        /*
+         * The virtqueue contains a ring of used buffers.  Get a pointer to the
+         * next entry in that used ring.
+         */
+        used = &vring->used->ring[vring->used->idx % vring->num];
+        used->id = head;
+        used->len = len;
 
-    /*
-    * The virtqueue contains a ring of used buffers.  Get a pointer to the
-    * next entry in that used ring.
-    */
-    used = &vring->used->ring[vring->used->idx % vring->num];
-    used->id = head;
-    used->len = len;
-
-    vring->used->idx++;
+        vring->used->idx++;
+    }
+    GateAll_leave(vq->gateH, key);
 
     return (0);
 }
@@ -239,18 +255,22 @@ Int VirtQueue_addAvailBuf(VirtQueue_Object *vq, Void *buf)
 {
     UInt16 avail;
     struct vring *vring = vq->vringPtr;
+    IArg key;
 
+    key = GateAll_enter(vq->gateH);
     if (vq->num_free == 0) {
         /* There's no more space */
         Error_raise(NULL, Error_E_generic, 0, 0);
     }
+    else {
+        vq->num_free--;
 
-    vq->num_free--;
+        avail =  vring->avail->idx++ % vring->num;
 
-    avail =  vring->avail->idx++ % vring->num;
-
-    vring->desc[avail].addr = mapVAtoPA(buf);
-    vring->desc[avail].len = RPMSG_BUF_SIZE;
+        vring->desc[avail].addr = mapVAtoPA(buf);
+        vring->desc[avail].len = RPMSG_BUF_SIZE;
+    }
+    GateAll_leave(vq->gateH, key);
 
     return (vq->num_free);
 }
@@ -263,17 +283,21 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
     UInt16 head;
     Void *buf;
     struct vring *vring = vq->vringPtr;
+    IArg key;
 
+    key = GateAll_enter(vq->gateH);
     /* There's nothing available? */
     if (vq->last_used_idx == vring->used->idx) {
-        return (NULL);
+        buf = NULL;
     }
+    else {
+        head = vring->used->ring[vq->last_used_idx % vring->num].id;
+        vq->last_used_idx++;
+        vq->num_free++;
 
-    head = vring->used->ring[vq->last_used_idx % vring->num].id;
-    vq->last_used_idx++;
-    vq->num_free++;
-
-    buf = mapPAtoVA(vring->desc[head].addr);
+        buf = mapPAtoVA(vring->desc[head].addr);
+    }
+    GateAll_leave(vq->gateH, key);
 
     return (buf);
 }
@@ -283,9 +307,11 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
  */
 Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
 {
-    UInt16 head;
+    Int16 head;
     struct vring *vring = vq->vringPtr;
+    IArg key;
 
+    key = GateAll_enter(vq->gateH);
     Log_print6(Diags_USER1, "getAvailBuf vq: 0x%x %d %d %d 0x%x 0x%x\n",
         (IArg)vq,
         vq->last_avail_idx, vring->avail->idx, vring->num,
@@ -295,20 +321,22 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
     if (vq->last_avail_idx == vring->avail->idx) {
         /* We need to know about added buffers */
         vring->used->flags &= ~VRING_USED_F_NO_NOTIFY;
-        return (-1);
+        head = (-1);
     }
+    else {
+        /* No need to be kicked about added buffers anymore */
+        vring->used->flags |= VRING_USED_F_NO_NOTIFY;
 
-    /* No need to be kicked about added buffers anymore */
-    vring->used->flags |= VRING_USED_F_NO_NOTIFY;
+        /*
+         * Grab the next descriptor number they're advertising, and increment
+         * the index we've seen.
+         */
+        head = vring->avail->ring[vq->last_avail_idx++ % vring->num];
 
-    /*
-     * Grab the next descriptor number they're advertising, and increment
-     * the index we've seen.
-     */
-    head = vring->avail->ring[vq->last_avail_idx++ % vring->num];
-
-    *buf = mapPAtoVA(vring->desc[head].addr);
-    *len = vring->desc[head].len;
+        *buf = mapPAtoVA(vring->desc[head].addr);
+        *len = vring->desc[head].len;
+    }
+    GateAll_leave(vq->gateH, key);
 
     return (head);
 }
