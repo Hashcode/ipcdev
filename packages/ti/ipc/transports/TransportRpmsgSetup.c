@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtioSetup.c ========
+ *  ======== TransportRpmsgSetup.c ========
  */
 
 #include <xdc/std.h>
@@ -40,36 +40,36 @@
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
 
-#include <ti/ipc/transports/TransportVirtio.h>
+#include <ti/ipc/transports/TransportRpmsg.h>
 
-#include "package/internal/TransportVirtioSetup.xdc.h"
+#include "package/internal/TransportRpmsgSetup.xdc.h"
 
 #include <ti/sdo/ipc/_MessageQ.h>
 #include <ti/sdo/utils/_MultiProc.h>
 
 /*
- *  ======== TransportVirtioSetup_attach ========
+ *  ======== TransportRpmsgSetup_attach ========
  */
-Int TransportVirtioSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
+Int TransportRpmsgSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 {
-    TransportVirtio_Handle handle;
-    TransportVirtio_Params params;
+    TransportRpmsg_Handle handle;
+    TransportRpmsg_Params params;
     Int status = MessageQ_E_FAIL;
     Error_Block eb;
 
-    Log_print1(Diags_INFO, "TransportVirtioSetup_attach: remoteProcId: %d",
+    Log_print1(Diags_INFO, "TransportRpmsgSetup_attach: remoteProcId: %d",
                    remoteProcId);
 
     Error_init(&eb);
 
     /* init the transport parameters */
-    TransportVirtio_Params_init(&params);
+    TransportRpmsg_Params_init(&params);
     params.sharedAddr = sharedAddr;  /* Not used yet */
 
-    handle = TransportVirtio_create(remoteProcId, &params, &eb);
+    handle = TransportRpmsg_create(remoteProcId, &params, &eb);
 
     if (handle != NULL) {
-       TransportVirtioSetup_module->handles[remoteProcId] = handle;
+       TransportRpmsgSetup_module->handles[remoteProcId] = handle;
        status = MessageQ_S_SUCCESS;
     }
 
@@ -77,16 +77,16 @@ Int TransportVirtioSetup_attach(UInt16 remoteProcId, Ptr sharedAddr)
 }
 
 /*
- *  ======== TransportVirtioSetup_detach ========
+ *  ======== TransportRpmsgSetup_detach ========
  */
-Int TransportVirtioSetup_detach(UInt16 remoteProcId)
+Int TransportRpmsgSetup_detach(UInt16 remoteProcId)
 {
-    TransportVirtio_Handle handle;
+    TransportRpmsg_Handle handle;
 
-    System_printf("TransportVirtioSetup_detach: remoteProcId: %d\n",
+    System_printf("TransportRpmsgSetup_detach: remoteProcId: %d\n",
                    remoteProcId);
 
-    handle = TransportVirtioSetup_module->handles[remoteProcId];
+    handle = TransportRpmsgSetup_module->handles[remoteProcId];
 
     /* Trying to detach an un-attached processor should fail */
     if (handle == NULL) {
@@ -94,21 +94,21 @@ Int TransportVirtioSetup_detach(UInt16 remoteProcId)
     }
 
     /* Unregister the instance */
-    TransportVirtioSetup_module->handles[remoteProcId] = NULL;
+    TransportRpmsgSetup_module->handles[remoteProcId] = NULL;
 
-    TransportVirtio_delete(&handle);
+    TransportRpmsg_delete(&handle);
 
     return (MessageQ_S_SUCCESS);
 }
 
 /*
- *  ======== TransportVirtioSetup_isRegistered ========
+ *  ======== TransportRpmsgSetup_isRegistered ========
  */
-Bool TransportVirtioSetup_isRegistered(UInt16 remoteProcId)
+Bool TransportRpmsgSetup_isRegistered(UInt16 remoteProcId)
 {
     Bool registered;
 
-    registered = (TransportVirtioSetup_module->handles[remoteProcId] != NULL);
+    registered = (TransportRpmsgSetup_module->handles[remoteProcId] != NULL);
 
     return (registered);
 }

@@ -30,41 +30,34 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtio.xdc ================
+ *  ======== TransportRpmsgSetup.xs ========
  */
 
-/*!
- *  ======== TransportVirtio ========
- *  Transport for MessageQ that uses vring structures.
- *
- *  This is a {@link ti.sdo.ipc.MessageQ} transport that utilizes
- *  a pair of vrings (see Linux virtio) to communicate with a remote processor.
- *
+var TransportRpmsgSetup = null;
+var TransportRpmsg      = null;
+var MultiProc            = null;
+
+/*
+ *  ======== module$use ========
  */
-
-@InstanceFinalize
-@InstanceInitError
-
-
-module TransportVirtio inherits ti.sdo.ipc.interfaces.IMessageQTransport
+function module$use()
 {
+    TransportRpmsgSetup = this;
+    TransportRpmsg =
+            xdc.useModule("ti.ipc.transports.TransportRpmsg");
+    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
+}
 
-instance:
+/*
+ * ======== module$static$init ========
+ */
+function module$static$init(mod, params)
+{
+    /* set the length of handles to the number of processors */
+    mod.handles.length = MultiProc.numProcessors;
 
-    /*!
-     *  ======== sharedAddr ========
-     *  Address in shared memory where this instance will be placed
-     *
-     */
-    config Ptr sharedAddr = null;
-
-
-internal:
-
-    /*! Instance state structure */
-    struct Instance_State {
-        UInt16       priority;           /* priority to register             */
-        UInt16       remoteProcId;       /* dst proc id                      */
-        Ptr          msgqHandle;         /* MessageQCopy Handle              */
+    /* init the remote processor handles to null */
+    for (var i=0; i < mod.handles.length; i++) {
+        mod.handles[i] = null;
     }
 }

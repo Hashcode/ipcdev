@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TransportVirtio__include
+#ifndef _TransportRpmsg__include
 #define _TransportVitio__include
 
 #if defined (__cplusplus)

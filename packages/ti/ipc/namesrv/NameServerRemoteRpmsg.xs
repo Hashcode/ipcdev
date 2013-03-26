@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,6 @@ function module$static$init(mod, params)
     /* create GateMutex */
     mod.gateMutex = GateMutex.create();
 
-    /* Will initialize correctly during TransportVirtio swiFxn ns announce */
+    /* Will initialize correctly during TransportRpmsg swiFxn ns announce */
     mod.nsPort = (-1);
 }

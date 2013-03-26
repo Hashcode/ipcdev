@@ -30,23 +30,23 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtioSetup.xdc ========
+ *  ======== TransportRpmsgSetup.xdc ========
  */
 
 /*!
- *  ======== TransportVirtioSetup ========
- *  Manages the setup of TransportVirtio instances.
+ *  ======== TransportRpmsgSetup ========
+ *  Manages the setup of TransportRpmsg instances.
  *
- *  create or open the TransportVirtio for each pair of devices.
+ *  create or open the TransportRpmsg for each pair of devices.
  */
 
-module TransportVirtioSetup inherits ti.sdo.ipc.interfaces.ITransportSetup
+module TransportRpmsgSetup inherits ti.sdo.ipc.interfaces.ITransportSetup
 {
 
 internal:
 
     /* Module Status object */
     struct Module_State {
-        TransportVirtio.Handle handles[]; /* handle per remote proc */
+        TransportRpmsg.Handle handles[]; /* handle per remote proc */
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,41 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtioSetup.xs ========
+ *  ======== TransportRpmsg.xdc ================
  */
 
-var TransportVirtioSetup = null;
-var TransportVirtio      = null;
-var MultiProc            = null;
-
-/*
- *  ======== module$use ========
+/*!
+ *  ======== TransportRpmsg ========
+ *  Transport for MessageQ that uses vring structures.
+ *
+ *  This is a {@link ti.sdo.ipc.MessageQ} transport that utilizes
+ *  a pair of vrings (see Linux virtio) to communicate with a remote processor.
+ *
  */
-function module$use()
+
+@InstanceFinalize
+@InstanceInitError
+
+
+module TransportRpmsg inherits ti.sdo.ipc.interfaces.IMessageQTransport
 {
-    TransportVirtioSetup = this;
-    TransportVirtio =
-            xdc.useModule("ti.ipc.transports.TransportVirtio");
-    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
-}
 
-/*
- * ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
-    /* set the length of handles to the number of processors */
-    mod.handles.length = MultiProc.numProcessors;
+instance:
 
-    /* init the remote processor handles to null */
-    for (var i=0; i < mod.handles.length; i++) {
-        mod.handles[i] = null;
+    /*!
+     *  ======== sharedAddr ========
+     *  Address in shared memory where this instance will be placed
+     *
+     */
+    config Ptr sharedAddr = null;
+
+
+internal:
+
+    /*! Instance state structure */
+    struct Instance_State {
+        UInt16       priority;           /* priority to register             */
+        UInt16       remoteProcId;       /* dst proc id                      */
+        Ptr          msgqHandle;         /* MessageQCopy Handle              */
     }
 }

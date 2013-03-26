@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtio.xs ================
+ *  ======== TransportRpmsg.xs ================
  */
 
 /*
@@ -40,7 +40,7 @@ function module$use()
 {
     xdc.useModule("ti.sdo.utils.MultiProc");
     xdc.useModule("ti.sdo.ipc.MessageQ");
-    xdc.useModule("ti.ipc.transports.TransportVirtioSetup");
+    xdc.useModule("ti.ipc.transports.TransportRpmsgSetup");
     xdc.loadPackage("ti.ipc.namesrv");
     xdc.loadPackage("ti.ipc.rpmsg");
 }

@@ -88,7 +88,7 @@ if (Program.cpu.deviceName == "OMAPL138") {
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.omapl138.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+    Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
@@ -147,7 +147,7 @@ else if (Program.platformName.match(/6614/)) {
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.tci6614.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+    Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
@@ -197,7 +197,7 @@ else if (Program.platformName.match(/simKepler/) ||
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.tci6638.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+    Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
@@ -233,7 +233,7 @@ var LoggerSysParams = new LoggerSys.Params();
 
 Defaults.common$.logger = LoggerSys.create(LoggerSysParams);
 
-var VirtioSetup = xdc.useModule('ti.ipc.transports.TransportVirtioSetup');
+var VirtioSetup = xdc.useModule('ti.ipc.transports.TransportRpmsgSetup');
 VirtioSetup.common$.diags_INFO = Diags.RUNTIME_OFF;
 
 var Main = xdc.useModule('xdc.runtime.Main');

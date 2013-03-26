@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ import ti.sdo.utils.INameServerRemote;
  *  There needs to be one instance between each two cores in the system.
  *  Interrupts must be enabled before using this module.
  *
- *  This NameServerRemote is tied to the TransportVirtio transport, mainly
+ *  This NameServerRemote is tied to the TransportRpmsg transport, mainly
  *  used beteen a Linux host and a BIOS core acting as slave.
  */
 

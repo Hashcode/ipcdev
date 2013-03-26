@@ -31,7 +31,7 @@
  * */
 /*
  *  ======== dual_transports.c ========
- *  Multiprocessor MessageQ example, demonstrating TransportVirtio and
+ *  Multiprocessor MessageQ example, demonstrating TransportRpmsg and
  *  TransportShm coexistence.
  *
  *  Task1 uses MessageQ to pass a message in a ring between DSP CORES.

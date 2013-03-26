@@ -40,7 +40,7 @@
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/ipc/namesrv/NameServerRemoteRpmsg.h>
-#include <ti/ipc/transports/TransportVirtioSetup.h>
+#include <ti/ipc/transports/TransportRpmsgSetup.h>
 #include <ti/ipc/rpmsg/_MessageQCopy.h>
 
 /*
@@ -67,8 +67,8 @@ Void IpcMgr_ipcStartup()
     UInt procId = MultiProc_getId("HOST");
     Int status;
 
-    /* TransportVirtioSetup will busy wait until host kicks ready to recv: */
-    status = TransportVirtioSetup_attach(procId, 0);
+    /* TransportRpmsgSetup will busy wait until host kicks ready to recv: */
+    status = TransportRpmsgSetup_attach(procId, 0);
     Assert_isTrue(status >= 0, NULL);
 
     /* Sets up to comminicate with host's NameServer: */

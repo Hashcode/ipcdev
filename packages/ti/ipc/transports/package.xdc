@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,6 @@
  */
 
 package ti.ipc.transports [1,0,0,0] {
-    module    TransportVirtio;
-    module    TransportVirtioSetup;
+    module    TransportRpmsg;
+    module    TransportRpmsgSetup;
 }

@@ -23,8 +23,8 @@ packages/ti/ipc/family/tci6638/NotifyCircSetup.h
 packages/ti/ipc/family/tci6638/VirtQueue.h
 packages/ti/ipc/namesrv/NameServerRemoteRpmsg.h
 packages/ti/ipc/remoteproc/Resource.h
-packages/ti/ipc/transports/TransportVirtio.h
-packages/ti/ipc/transports/TransportVirtioSetup.h
+packages/ti/ipc/transports/TransportRpmsg.h
+packages/ti/ipc/transports/TransportRpmsgSetup.h
 packages/ti/trace/SysMin.h
 packages/ti/resources/IpcMemory.h
 packages/ti/srvmgr/omx/OmxSrvMgr.h

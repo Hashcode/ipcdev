@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== TransportVirtio.c ========
+ *  ======== TransportRpmsg.c ========
  */
 
 #include <string.h>
@@ -60,8 +60,8 @@
 
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 
-#include "_TransportVirtio.h"
-#include "package/internal/TransportVirtio.xdc.h"
+#include "_TransportRpmsg.h"
+#include "package/internal/TransportRpmsg.xdc.h"
 
 /* Maximum RPMSG payload: */
 #define MAX_PAYLOAD (RPMSG_BUF_SIZE - sizeof(Rpmsg_Header))
@@ -82,12 +82,12 @@ static Void transportCallbackFxn(MessageQCopy_Handle msgq, UArg arg, Ptr data,
  */
 
 /*
- *  ======== TransportVirtio_Instance_init ========
+ *  ======== TransportRpmsg_Instance_init ========
  *
  */
-#define FXNN "TransportVirtio_Instance_init"
-Int TransportVirtio_Instance_init(TransportVirtio_Object *obj,
-        UInt16 remoteProcId, const TransportVirtio_Params *params,
+#define FXNN "TransportRpmsg_Instance_init"
+Int TransportRpmsg_Instance_init(TransportRpmsg_Object *obj,
+        UInt16 remoteProcId, const TransportRpmsg_Params *params,
         Error_Block *eb)
 {
     Bool        flag = FALSE;
@@ -123,7 +123,7 @@ Int TransportVirtio_Instance_init(TransportVirtio_Object *obj,
     if (obj->msgqHandle) {
         /* Register the transport with MessageQ */
         flag = ti_sdo_ipc_MessageQ_registerTransport(
-            TransportVirtio_Handle_upCast(obj), remoteProcId, params->priority);
+            TransportRpmsg_Handle_upCast(obj), remoteProcId, params->priority);
     }
 
     if (flag == FALSE) {
@@ -135,10 +135,10 @@ Int TransportVirtio_Instance_init(TransportVirtio_Object *obj,
 #undef FXNN
 
 /*
- *  ======== TransportVirtio_Instance_finalize ========
+ *  ======== TransportRpmsg_Instance_finalize ========
  */
-#define FXNN "TransportVirtio_Instance_finalize"
-Void TransportVirtio_Instance_finalize(TransportVirtio_Object *obj, Int status)
+#define FXNN "TransportRpmsg_Instance_finalize"
+Void TransportRpmsg_Instance_finalize(TransportRpmsg_Object *obj, Int status)
 {
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
@@ -162,7 +162,7 @@ Void TransportVirtio_Instance_finalize(TransportVirtio_Object *obj, Int status)
 }
 
 /*
- *  ======== TransportVirtio_put ========
+ *  ======== TransportRpmsg_put ========
  *
  *  Notes: In keeping with the semantics of IMessageQTransport_put(), we
  *  simply return FALSE if the remote proc has made no buffers available in the
@@ -173,8 +173,8 @@ Void TransportVirtio_Instance_finalize(TransportVirtio_Object *obj, Int status)
  *
  *  Also, this is a copy-transport, to match the Linux side rpmsg.
  */
-#define FXNN "TransportVirtio_put"
-Bool TransportVirtio_put(TransportVirtio_Object *obj, Ptr msg)
+#define FXNN "TransportRpmsg_put"
+Bool TransportRpmsg_put(TransportRpmsg_Object *obj, Ptr msg)
 {
     Int          status;
     UInt         msgSize;
@@ -201,18 +201,18 @@ Bool TransportVirtio_put(TransportVirtio_Object *obj, Ptr msg)
 #undef FXNN
 
 /*
- *  ======== TransportVirtio_control ========
+ *  ======== TransportRpmsg_control ========
  */
-Bool TransportVirtio_control(TransportVirtio_Object *obj, UInt cmd,
+Bool TransportRpmsg_control(TransportRpmsg_Object *obj, UInt cmd,
     UArg cmdArg)
 {
     return (FALSE);
 }
 
 /*
- *  ======== TransportVirtio_getStatus ========
+ *  ======== TransportRpmsg_getStatus ========
  */
-Int TransportVirtio_getStatus(TransportVirtio_Object *obj)
+Int TransportRpmsg_getStatus(TransportRpmsg_Object *obj)
 {
     return (0);
 }
@@ -321,9 +321,9 @@ exit:
 }
 
 /*
- *  ======== TransportVirtio_setErrFxn ========
+ *  ======== TransportRpmsg_setErrFxn ========
  */
-Void TransportVirtio_setErrFxn(TransportVirtio_ErrFxn errFxn)
+Void TransportRpmsg_setErrFxn(TransportRpmsg_ErrFxn errFxn)
 {
     /* Ignore the errFxn */
 }

@@ -120,7 +120,7 @@ else if (Program.platformName.match(/6614/)) {
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.tci6614.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+    Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,
@@ -169,7 +169,7 @@ else if (Program.platformName.match(/simKepler/) ||
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.tci6638.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
-    Diags.setMaskMeta("ti.ipc.transports.TransportVirtio",
+    Diags.setMaskMeta("ti.ipc.transports.TransportRpmsg",
         Diags.INFO|Diags.USER1|Diags.STATUS,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.namesrv.NameServerRemoteRpmsg", Diags.INFO,

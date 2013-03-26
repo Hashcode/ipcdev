@@ -169,7 +169,7 @@ var procNames = {
 
     /*
      *  Note, the name "HOST" was intentionally chosen as a proc name to
-     *  accomodate TransportVirtio, a common transport on these platforms.
+     *  accomodate TransportRpmsg, a common transport on these platforms.
      */
     'TMS320TCI6638'     : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
