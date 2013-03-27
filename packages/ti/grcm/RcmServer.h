@@ -76,7 +76,7 @@
 #include <xdc/runtime/knl/GateThread.h>
 #include <xdc/runtime/knl/Thread.h>
 
-/* For USE_MESSAGEQCOPY setting */
+/* For USE_RPMESSAGE setting */
 #include <ti/grcm/RcmTypes.h>
 
 
@@ -151,7 +151,7 @@ extern "C" {
 
 typedef Int32 (*RcmServer_MsgFxn)(UInt32, UInt32 *);
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 /* This is a special function which gets the RcmServer handle as first parameter
  * so that OMX_GetHandle() or other creation functions can store the RcmServer
  * handle in their own context.  This is needed to allow functions to send
@@ -185,7 +185,7 @@ typedef struct {
      *
      *  The server will ultimately branch to this address.
      */
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     union  {
        RcmServer_MsgFxn         fxn;
        RcmServer_MsgCreateFxn   createFxn;
@@ -380,7 +380,7 @@ typedef struct {
 typedef struct {
     GateThread_Struct   _f1;
     Ptr                 _f2;
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     Ptr                 _f3a;
     UInt32              _f3b;
     UInt32              _f3c;
@@ -596,7 +596,7 @@ Int RcmServer_start(
     );
 
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 /*
  *  ======== RcmServer_getLocalAddress ========
  */

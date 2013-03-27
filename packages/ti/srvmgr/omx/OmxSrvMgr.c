@@ -46,7 +46,7 @@
 
 #include <ti/ipc/MultiProc.h>
 
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 #include <ti/srvmgr/rpmsg_omx.h>
 #include <ti/srvmgr/ServiceMgr.h>
@@ -58,7 +58,7 @@
 
 Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
 {
-    MessageQCopy_Handle msgq;
+    RPMessage_Handle msgq;
     UInt32 local;
     UInt32 remote;
     Char msg[HDRSIZE + sizeof(struct omx_connect_req)];
@@ -77,7 +77,7 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     dstProc = MultiProc_getId("HOST");
 #endif
 
-    msgq = MessageQCopy_create(OMX_MGR_PORT, NULL, NULL, &local);
+    msgq = RPMessage_create(OMX_MGR_PORT, NULL, NULL, &local);
 
     System_printf("OmxSrvMgr: started on port: %d\n", OMX_MGR_PORT);
 
@@ -98,7 +98,7 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
 #endif
 
     while (1) {
-       MessageQCopy_recv(msgq, (Ptr)msg, &len, &remote, MessageQCopy_FOREVER);
+       RPMessage_recv(msgq, (Ptr)msg, &len, &remote, RPMessage_FOREVER);
        System_printf("OmxSrvMgr: received msg type: %d from addr: %d\n",
                       hdr->type, remote);
        switch (hdr->type) {
@@ -142,7 +142,7 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
        System_printf("OmxSrvMgr: Replying with msg type: %d to addr: %d "
                       " from: %d\n",
                       hdr->type, remote, local);
-       MessageQCopy_send(dstProc, remote, local, msg, len);
+       RPMessage_send(dstProc, remote, local, msg, len);
     }
 }
 

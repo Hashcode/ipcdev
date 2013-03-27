@@ -58,7 +58,7 @@
 #include <xdc/runtime/knl/Thread.h>
 #include <xdc/runtime/System.h>
 
-#define MSGBUFFERSIZE    512   // Make global and move to MessageQCopy.h
+#define MSGBUFFERSIZE    512   // Make global and move to RPMessage.h
 
 #if defined(RCM_ti_ipc)
 #include <ti/sdo/utils/List.h>
@@ -78,7 +78,7 @@
 #include "RcmTypes.h"
 #include "RcmServer.h"
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 #include <ti/srvmgr/rpmsg_omx.h>
 #endif
 
@@ -95,7 +95,7 @@
 
 typedef struct {                        // function table element
     String                      name;
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     union  {
        RcmServer_MsgFxn         fxn;
        RcmServer_MsgCreateFxn   createFxn;
@@ -126,8 +126,8 @@ typedef struct {
 typedef struct RcmServer_Object_tag {
     GateThread_Struct           gate;       // instance gate
     Ptr                         run;        // run semaphore for the server
-#if USE_MESSAGEQCOPY
-    MessageQCopy_Handle         serverQue;  // inbound message queue
+#if USE_RPMESSAGE
+    RPMessage_Handle         serverQue;  // inbound message queue
     UInt32                      localAddr;  // inbound message queue address
     UInt32                      replyAddr;  // Reply address (same per inst.)
     UInt32                      dstProc;    // Reply processor.
@@ -460,7 +460,7 @@ Int RcmServer_Instance_init_P(RcmServer_Object *obj, String name,
 {
     Error_Block eb;
     List_Params listP;
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
     MessageQ_Params mqParams;
 #endif
     Thread_Params threadP;
@@ -754,8 +754,8 @@ Int RcmServer_Instance_init_P(RcmServer_Object *obj, String name,
     }
 
     /* create the message queue for inbound messages */
-#if USE_MESSAGEQCOPY
-    obj->serverQue = MessageQCopy_create(MessageQCopy_ASSIGN_ANY, NULL, NULL,
+#if USE_RPMESSAGE
+    obj->serverQue = RPMessage_create(RPMessage_ASSIGN_ANY, NULL, NULL,
                                          &obj->localAddr);
 #ifdef BIOS_ONLY_TEST
     obj->dstProc = MultiProc_self();
@@ -867,7 +867,7 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
     List_Handle listH;
     List_Handle msgQueH;
     RcmClient_Packet *packet;
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
     MessageQ_Msg msgqMsg;
 #endif
     SemThread_Handle semThreadH;
@@ -884,8 +884,8 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
     obj->shutdown = TRUE;
 
     if (obj->serverThread != NULL) {
-#if USE_MESSAGEQCOPY
-        MessageQCopy_unblock(obj->serverQue);
+#if USE_RPMESSAGE
+        RPMessage_unblock(obj->serverQue);
 #else
         MessageQ_unblock(obj->serverQue);
 #endif
@@ -912,10 +912,10 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
                 (IArg)job->jobId, (IArg)packet);
 
             RcmServer_setStatusCode_I(packet, RcmServer_Status_Unprocessed);
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            rval = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            rval = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1000,10 +1000,10 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
                 (IArg)packet->msgId, (IArg)packet);
 
             RcmServer_setStatusCode_I(packet, RcmServer_Status_Unprocessed);
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            rval = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            rval = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1064,8 +1064,8 @@ Int RcmServer_Instance_finalize_P(RcmServer_Object *obj)
     }
 
     if (NULL != obj->serverQue) {
-#if USE_MESSAGEQCOPY
-        MessageQCopy_delete(&obj->serverQue);
+#if USE_RPMESSAGE
+        RPMessage_delete(&obj->serverQue);
 #else
         MessageQ_delete(&obj->serverQue);
 #endif
@@ -1515,7 +1515,7 @@ leave:
 Int RcmServer_execMsg_I(RcmServer_Object *obj, RcmClient_Message *msg)
 {
     RcmServer_MsgFxn fxn;
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     RcmServer_MsgCreateFxn createFxn = NULL;
 #endif
     Int status;
@@ -1527,7 +1527,7 @@ Int RcmServer_execMsg_I(RcmServer_Object *obj, RcmClient_Message *msg)
         System_printf("RcmServer_execMsg_I: Calling fxnIdx: %d\n",
                       (msg->fxnIdx & 0x0000FFFF));
 #endif
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
         if (createFxn)  {
             msg->result = (*createFxn)(obj, msg->dataSize, msg->data);
         }
@@ -1772,10 +1772,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
     UInt32 fxnIdx;
     RcmServer_MsgFxn fxn;
     RcmClient_Message *rcmMsg;
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     RcmServer_MsgCreateFxn createFxn = NULL;
 #endif
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
     MessageQ_Msg msgqMsg;
 #endif
     UInt16 messageType;
@@ -1792,7 +1792,7 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
 
     /* decode the message */
     rcmMsg = &packet->message;
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
     msgqMsg = &packet->msgqHeader;
 #endif
     Log_print1(Diags_INFO, FXNN": message desc=0x%x", (IArg)packet->desc);
@@ -1826,7 +1826,7 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 RcmServer_setStatusCode_I(packet, RcmServer_Status_SUCCESS);
             }
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 #if 0
             System_printf("RcmServer_process_P: Sending reply from: %d to: %d\n",
                       obj->localAddr, obj->replyAddr);
@@ -1834,7 +1834,7 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
 
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1851,7 +1851,7 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
             /* if all went well, free the message */
             if ((status >= 0) && (rcmMsg->result >= 0)) {
 
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
                 status = MessageQ_free(msgqMsg);
 #endif
                 if (status < 0) {
@@ -1882,10 +1882,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 }
 
                 /* send error message back to client */
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
                 packet->hdr.type = OMX_RAW_MSG;
                 packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-                status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+                status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1907,10 +1907,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 Error_init(&eb);
             }
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1921,7 +1921,7 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
             }
 
             /* invoke the function with a null context */
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             if (createFxn)  {
                  (*createFxn)(obj, 0, NULL);
             }
@@ -1950,10 +1950,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 rcmMsg->result = 0;
             }
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -1976,10 +1976,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 rcmMsg->result = 0;
             }
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -2012,10 +2012,10 @@ Void RcmServer_process_P(RcmServer_Object *obj, RcmClient_Packet *packet)
                 rcmMsg->result = 0;
             }
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
             packet->hdr.type = OMX_RAW_MSG;
             packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-            status = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+            status = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -2049,7 +2049,7 @@ Int RcmServer_relJobId_P(RcmServer_Object *obj, UInt16 jobId)
     List_Handle msgQueH;
     RcmClient_Packet *packet;
     RcmServer_JobStream *job;
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
     MessageQ_Msg msgqMsg;
 #endif
     Int rval;
@@ -2095,10 +2095,10 @@ Int RcmServer_relJobId_P(RcmServer_Object *obj, UInt16 jobId)
 
         RcmServer_setStatusCode_I(packet, RcmServer_Status_Unprocessed);
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
         packet->hdr.type = OMX_RAW_MSG;
         packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-        rval = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+        rval = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr,
                                  PACKET_HDR_SIZE + packet->message.dataSize);
 #else
@@ -2132,7 +2132,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
 {
     Error_Block eb;
     RcmClient_Packet *packet;
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     Char         recvBuf[MSGBUFFERSIZE];
     UInt16       len;
 #else
@@ -2143,7 +2143,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
     RcmServer_Object *obj = (RcmServer_Object *)arg;
     Int dataSize;
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
     packet = (RcmClient_Packet *)&recvBuf[0];
 #endif
 
@@ -2166,9 +2166,9 @@ Void RcmServer_serverThrFxn_P(IArg arg)
 
         /* block until message arrives */
         do {
-#if USE_MESSAGEQCOPY
-            rval = MessageQCopy_recv(obj->serverQue, (Ptr)&packet->hdr, &len,
-                      &obj->replyAddr, MessageQCopy_FOREVER);
+#if USE_RPMESSAGE
+            rval = RPMessage_recv(obj->serverQue, (Ptr)&packet->hdr, &len,
+                      &obj->replyAddr, RPMessage_FOREVER);
 #if 0
             System_printf("RcmServer_serverThrFxn_P: Received msg of len %d "
                           "from: %d\n",
@@ -2186,7 +2186,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
             Assert_isTrue((packet->hdr.type == OMX_RAW_MSG) ||
                           (packet->hdr.type == OMX_DISC_REQ) , NULL);
 
-            if ((rval < 0) && (rval != MessageQCopy_E_UNBLOCKED)) {
+            if ((rval < 0) && (rval != RPMessage_E_UNBLOCKED)) {
 #else
             rval = MessageQ_get(obj->serverQue, &msgqMsg, MessageQ_FOREVER);
             if ((rval < 0) && (rval != MessageQ_E_UNBLOCKED)) {
@@ -2194,14 +2194,14 @@ Void RcmServer_serverThrFxn_P(IArg arg)
                 Log_error1(FXNN": ipc error 0x%x", (IArg)rval);
                 /* keep running and hope for the best */
             }
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
         } while (FALSE);
 #else
         } while ((msgqMsg == NULL) && !obj->shutdown);
 #endif
 
         /* if shutdown, exit this thread */
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
         if (obj->shutdown || packet->hdr.type == OMX_DISC_REQ) {
             running = FALSE;
             Log_print1(Diags_INFO,
@@ -2219,7 +2219,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
         }
 #endif
 
-#if USE_MESSAGEQCOPY == 0
+#if USE_RPMESSAGE == 0
         packet = (RcmClient_Packet *)msgqMsg;
 #endif
 
@@ -2258,7 +2258,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
                 packet->message.result = rval;
 
                 /* return the message to the client */
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 #if 0
                 System_printf("RcmServer_serverThrFxn_P: "
                               "Sending response from: %d to: %d\n",
@@ -2278,7 +2278,7 @@ Void RcmServer_serverThrFxn_P(IArg arg)
                         packet->message.dataSize;
                     dataSize = PACKET_HDR_SIZE + packet->message.dataSize;
                 }
-                rval = MessageQCopy_send(obj->dstProc, obj->replyAddr,
+                rval = RPMessage_send(obj->dstProc, obj->replyAddr,
                                  obj->localAddr, (Ptr)&packet->hdr, dataSize);
 #else
                 rval = MessageQ_put(MessageQ_getReplyQueue(msgqMsg), msgqMsg);
@@ -2443,10 +2443,10 @@ Void RcmServer_workerThrFxn_P(IArg arg)
                         }
                         packet->message.result = rval;
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
                         packet->hdr.type = OMX_RAW_MSG;
                         packet->hdr.len = PACKET_DATA_SIZE + packet->message.dataSize;
-                        rval = MessageQCopy_send(
+                        rval = RPMessage_send(
                                  (obj->server)->dstProc,
                                  (obj->server)->replyAddr,
                                  (obj->server)->localAddr, (Ptr)&packet->hdr,

@@ -48,7 +48,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 #include "rpmsg_omx.h"
 #include "ServiceMgr.h"
@@ -210,7 +210,7 @@ Void ServiceMgr_send(Service_Handle srvc, Ptr data, UInt16 len)
     hdr->len     = len;
 
     /* Send it off (and no response expected): */
-    MessageQCopy_send(dstProc, remote, local, data, HDRSIZE+len);
+    RPMessage_send(dstProc, remote, local, data, HDRSIZE+len);
 }
 
 Bool ServiceMgr_registerDisconnectFxn(Service_Handle srvc, Ptr data,

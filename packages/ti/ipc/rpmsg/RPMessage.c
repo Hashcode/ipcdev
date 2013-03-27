@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /** ============================================================================
- *  @file       MessageQCopy.c
+ *  @file       RPMessage.c
  *
  *  @brief      A simple copy-based MessageQ, to work with Linux virtio_rp_msg.
  *
@@ -71,8 +71,8 @@
  */
 
 /* this define must precede inclusion of any xdc header file */
-#define Registry_CURDESC ti_ipc_rpmsg_MessageQCopy__Desc
-#define MODULE_NAME "ti.ipc.rpmsg.MessageQCopy"
+#define Registry_CURDESC ti_ipc_rpmsg_RPMessage__Desc
+#define MODULE_NAME "ti.ipc.rpmsg.RPMessage"
 
 #include <xdc/std.h>
 #include <string.h>
@@ -95,7 +95,7 @@
 #include <ti/sdo/utils/List.h>
 #include <ti/ipc/MultiProc.h>
 
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 
 #include "_VirtQueue.h"
 
@@ -124,37 +124,37 @@
 #define MAXHEAPSIZE            (MAXMESSAGEBUFFERS * MSGBUFFERSIZE)
 #define HEAPALIGNMENT          8
 
-/* The MessageQCopy Object */
-typedef struct MessageQCopy_Object {
+/* The RPMessage Object */
+typedef struct RPMessage_Object {
     UInt32           queueId;      /* Unique id (procId | queueIndex)       */
     Semaphore_Handle semHandle;    /* I/O Completion                        */
-    MessageQCopy_callback cb;      /* MessageQCopy Callback */
+    RPMessage_callback cb;      /* RPMessage Callback */
     UArg             arg;          /* Callback argument */
     List_Handle      queue;        /* Queue of pending messages             */
     Bool             unblocked;    /* Use with signal to unblock _receive() */
-} MessageQCopy_Object;
+} RPMessage_Object;
 
 /* Module_State */
-typedef struct MessageQCopy_Module {
+typedef struct RPMessage_Module {
     /* Instance gate: */
     GateAll_Handle gateH;
     /* Array of messageQObjects in the system: */
-    struct MessageQCopy_Object  *msgqObjects[MAXMESSAGEQOBJECTS];
+    struct RPMessage_Object  *msgqObjects[MAXMESSAGEQOBJECTS];
     /* Heap from which to allocate free messages for copying: */
     HeapBuf_Handle              heap;
-} MessageQCopy_Module;
+} RPMessage_Module;
 
 /* Message Header: Must match mp_msg_hdr in virtio_rp_msg.h on Linux side. */
-typedef struct MessageQCopy_MsgHeader {
+typedef struct RPMessage_MsgHeader {
     Bits32 srcAddr;                 /* source endpoint addr               */
     Bits32 dstAddr;                 /* destination endpoint addr          */
     Bits32 reserved;                /* reserved                           */
     Bits16 dataLen;                 /* data length                        */
     Bits16 flags;                   /* bitmask of different flags         */
     UInt8  payload[];               /* Data payload                       */
-} MessageQCopy_MsgHeader;
+} RPMessage_MsgHeader;
 
-typedef MessageQCopy_MsgHeader *MessageQCopy_Msg;
+typedef RPMessage_MsgHeader *RPMessage_Msg;
 
 /* Element to hold payload copied onto receiver's queue.                  */
 typedef struct Queue_elem {
@@ -165,19 +165,19 @@ typedef struct Queue_elem {
 } Queue_elem;
 
 /* Combine transport related objects into a struct for future migration: */
-typedef struct MessageQCopy_Transport  {
+typedef struct RPMessage_Transport  {
     Swi_Handle       swiHandle;
     VirtQueue_Handle virtQueue_toHost;
     VirtQueue_Handle virtQueue_fromHost;
     Semaphore_Handle semHandle_toHost;
-} MessageQCopy_Transport;
+} RPMessage_Transport;
 
 
 /* module diags mask */
 Registry_Desc Registry_CURDESC;
 
-static MessageQCopy_Module      module;
-static MessageQCopy_Transport   transport;
+static RPMessage_Module      module;
+static RPMessage_Transport   transport;
 
 /* We create a fixed size heap over this memory for copying received msgs */
 #pragma DATA_ALIGN (recv_buffers, HEAPALIGNMENT)
@@ -187,13 +187,13 @@ static UInt8 recv_buffers[MAXHEAPSIZE];
 static Int curInit = 0;
 
 /*
- *  ======== MessageQCopy_swiFxn ========
+ *  ======== RPMessage_swiFxn ========
  */
-#define FXNN "MessageQCopy_swiFxn"
-static Void MessageQCopy_swiFxn(UArg arg0, UArg arg1)
+#define FXNN "RPMessage_swiFxn"
+static Void RPMessage_swiFxn(UArg arg0, UArg arg1)
 {
     Int16             token;
-    MessageQCopy_Msg  msg;
+    RPMessage_Msg  msg;
     UInt16            dstProc = MultiProc_self();
     Bool              usedBufAdded = FALSE;
     int len;
@@ -209,7 +209,7 @@ static Void MessageQCopy_swiFxn(UArg arg0, UArg arg1)
                   (IArg)msg->srcAddr, (IArg)msg->dstAddr, (IArg)msg->dataLen);
 
         /* Pass to destination queue (on this proc), or callback: */
-        MessageQCopy_send(dstProc, msg->dstAddr, msg->srcAddr,
+        RPMessage_send(dstProc, msg->dstAddr, msg->srcAddr,
                          (Ptr)msg->payload, msg->dataLen);
 
         VirtQueue_addUsedBuf(transport.virtQueue_fromHost, token,
@@ -246,7 +246,7 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
 #undef FXNN
 
 /* =============================================================================
- *  MessageQCopy Functions:
+ *  RPMessage Functions:
  * =============================================================================
  */
 
@@ -255,8 +255,8 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
  *
  *
  */
-#define FXNN "MessageQCopy_init"
-Void MessageQCopy_init(UInt16 remoteProcId)
+#define FXNN "RPMessage_init"
+Void RPMessage_init(UInt16 remoteProcId)
 {
     GateAll_Params gatePrms;
     HeapBuf_Params prms;
@@ -296,7 +296,7 @@ Void MessageQCopy_init(UInt16 remoteProcId)
     prms.align        = HEAPALIGNMENT;
     module.heap       = HeapBuf_create(&prms, NULL);
     if (module.heap == 0) {
-       System_abort("MessageQCopy_init: HeapBuf_create returned 0\n");
+       System_abort("RPMessage_init: HeapBuf_create returned 0\n");
     }
     transport.semHandle_toHost = Semaphore_create(0, NULL, NULL);
 
@@ -328,7 +328,7 @@ Void MessageQCopy_init(UInt16 remoteProcId)
     VirtQueue_startup(remoteProcId, isHost);
 
     /* construct the Swi to process incoming messages: */
-    transport.swiHandle = Swi_create(MessageQCopy_swiFxn, NULL, NULL);
+    transport.swiHandle = Swi_create(RPMessage_swiFxn, NULL, NULL);
 
 exit:
     Log_print0(Diags_EXIT, "<-- "FXNN);
@@ -338,8 +338,8 @@ exit:
 /*
  *  ======== MessasgeQCopy_finalize ========
  */
-#define FXNN "MessageQCopy_finalize"
-Void MessageQCopy_finalize()
+#define FXNN "RPMessage_finalize"
+Void RPMessage_finalize()
 {
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
@@ -360,15 +360,15 @@ exit:
 #undef FXNN
 
 /*
- *  ======== MessageQCopy_create ========
+ *  ======== RPMessage_create ========
  */
-#define FXNN "MessageQCopy_create"
-MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
-                                        MessageQCopy_callback cb,
+#define FXNN "RPMessage_create"
+RPMessage_Handle RPMessage_create(UInt32 reserved,
+                                        RPMessage_callback cb,
                                         UArg arg,
                                         UInt32 * endpoint)
 {
-    MessageQCopy_Object    *obj = NULL;
+    RPMessage_Object    *obj = NULL;
     Bool                   found = FALSE;
     Int                    i;
     UInt16                 queueIndex = 0;
@@ -382,9 +382,9 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
 
     key = GateAll_enter(module.gateH);
 
-    if (reserved == MessageQCopy_ASSIGN_ANY)  {
+    if (reserved == RPMessage_ASSIGN_ANY)  {
        /* Search the array for a free slot above reserved: */
-       for (i = MessageQCopy_MAX_RESERVED_ENDPOINT + 1;
+       for (i = RPMessage_MAX_RESERVED_ENDPOINT + 1;
            (i < MAXMESSAGEQOBJECTS) && (found == FALSE) ; i++) {
            if (module.msgqObjects[i] == NULL) {
             queueIndex = i;
@@ -393,14 +393,14 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
            }
        }
     }
-    else if ((queueIndex = reserved) <= MessageQCopy_MAX_RESERVED_ENDPOINT) {
+    else if ((queueIndex = reserved) <= RPMessage_MAX_RESERVED_ENDPOINT) {
        if (module.msgqObjects[queueIndex] == NULL) {
            found = TRUE;
        }
     }
 
     if (found)  {
-       obj = Memory_alloc(NULL, sizeof(MessageQCopy_Object), 0, NULL);
+       obj = Memory_alloc(NULL, sizeof(RPMessage_Object), 0, NULL);
        if (obj != NULL) {
            if (cb) {
                /* Store callback and it's arg instead of semaphore: */
@@ -421,7 +421,7 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
            obj->queueId = queueIndex;
            module.msgqObjects[queueIndex] = obj;
 
-           /* See MessageQCopy_unblock() */
+           /* See RPMessage_unblock() */
            obj->unblocked = FALSE;
 
            *endpoint    = queueIndex;
@@ -438,13 +438,13 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
 #undef FXNN
 
 /*
- *  ======== MessageQCopy_delete ========
+ *  ======== RPMessage_delete ========
  */
-#define FXNN "MessageQCopy_delete"
-Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
+#define FXNN "RPMessage_delete"
+Int RPMessage_delete(RPMessage_Handle *handlePtr)
 {
-    Int                    status = MessageQCopy_S_SUCCESS;
-    MessageQCopy_Object    *obj;
+    Int                    status = RPMessage_S_SUCCESS;
+    RPMessage_Object    *obj;
     Queue_elem             *payload;
     IArg                   key;
 
@@ -452,7 +452,7 @@ Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
 
     Assert_isTrue((curInit > 0) , NULL);
 
-    if (handlePtr && (obj = (MessageQCopy_Object *)(*handlePtr)))  {
+    if (handlePtr && (obj = (RPMessage_Object *)(*handlePtr)))  {
 
        if (obj->cb) {
            obj->cb = NULL;
@@ -478,7 +478,7 @@ Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
                         (IArg)obj->queueId);
 
        /* Now free the obj */
-       Memory_free(NULL, obj, sizeof(MessageQCopy_Object));
+       Memory_free(NULL, obj, sizeof(RPMessage_Object));
 
        *handlePtr = NULL;
     }
@@ -489,14 +489,14 @@ Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr)
 #undef FXNN
 
 /*
- *  ======== MessageQCopy_recv ========
+ *  ======== RPMessage_recv ========
  */
-#define FXNN "MessageQCopy_recv"
-Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
+#define FXNN "RPMessage_recv"
+Int RPMessage_recv(RPMessage_Handle handle, Ptr data, UInt16 *len,
                       UInt32 *rplyEndpt, UInt timeout)
 {
-    Int                 status = MessageQCopy_S_SUCCESS;
-    MessageQCopy_Object *obj = (MessageQCopy_Object *)handle;
+    Int                 status = RPMessage_S_SUCCESS;
+    RPMessage_Object *obj = (RPMessage_Object *)handle;
     Bool                semStatus;
     Queue_elem          *payload;
 
@@ -515,18 +515,18 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
     semStatus = Semaphore_pend(obj->semHandle, timeout);
 
     if (semStatus == FALSE)  {
-       status = MessageQCopy_E_TIMEOUT;
+       status = RPMessage_E_TIMEOUT;
        Log_print0(Diags_STATUS, FXNN": Sem pend timeout!");
     }
     else if (obj->unblocked) {
-       status = MessageQCopy_E_UNBLOCKED;
+       status = RPMessage_E_UNBLOCKED;
     }
     else  {
        payload = (Queue_elem *)List_get(obj->queue);
        Assert_isTrue((!payload), NULL);
     }
 
-    if (status == MessageQCopy_S_SUCCESS)  {
+    if (status == RPMessage_S_SUCCESS)  {
        /* Now, copy payload to client and free our internal msg */
        memcpy(data, payload->data, payload->len);
        *len = payload->len;
@@ -542,19 +542,19 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
 #undef FXNN
 
 /*
- *  ======== MessageQCopy_send ========
+ *  ======== RPMessage_send ========
  */
-#define FXNN "MessageQCopy_send"
-Int MessageQCopy_send(UInt16 dstProc,
+#define FXNN "RPMessage_send"
+Int RPMessage_send(UInt16 dstProc,
                       UInt32 dstEndpt,
                       UInt32 srcEndpt,
                       Ptr    data,
                       UInt16 len)
 {
-    Int               status = MessageQCopy_S_SUCCESS;
-    MessageQCopy_Object   *obj;
+    Int               status = RPMessage_S_SUCCESS;
+    RPMessage_Object   *obj;
     Int16             token = 0;
-    MessageQCopy_Msg  msg;
+    RPMessage_Msg  msg;
     Queue_elem        *payload;
     UInt              size;
     IArg              key;
@@ -587,14 +587,14 @@ Int MessageQCopy_send(UInt16 dstProc,
             VirtQueue_kick(transport.virtQueue_toHost);
         }
         else {
-            status = MessageQCopy_E_FAIL;
+            status = RPMessage_E_FAIL;
             Log_print0(Diags_STATUS, FXNN": getAvailBuf failed!");
         }
     }
     else {
         /* Put on a Message queue on this processor: */
 
-        /* Protect from MessageQCopy_delete */
+        /* Protect from RPMessage_delete */
         key = GateAll_enter(module.gateH);
         obj = module.msgqObjects[dstEndpt];
         GateAll_leave(module.gateH, key);
@@ -602,7 +602,7 @@ Int MessageQCopy_send(UInt16 dstProc,
         if (obj == NULL) {
             Log_print1(Diags_STATUS, FXNN": no object for endpoint: %d",
                    (IArg)dstEndpt);
-            status = MessageQCopy_E_NOENDPT;
+            status = RPMessage_E_NOENDPT;
             return status;
         }
 
@@ -632,7 +632,7 @@ Int MessageQCopy_send(UInt16 dstProc,
                 Semaphore_post(obj->semHandle);
             }
             else {
-                status = MessageQCopy_E_MEMORY;
+                status = RPMessage_E_MEMORY;
                 Log_print0(Diags_STATUS, FXNN": HeapBuf_alloc failed!");
             }
         }
@@ -644,12 +644,12 @@ Int MessageQCopy_send(UInt16 dstProc,
 #undef FXNN
 
 /*
- *  ======== MessageQCopy_unblock ========
+ *  ======== RPMessage_unblock ========
  */
-#define FXNN "MessageQCopy_unblock"
-Void MessageQCopy_unblock(MessageQCopy_Handle handle)
+#define FXNN "RPMessage_unblock"
+Void RPMessage_unblock(RPMessage_Handle handle)
 {
-    MessageQCopy_Object *obj = (MessageQCopy_Object *)handle;
+    RPMessage_Object *obj = (RPMessage_Object *)handle;
 
     Log_print1(Diags_ENTRY, "--> "FXNN": (handle=0x%x)", (IArg)handle);
 

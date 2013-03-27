@@ -43,7 +43,7 @@ SysMin.bufSize  = 0x8000;
 var Memory      = xdc.useModule('xdc.runtime.Memory');
 Memory.defaultHeapSize = 0x20000;
 
-/* Modules used in the virtqueue/MessageQCopy/ServiceMgr libraries: */
+/* Modules used in the virtqueue/RPMessage/ServiceMgr libraries: */
 var Semaphore   = xdc.useModule('ti.sysbios.knl.Semaphore');
 var BIOS        = xdc.useModule('ti.sysbios.BIOS');
 

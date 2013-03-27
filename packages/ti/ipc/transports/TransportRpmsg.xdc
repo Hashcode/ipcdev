@@ -65,6 +65,6 @@ internal:
     struct Instance_State {
         UInt16       priority;           /* priority to register             */
         UInt16       remoteProcId;       /* dst proc id                      */
-        Ptr          msgqHandle;         /* MessageQCopy Handle              */
+        Ptr          msgqHandle;         /* RPMessage Handle              */
     }
 }

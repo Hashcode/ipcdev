@@ -55,8 +55,8 @@
 #include <ti/ipc/rpmsg/Rpmsg.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 
-#include <ti/ipc/rpmsg/_MessageQCopy.h>
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/_RPMessage.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 
 #include <ti/ipc/namesrv/_NameServerRemoteRpmsg.h>
 
@@ -72,7 +72,7 @@
 /* Name of the rpmsg socket on host: */
 #define RPMSG_SOCKET_NAME  "rpmsg-proto"
 
-static Void transportCallbackFxn(MessageQCopy_Handle msgq, UArg arg, Ptr data,
+static Void transportCallbackFxn(RPMessage_Handle msgq, UArg arg, Ptr data,
                                       UInt16 dataLen, UInt32 srcAddr);
 
 /*
@@ -97,7 +97,7 @@ Int TransportRpmsg_Instance_init(TransportRpmsg_Object *obj,
 
     /* This MessageQ Transport over RPMSG only talks to the "HOST" for now: */
     Assert_isTrue(remoteProcId == MultiProc_getId("HOST"), NULL);
-    MessageQCopy_init(remoteProcId);
+    RPMessage_init(remoteProcId);
 
     /* set object fields */
     obj->priority     = params->priority;
@@ -107,7 +107,7 @@ Int TransportRpmsg_Instance_init(TransportRpmsg_Object *obj,
     NameMap_register(RPMSG_SOCKET_NAME, RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
 
     /* Associate incomming messages with this transport's callback fxn: */
-    obj->msgqHandle = MessageQCopy_create(RPMSG_MESSAGEQ_PORT,
+    obj->msgqHandle = RPMessage_create(RPMSG_MESSAGEQ_PORT,
                                           transportCallbackFxn,
                                           (UArg)obj,
                                           &myEndpoint);
@@ -156,7 +156,7 @@ Void TransportRpmsg_Instance_finalize(TransportRpmsg_Object *obj, Int status)
             break;
     }
 
-    MessageQCopy_finalize();
+    RPMessage_finalize();
 
 #undef FXNN
 }
@@ -188,7 +188,7 @@ Bool TransportRpmsg_put(TransportRpmsg_Object *obj, Ptr msg)
 
     Log_print3(Diags_INFO, FXNN": sending msg from: %d, to: %d, dataLen: %d",
                   (IArg)RPMSG_MESSAGEQ_PORT, (IArg)dstAddr, (IArg)msgSize);
-    status = MessageQCopy_send(obj->remoteProcId, dstAddr, RPMSG_MESSAGEQ_PORT,
+    status = RPMessage_send(obj->remoteProcId, dstAddr, RPMSG_MESSAGEQ_PORT,
                       msg, msgSize);
 
     /* free the app's message */
@@ -196,7 +196,7 @@ Bool TransportRpmsg_put(TransportRpmsg_Object *obj, Ptr msg)
        MessageQ_free(msg);
     }
 
-    return (status == MessageQCopy_S_SUCCESS? TRUE: FALSE);
+    return (status == RPMessage_S_SUCCESS? TRUE: FALSE);
 }
 #undef FXNN
 
@@ -228,7 +228,7 @@ Int TransportRpmsg_getStatus(TransportRpmsg_Object *obj)
  *
  */
 #define FXNN "transportCallbackFxn"
-static Void transportCallbackFxn(MessageQCopy_Handle msgq, UArg arg, Ptr data,
+static Void transportCallbackFxn(RPMessage_Handle msgq, UArg arg, Ptr data,
                                       UInt16 dataLen, UInt32 srcAddr)
 {
     UInt32            queueId;

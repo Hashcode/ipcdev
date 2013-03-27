@@ -30,11 +30,11 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /** ============================================================================
- *  @file       MessageQCopy.h
+ *  @file       RPMessage.h
  *
  *  @brief      A simple copy-based MessageQ, to work with Linux virtio_rp_msg.
  *
- *  The following are key features of the MessageQCopy module:
+ *  The following are key features of the RPMessage module:
  *  - Multiple writers, single reader.
  *  - Timeouts are allowed when receiving messages.
  *  - Supports processor copy transfers only.
@@ -53,9 +53,9 @@
  *  Message queues are identified by a system-wide unique 32 bit queueID,
  *  which encodes the (MultiProc) 16 bit core ID and a local 16 bit index ID.
  *
- *  The MessageQCopy header should be included in an application as follows:
+ *  The RPMessage header should be included in an application as follows:
  *  @code
- *  #include <ti/ipc/rpmsg/MessageQCopy.h>
+ *  #include <ti/ipc/rpmsg/RPMessage.h>
  *  @endcode
  *
  *  Questions:
@@ -71,8 +71,8 @@
  *  ============================================================================
  */
 
-#ifndef ti_ipc_MessageQCopy__include
-#define ti_ipc_MessageQCopy__include
+#ifndef ti_ipc_RPMessage__include
+#define ti_ipc_RPMessage__include
 
 #if defined (__cplusplus)
 extern "C" {
@@ -87,93 +87,93 @@ extern "C" {
 /*!
  *  @brief      Used as the timeout value to specify wait forever
  */
-#define MessageQCopy_FOREVER                ~(0)
+#define RPMessage_FOREVER                ~(0)
 
 /*!
-   *  @def    MessageQCopy_S_SUCCESS
+   *  @def    RPMessage_S_SUCCESS
  *  @brief  Operation is successful.
  */
-#define MessageQCopy_S_SUCCESS              0
+#define RPMessage_S_SUCCESS              0
 
 /*!
- *  @def    MessageQCopy_E_FAIL
+ *  @def    RPMessage_E_FAIL
  *  @brief  Operation is not successful.
  */
-#define MessageQCopy_E_FAIL                 -1
+#define RPMessage_E_FAIL                 -1
 
 /*!
- *  @def    MessageQCopy_E_MEMORY
+ *  @def    RPMessage_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
-#define MessageQCopy_E_MEMORY               -3
+#define RPMessage_E_MEMORY               -3
 
 /*!
- *  @def    MessageQCopy_E_TIMEOUT
+ *  @def    RPMessage_E_TIMEOUT
  *  @brief  Operation timed out.
  */
-#define MessageQCopy_E_TIMEOUT              -6
+#define RPMessage_E_TIMEOUT              -6
 
 /*!
- *  @def    MessageQCopy_E_NOENDPT
+ *  @def    RPMessage_E_NOENDPT
  *  @brief  No endpoint for a message.
  */
-#define MessageQCopy_E_NOENDPT              -7
+#define RPMessage_E_NOENDPT              -7
 
 /*!
  *  @def    MessageQ_E_UNBLOCKED
- *  @brief  MessageQCopy was unblocked
+ *  @brief  RPMessage was unblocked
  */
-#define MessageQCopy_E_UNBLOCKED            -19
+#define RPMessage_E_UNBLOCKED            -19
 
 /*!
- *  @def    MessageQCopy_MAX_RESERVED_ENDPOINT
+ *  @def    RPMessage_MAX_RESERVED_ENDPOINT
  *  @brief  Maximum Value for System Reserved Endpoints.
  */
-#define MessageQCopy_MAX_RESERVED_ENDPOINT  100
+#define RPMessage_MAX_RESERVED_ENDPOINT  100
 
 /*!
- *  @def    MessageQCopy_MAX_RESERVED_ENDPOINT
+ *  @def    RPMessage_MAX_RESERVED_ENDPOINT
  *  @brief  Maximum Value for System Reserved Endpoints.
  */
-#define MessageQCopy_ASSIGN_ANY             0xFFFFFFFF
+#define RPMessage_ASSIGN_ANY             0xFFFFFFFF
 /*!
- *  @brief  MessageQCopy_Handle type
+ *  @brief  RPMessage_Handle type
  */
-typedef struct MessageQCopy_Object *MessageQCopy_Handle;
+typedef struct RPMessage_Object *RPMessage_Handle;
 
 
-typedef Void (*MessageQCopy_callback)(MessageQCopy_Handle, UArg, Ptr,
+typedef Void (*RPMessage_callback)(RPMessage_Handle, UArg, Ptr,
                                       UInt16, UInt32);
 
 /* =============================================================================
- *  MessageQCopy Functions:
+ *  RPMessage Functions:
  * =============================================================================
  */
 
 
 /*!
- *  @brief      Create a MessageQCopy instance for receiving, with callback.
+ *  @brief      Create a RPMessage instance for receiving, with callback.
  *
- *  This is an extension of MessageQCopy_create(), with the option of passing
+ *  This is an extension of RPMessage_create(), with the option of passing
  *  a callback function and its argument to be called when a message is
  *  received.
  *
- *  @param[in]   reserved     If value is MessageQCopy_ASSIGN_ANY, then
+ *  @param[in]   reserved     If value is RPMessage_ASSIGN_ANY, then
  *                            any Endpoint can be assigned; otherwise, value is
  *                            a reserved Endpoint ID, which must be less than
- *                            or equal to MessageQCopy_MAX_RESERVED_ENDPOINT.
+ *                            or equal to RPMessage_MAX_RESERVED_ENDPOINT.
  *  @param[in]   callback     If non-NULL, on received data, this callback is
  *                            called instead of posting the internal semaphore.
  *  @param[in]   arg          Argument for the callback.
  *  @param[out]  endpoint     Endpoint ID for this side of the connection.
  *
  *
- *  @return     MessageQCopy Handle, or NULL if:
+ *  @return     RPMessage Handle, or NULL if:
  *                            - reserved endpoint already taken;
  *                            - could not allocate object
  */
-MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
-                                        MessageQCopy_callback callback,
+RPMessage_Handle RPMessage_create(UInt32 reserved,
+                                        RPMessage_callback callback,
                                         UArg arg,
                                         UInt32 * endpoint);
 /*!
@@ -184,31 +184,31 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved,
  *  until the semaphore is signaled or a timeout occurs.
  *  The semaphore is signaled, when Message_send is called to deliver a message
  *  to this endpoint. If a timeout occurs, len is set to zero and the status is
- *  #MessageQCopy_E_TIMEOUT. If a timeout of zero is specified, the function
+ *  #RPMessage_E_TIMEOUT. If a timeout of zero is specified, the function
  *  returns immediately and if no message is available, the len is set to zero
- *  and the status is #MessageQCopy_E_TIMEOUT.
- *  The #MessageQCopy_E_UNBLOCKED status is returned, if MessageQ_unblock is called
- *  on the MessageQCopy handle.
+ *  and the status is #RPMessage_E_TIMEOUT.
+ *  The #RPMessage_E_UNBLOCKED status is returned, if MessageQ_unblock is called
+ *  on the RPMessage handle.
  *  If a message is successfully retrieved, the message
- *  data is copied into the data pointer, and a #MessageQCopy_S_SUCCESS
+ *  data is copied into the data pointer, and a #RPMessage_S_SUCCESS
  *  status is returned.
  *
- *  @param[in]  handle      MessageQCopy handle
+ *  @param[in]  handle      RPMessage handle
  *  @param[out] data        Pointer to the client's data buffer.
  *  @param[out] len         Amount of data received.
  *  @param[out] rplyEndpt   Endpoint of source (for replies).
  *  @param[in]  timeout     Maximum duration to wait for a message in
  *                          microseconds.
  *
- *  @return     MessageQCopy status:
- *              - #MessageQCopy_S_SUCCESS: Message successfully returned
- *              - #MessageQCopy_E_TIMEOUT: MessageQCopy_recv timed out
- *              - #MessageQCopy_E_UNBLOCKED: MessageQ_get was unblocked
- *              - #MessageQCopy_E_FAIL:    A general failure has occurred
+ *  @return     RPMessage status:
+ *              - #RPMessage_S_SUCCESS: Message successfully returned
+ *              - #RPMessage_E_TIMEOUT: RPMessage_recv timed out
+ *              - #RPMessage_E_UNBLOCKED: MessageQ_get was unblocked
+ *              - #RPMessage_E_FAIL:    A general failure has occurred
  *
- *  @sa         MessageQCopy_send MessageQCopy_unblock
+ *  @sa         RPMessage_send RPMessage_unblock
  */
-Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
+Int RPMessage_recv(RPMessage_Handle handle, Ptr data, UInt16 *len,
                       UInt32 *rplyEndpt, UInt timeout);
 
 /*!
@@ -216,7 +216,7 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
  *              messageQ.
  *
  *  If the message is placed onto a local Message queue, the queue's
- *  #MessageQCopy_Params::semaphore signal function is called.
+ *  #RPMessage_Params::semaphore signal function is called.
  *
  *  @param[in]  dstProc     Destination ProcId.
  *  @param[in]  dstEndpt    Destination Endpoint.
@@ -225,18 +225,18 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
  *  @param[in]  len         Amount of data to be copied, including Msg header.
  *
  *  @return     Status of the call.
- *              - #MessageQCopy_S_SUCCESS denotes success.
- *              - #MessageQCopy_E_FAIL denotes failure.
+ *              - #RPMessage_S_SUCCESS denotes success.
+ *              - #RPMessage_E_FAIL denotes failure.
  *                The send was not successful.
  */
-Int MessageQCopy_send(UInt16 dstProc,
+Int RPMessage_send(UInt16 dstProc,
                       UInt32 dstEndpt,
                       UInt32 srcEndpt,
                       Ptr    data,
                       UInt16 len);
 
 /*!
- *  @brief      Delete a created MessageQCopy instance.
+ *  @brief      Delete a created RPMessage instance.
  *
  *  This function deletes a created message queue instance. If the
  *  message queue is non-empty, any messages remaining in the queue
@@ -244,31 +244,31 @@ Int MessageQCopy_send(UInt16 dstProc,
  *
  *  @param[in,out]  handlePtr   Pointer to handle to delete.
  *
- *  @return     MessageQCopy status:
- *              - #MessageQCopy_E_FAIL: delete failed
- *              - #MessageQCopy_S_SUCCESS: delete successful, *handlePtr = NULL.
+ *  @return     RPMessage status:
+ *              - #RPMessage_E_FAIL: delete failed
+ *              - #RPMessage_S_SUCCESS: delete successful, *handlePtr = NULL.
  */
-Int MessageQCopy_delete(MessageQCopy_Handle *handlePtr);
+Int RPMessage_delete(RPMessage_Handle *handlePtr);
 
 /*!
  *  @brief      Unblocks a MessageQ
  *
- *  Unblocks a reader thread that is blocked on a MessageQCopy_recv.  The
- *  MessageQCopy_recv call will return with status #MessageQ_E_UNBLOCKED
- *  indicating that it returned due to a MessageQCopy_unblock rather than by
+ *  Unblocks a reader thread that is blocked on a RPMessage_recv.  The
+ *  RPMessage_recv call will return with status #MessageQ_E_UNBLOCKED
+ *  indicating that it returned due to a RPMessage_unblock rather than by
  *  a timeout or receiving a message.
  *
  *  Restrictions:
  *  -  A queue may not be used after it has been unblocked.
  *  -  MessageQ_unblock may only be called on a local queue.
  *
- *  @param[in]  handle      MessageQCopy handle
+ *  @param[in]  handle      RPMessage handle
  *
- *  @sa         MessageQCopy_recv
+ *  @sa         RPMessage_recv
  */
-Void MessageQCopy_unblock(MessageQCopy_Handle handle);
+Void RPMessage_unblock(RPMessage_Handle handle);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* ti_ipc_MessageQCopy__include */
+#endif /* ti_ipc_RPMessage__include */

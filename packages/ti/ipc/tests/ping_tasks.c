@@ -47,14 +47,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 
 #define APP_NUM_ITERATIONS 100000
 
 Void copyTaskFxn(UArg arg0, UArg arg1)
 {
-    MessageQCopy_Handle    handle;
+    RPMessage_Handle    handle;
     Char                   buffer[128];
     UInt32                 myEndpoint = 0;
     UInt32                 remoteEndpoint;
@@ -67,25 +67,25 @@ Void copyTaskFxn(UArg arg0, UArg arg1)
     dstProc = MultiProc_getId("HOST");
 
     /* Create the messageQ for receiving (and get our endpoint for sending). */
-    handle = MessageQCopy_create(arg0, NULL, NULL, &myEndpoint);
+    handle = RPMessage_create(arg0, NULL, NULL, &myEndpoint);
 
     NameMap_register("rpmsg-client-sample", "sample-desc", arg0);
 
     for (i = 0; i < APP_NUM_ITERATIONS; i++) {
        /* Await a character message: */
-       MessageQCopy_recv(handle, (Ptr)buffer, &len, &remoteEndpoint,
-                         MessageQCopy_FOREVER);
+       RPMessage_recv(handle, (Ptr)buffer, &len, &remoteEndpoint,
+                         RPMessage_FOREVER);
 
        buffer[len] = '\0';
        System_printf("copyTask %d: Received data: %s, len:%d\n", i + 1,
                       buffer, len);
 
        /* Send data back to remote endpoint: */
-       MessageQCopy_send(dstProc, remoteEndpoint, myEndpoint, (Ptr)buffer, len);
+       RPMessage_send(dstProc, remoteEndpoint, myEndpoint, (Ptr)buffer, len);
     }
 
     /* Teardown our side: */
-    MessageQCopy_delete(&handle);
+    RPMessage_delete(&handle);
 }
 
 void start_ping_tasks()

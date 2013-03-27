@@ -41,7 +41,7 @@
 #include <ti/ipc/MultiProc.h>
 #include <ti/ipc/namesrv/NameServerRemoteRpmsg.h>
 #include <ti/ipc/transports/TransportRpmsgSetup.h>
-#include <ti/ipc/rpmsg/_MessageQCopy.h>
+#include <ti/ipc/rpmsg/_RPMessage.h>
 
 /*
  *  ======== IpcMgr_rpmsgStartup ========
@@ -52,13 +52,13 @@
 Void IpcMgr_rpmsgStartup()
 {
     Assert_isTrue(MultiProc_self() != MultiProc_getId("HOST"), NULL);
-    MessageQCopy_init(MultiProc_getId("HOST"));
+    RPMessage_init(MultiProc_getId("HOST"));
 }
 
 /*
  *  ======== IpcMgr_ipcStartup ========
  *  Initialize MessageQ Transport stack built over RPMSG.
- *  This ends up calling MessageQCopy_init().
+ *  This ends up calling RPMessage_init().
  *
  *  Use for stacks built on MessageQ/TransportRpmsg only.
  */

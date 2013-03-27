@@ -30,36 +30,36 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /** ============================================================================
- *  @file       _MessageQCopy.h
+ *  @file       _RPMessage.h
  *
- *  @brief      Private header for MessageQCopy_init()/finalize().
+ *  @brief      Private header for RPMessage_init()/finalize().
  *
  *  ============================================================================
  */
 
-#ifndef ti_ipc__MessageQCopy__include
-#define ti_ipc__MessageQCopy__include
+#ifndef ti_ipc__RPMessage__include
+#define ti_ipc__RPMessage__include
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
 /*!
- *  @brief      Initialize MessageQCopy Module
+ *  @brief      Initialize RPMessage Module
  *
  *  Note: Multiple clients must serialize calls to this function.
  *
  *  @param[in]  remoteProcId      MultiProc ID of the peer.
  */
-Void MessageQCopy_init(UInt16 remoteProcId);
+Void RPMessage_init(UInt16 remoteProcId);
 
 /*!
- *  @brief      Tear down MessageQCopy Module
+ *  @brief      Tear down RPMessage Module
  *
  */
-Void MessageQCopy_finalize();
+Void RPMessage_finalize();
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* ti_ipc__MessageQCopy__include */
+#endif /* ti_ipc__RPMessage__include */

@@ -36,7 +36,7 @@
 #include <xdc/runtime/System.h>
 
 #include <ti/ipc/MultiProc.h>
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 
 #define RPMSG_NAME_SIZE 32
 
@@ -67,10 +67,10 @@ sendMessage(Char * name, Char *desc, UInt32 port, enum rpmsg_ns_flags flags)
     nsMsg.addr = port;
     nsMsg.flags = flags;
 
-    s = MessageQCopy_send(MultiProc_getId("HOST"), 53, port, &nsMsg,
+    s = RPMessage_send(MultiProc_getId("HOST"), 53, port, &nsMsg,
                                                                 sizeof(nsMsg));
     if (s < 0) {
-        System_abort("Fatal ERROR in NameMap sendMessage: MessageQCopy_send()"
+        System_abort("Fatal ERROR in NameMap sendMessage: RPMessage_send()"
                         " failed! Aborting...\n");
     }
 }

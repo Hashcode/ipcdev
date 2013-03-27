@@ -229,7 +229,7 @@ Int main(Int argc, char* argv[])
      *
      * Codes: E = ENTRY, X = EXIT, L = LIFECYCLE, F = INFO, S = STATUS
      */
-    Diags_setMask("ti.ipc.rpmsg.MessageQCopy=EXLFS");
+    Diags_setMask("ti.ipc.rpmsg.RPMessage=EXLFS");
 
     /* Setup the table of services, so clients can create and connect to
      * new service instances:

@@ -40,14 +40,14 @@
 #define ti_grcm_RcmTypes_h
 
 /*
- * Force use of the MessageQCopy instead of MessageQ API for SysLink 3 IPC.
+ * Force use of the RPMessage instead of MessageQ API for SysLink 3 IPC.
  * This is temporary to get a protoype working.
- * Ideally, MessageQCopy should not be needed.
+ * Ideally, RPMessage should not be needed.
  */
-#define USE_MESSAGEQCOPY   1
+#define USE_RPMESSAGE   1
 
-#if USE_MESSAGEQCOPY
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#if USE_RPMESSAGE
+#include <ti/ipc/rpmsg/RPMessage.h>
 #else
 #include <ti/ipc/MessageQ.h>
 #endif
@@ -103,7 +103,7 @@
 
 /* the packet structure (actual message send to server) */
 
-#if USE_MESSAGEQCOPY
+#if USE_RPMESSAGE
 /* Need to deal with this structure, as Linux side rpmsg_omx driver needs it: */
 struct rpmsg_omx_hdr {
     UInt32 type;
@@ -129,7 +129,7 @@ typedef struct {
 #define PACKET_DATA_SIZE (PACKET_HDR_SIZE - sizeof(struct rpmsg_omx_hdr))
 
 /* To test on BIOS side only, uncomment and rebuild anything that
- * calls MessageQCopy()
+ * calls RPMessage()
  */
 //#define  BIOS_ONLY_TEST
 

@@ -49,15 +49,15 @@
 #include <stdlib.h>
 
 #include <ti/ipc/rpmsg/NameMap.h>
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 
 static UInt16 dstProc;
-static MessageQCopy_Handle handle = NULL;
+static RPMessage_Handle handle = NULL;
 static UInt32 myEndpoint = 0;
 static UInt32 counter = 0;
 
 /* Send me a zero length data payload to tear down the MesssageQCopy object: */
-static Void pingCallbackFxn(MessageQCopy_Handle h, UArg arg, Ptr data,
+static Void pingCallbackFxn(RPMessage_Handle h, UArg arg, Ptr data,
 	UInt16 len, UInt32 src)
 {
     const Char *reply = "Pong!";
@@ -67,7 +67,7 @@ static Void pingCallbackFxn(MessageQCopy_Handle h, UArg arg, Ptr data,
                   counter++, data, src, len);
 
     /* Send data back to remote endpoint: */
-    MessageQCopy_send(dstProc, src, myEndpoint, (Ptr)reply, replyLen);
+    RPMessage_send(dstProc, src, myEndpoint, (Ptr)reply, replyLen);
 }
 
 Void pingTaskFxn(UArg arg0, UArg arg1)
@@ -75,15 +75,15 @@ Void pingTaskFxn(UArg arg0, UArg arg1)
     System_printf("ping_task at port %d: Entered...\n", arg0);
 
     /* Create the messageQ for receiving, and register callback: */
-    handle = MessageQCopy_create(arg0, pingCallbackFxn, NULL, &myEndpoint);
+    handle = RPMessage_create(arg0, pingCallbackFxn, NULL, &myEndpoint);
     if (!handle) {
-        System_abort("MessageQCopy_createEx failed\n");
+        System_abort("RPMessage_createEx failed\n");
     }
 
     /* Announce we are here: */
     NameMap_register("rpmsg-proto", "rpmsg-proto", arg0);
 
-    /* Note: we don't get a chance to teardown with MessageQCopy_destroy() */
+    /* Note: we don't get a chance to teardown with RPMessage_destroy() */
 }
 
 Int main(Int argc, char* argv[])
