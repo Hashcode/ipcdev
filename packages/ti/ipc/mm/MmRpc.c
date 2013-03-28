@@ -61,13 +61,6 @@
 #undef _linux_
 #endif
 
-#define RPPC_MAX_INST_NAMELEN (48) /* in kernel part of rpmsg_rpc.h */
-
-/* this should be in rpmsg_rpc.h, currently in rpmsg_rpc_internal.h */
-struct rppc_create_instance {
-    char name[RPPC_MAX_INST_NAMELEN];
-};
-
 #elif defined(SYSLINK_BUILDOS_QNX)
 
 #include <ti/ipc/rpmsg_rpc.h>
