@@ -75,10 +75,13 @@ if (Program.cpu.deviceName == "OMAPL138") {
     Timer.defaultHalf = Timer.Half_LOWER;
     Clock.timerId = 1;
 
+    /*  COMMENT OUT TO SHUT OFF LOG FOR BENCHMARKS: */
+    /*
     Diags.setMaskMeta("ti.ipc.family.omapl138.Interrupt", Diags.USER1,
         Diags.ALWAYS_ON);
     Diags.setMaskMeta("ti.ipc.family.omapl138.VirtQueue", Diags.USER1,
         Diags.ALWAYS_ON);
+    */
 }
 else if (Program.platformName.match(/6614/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
@@ -215,9 +218,11 @@ Defaults.common$.logger = LoggerSys.create(LoggerSysParams);
 var Text = xdc.useModule('xdc.runtime.Text');
 Text.isLoaded = true;
 var Registry = xdc.useModule('xdc.runtime.Registry');
+/*
 Registry.common$.diags_INFO  = Diags.ALWAYS_ON;
 Registry.common$.diags_STATUS = Diags.ALWAYS_ON;
 Registry.common$.diags_LIFECYCLE = Diags.ALWAYS_ON;
+*/
 Diags.setMaskEnabled = true;
 
 var Main = xdc.useModule('xdc.runtime.Main');
