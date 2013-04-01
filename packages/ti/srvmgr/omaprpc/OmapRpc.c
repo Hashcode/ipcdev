@@ -47,7 +47,7 @@
 #include <stdlib.h>
 
 #include <ti/ipc/mm/MmType.h>
-#include <ti/ipc/rpmsg/MessageQCopy.h>
+#include <ti/ipc/rpmsg/RPMessage.h>
 #include <ti/ipc/rpmsg/NameMap.h>
 #include <ti/srvmgr/ServiceMgr.h>
 
@@ -57,7 +57,7 @@ typedef struct OmapRpc_Object {
     Char                    channelName[OMAPRPC_MAX_CHANNEL_NAMELEN];
     UInt16                  dstProc;
     UInt32                  port;
-    MessageQCopy_Handle     msgq;
+    RPMessage_Handle        msgq;
     UInt32                  localEndPt;
     Task_Handle             taskHandle;
     Bool                    shutdown;
@@ -112,10 +112,10 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
         remote = 0;
 
         /* receive the message */
-        status = MessageQCopy_recv(obj->msgq, (Ptr)msg, &len, &remote,
-                                        MessageQCopy_FOREVER);
+        status = RPMessage_recv(obj->msgq, (Ptr)msg, &len, &remote,
+                                        RPMessage_FOREVER);
 
-        if (status == MessageQCopy_E_UNBLOCKED) {
+        if (status == RPMessage_E_UNBLOCKED) {
             System_printf("OMAPRPC: unblocked while waiting for messages\n");
             continue;
         }
@@ -235,7 +235,7 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
                       " from: %d len: %u\n", hdr->msgType, remote, local, len);
 
        /* send the response. All messages get responses! */
-       MessageQCopy_send(obj->dstProc, remote, local, msg, len);
+       RPMessage_send(obj->dstProc, remote, local, msg, len);
     }
 
     System_printf("OMAPRPC: destroying channel on port: %d\n", obj->port);
@@ -345,7 +345,7 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
     if (ServiceMgr_register(channelName, &obj->rcmParams) == TRUE) {
         System_printf("OMAPRPC: registered channel: %s\n", obj->channelName);
 
-        obj->msgq = MessageQCopy_create(obj->port, NULL, NULL,&obj->localEndPt);
+        obj->msgq = RPMessage_create(obj->port, NULL, NULL,&obj->localEndPt);
 
         if (obj->msgq == NULL) {
             goto unload;
@@ -392,10 +392,10 @@ Int OmapRpc_deleteChannel(OmapRpc_Handle handle)
     System_printf("OMAPRPC: deleting channel %s\n", obj->channelName);
     obj->shutdown = TRUE;
     if (obj->msgq) {
-        MessageQCopy_unblock(obj->msgq);
+        RPMessage_unblock(obj->msgq);
         if (obj->exitSem) {
             Semaphore_pend(obj->exitSem, BIOS_WAIT_FOREVER);
-            MessageQCopy_delete(&obj->msgq);
+            RPMessage_delete(&obj->msgq);
             Semaphore_delete(&obj->exitSem);
         }
         if (obj->taskHandle) {
@@ -465,7 +465,7 @@ Int OmapRpc_start(const String name, Int port, Int aryLen,
         }
     }
 
-    obj->msgq = MessageQCopy_create(obj->port, NULL, NULL,&obj->localEndPt);
+    obj->msgq = RPMessage_create(obj->port, NULL, NULL,&obj->localEndPt);
 
     if (obj->msgq == NULL) {
         goto unload;
