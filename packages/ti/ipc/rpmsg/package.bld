@@ -80,17 +80,29 @@ for (var i = 0; i < Build.targets.length; i++) {
                 copts: myCopts,
                 defs: "-DTCI6614"
             }).addObjects(SRCS);
+
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_vayu", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DVAYU -DDSP -DRPMSG_NS_2_0"
+            }).addObjects(SRCS);
         } else if (targ.isa.match(/^v7M(|4)$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
                 profile: profile,
                 copts: myCopts,
-                defs: "-DOMAP5 -DSMP"
+                defs: "-DOMAP5 -DSMP -DRPMSG_NS_2_0"
+            }).addObjects(SRCS);
+
+            Pkg.addLibrary("lib/" + profile + "/" + name + "_vayu_smp", targ, {
+                profile: profile,
+                copts: myCopts,
+                defs: "-DVAYU -DSMP -DRPMSG_NS_2_0"
             }).addObjects(SRCS);
         } else if (targ.isa == "64T") {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
                 profile: profile,
                 copts: myCopts,
-                defs: "-DOMAP5 -DDSP"
+                defs: "-DOMAP5 -DDSP -DRPMSG_NS_2_0"
             }).addObjects(SRCS);
         } else {
             continue;

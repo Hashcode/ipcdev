@@ -104,7 +104,7 @@ Int TransportRpmsg_Instance_init(TransportRpmsg_Object *obj,
     obj->remoteProcId = remoteProcId;
 
     /* Announce our "MessageQ" service to the HOST: */
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
     NameMap_register(RPMSG_SOCKET_NAME, RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
 #else
     NameMap_register(RPMSG_SOCKET_NAME, RPMSG_MESSAGEQ_PORT);
@@ -147,7 +147,7 @@ Void TransportRpmsg_Instance_finalize(TransportRpmsg_Object *obj, Int status)
     Log_print0(Diags_ENTRY, "--> "FXNN);
 
     /* Announce our "MessageQ" service is going away: */
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
     NameMap_unregister(RPMSG_SOCKET_NAME, RPMSG_SOCKET_NAME,
             RPMSG_MESSAGEQ_PORT);
 #else

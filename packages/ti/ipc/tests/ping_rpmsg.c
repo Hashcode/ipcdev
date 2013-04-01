@@ -81,7 +81,7 @@ Void pingTaskFxn(UArg arg0, UArg arg1)
     }
 
     /* Announce we are here: */
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
     NameMap_register("rpmsg-proto", "rpmsg-proto", arg0);
 #else
     NameMap_register("rpmsg-proto", arg0);

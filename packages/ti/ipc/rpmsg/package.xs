@@ -63,6 +63,10 @@ function close()
             xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
             break;
 
+        case "Vayu": /* Vayu */
+            xdc.loadPackage('ti.ipc.family.vayu');
+            break;
+
         default:
             throw new Error("Unspported device: " + device);
             break;
@@ -119,6 +123,10 @@ function getLibs(prog)
         case "Kepler":
         case "TMS320TCI6638":
             platform = "tci6638";
+            break;
+
+        case "Vayu":
+            platform = "vayu";
             break;
 
         default:

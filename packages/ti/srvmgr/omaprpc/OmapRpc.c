@@ -81,9 +81,18 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
     UInt32 remote;
     Int status;
     UInt16 len;
-    UInt8  msg[512]; /* maximum rpmsg size is probably smaller, but we need to
-                      * be cautious */
-    OmapRpc_MsgHeader *hdr = (OmapRpc_MsgHeader *)&msg[0];
+    Char  * msg = NULL;
+    OmapRpc_MsgHeader *hdr = NULL;
+
+    msg = Memory_alloc(NULL, 512, 0, NULL); /* maximum rpmsg size is probably
+                                             * smaller, but we need to
+                                             * be cautious */
+    if (msg == NULL) {
+        System_printf("OMAPRPC: Failed to allocate msg!\n");
+        return;
+    }
+
+    hdr = (OmapRpc_MsgHeader *)&msg[0];
 
     if (obj == NULL) {
         System_printf("OMAPRPC: Failed to start task as arguments are NULL!\n");
@@ -240,6 +249,9 @@ static Void omapRpcTask(UArg arg0, UArg arg1)
 
     System_printf("OMAPRPC: destroying channel on port: %d\n", obj->port);
     NameMap_unregister("rpmsg-rpc", obj->channelName, obj->port);
+    if (msg != NULL) {
+       Memory_free(NULL, msg, 512);
+    }
     /* @TODO delete any outstanding ServiceMgr instances if no disconnect
      * was issued? */
 

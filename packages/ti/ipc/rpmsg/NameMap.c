@@ -44,7 +44,7 @@ typedef unsigned int u32;
 
 struct rpmsg_ns_msg {
     char name[RPMSG_NAME_SIZE]; /* name of service including terminal '\0' */
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
     char desc[RPMSG_NAME_SIZE]; /* description of service including '\0' */
 #endif
     u32 addr;                   /* address of the service */
@@ -57,7 +57,7 @@ enum rpmsg_ns_flags {
 };
 
 static void
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
 sendMessage(Char * name, Char *desc, UInt32 port, enum rpmsg_ns_flags flags)
 #else
 sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
@@ -68,7 +68,7 @@ sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
 
     strncpy(nsMsg.name, name, (RPMSG_NAME_SIZE - 1));
     nsMsg.name[RPMSG_NAME_SIZE-1] = '\0';
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
     strncpy(nsMsg.desc, desc, (RPMSG_NAME_SIZE - 1));
     nsMsg.desc[RPMSG_NAME_SIZE-1] = '\0';
 #endif
@@ -83,7 +83,7 @@ sendMessage(Char * name, UInt32 port, enum rpmsg_ns_flags flags)
     }
 }
 
-#ifdef OMAP5
+#ifdef RPMSG_NS_2_0
 void NameMap_register(Char * name, Char * desc, UInt32 port)
 {
     System_printf("registering %s:%s service on %d with HOST\n", name, desc,

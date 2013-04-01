@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,16 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*
+ *  ======== package.xdc ========
+ *
+ */
 
-#ifndef _NAMEMAP_H_
-#define _NAMEMAP_H_
+/*!
+ *  ======== ti.configs.vayu ========
+ *  Common config files.
+ *
+ */
 
-#ifdef RPMSG_NS_2_0  /* temporarily OMAP5-specific until upstream change ready */
-extern void NameMap_register(Char * name, Char * desc, UInt32 value);
-extern void NameMap_unregister(Char * name, Char * desc, UInt32 value);
-#else
-extern void NameMap_register(Char * name, UInt32 value);
-extern void NameMap_unregister(Char * name, UInt32 value);
-#endif
-
-#endif
+package ti.configs.vayu [1,0,0] {
+}

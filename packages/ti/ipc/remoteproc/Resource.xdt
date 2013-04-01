@@ -67,6 +67,14 @@
 %    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
 %            "(" + prog.cpu.deviceName + ", " + prog.cpu.attrs.cpuCore + ")");
 %}
+%if (prog.platformName.match(/vayu\.ipu2/)) {
+#define OMAP5
+#include <ti/ipc/remoteproc/rsc_table_vayu_ipu.h>
+%}
+%if (prog.platformName.match(/vayu\.dsp1/)) {
+#define OMAP5
+#include <ti/ipc/remoteproc/rsc_table_vayu_dsp.h>
+%}
 
 Void ti_ipc_remoteproc_Resource_init__I()
 {

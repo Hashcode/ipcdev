@@ -73,7 +73,7 @@ for (var i = 0; i < Build.targets.length; i++) {
 
 //    print("building for target " + targ.name + " ...");
 
-    /* currently only build for OMAPL138, Keystone II, and OMAP5*/
+    /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
     if (!((targ.isa == "674") || (targ.isa == "66") ||
           (targ.isa.match(/v7M(|4)/)) || (targ.isa == "64T"))) {
         continue;
@@ -83,11 +83,12 @@ for (var i = 0; i < Build.targets.length; i++) {
     for (var j = 0; j < targ.platforms.length; j++) {
         var platform = targ.platforms[j];
 
-        /* currently only build for OMAPL138, Keystone II, and OMAP5*/
+        /* currently only build for OMAPL138, Keystone II, OMAP5, and Vayu*/
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti\.platform\.omap54xx/)) ||
+              (platform.match(/^ti\.platform\.vayu/)) ||
               (platform.match(/\.platforms\.evmOMAPL138/)))) {
              continue;
         }
@@ -101,7 +102,18 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (targ.isa.match(/^v7M(|4)$/)) {
             Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
                 cfgScript: "ping_rpmsg",
-                defs: " -DOMAP5"
+                defs: " -DRPMSG_NS_2_0"
+            }).addObjects(["ping_rpmsg.c"]);
+        } else if (targ.isa == "64T") {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: " -DRPMSG_NS_2_0"
+            }).addObjects(["ping_rpmsg.c"]);
+        } else if (targ.isa == "66" &&
+                   platform.match(/^ti\.platform\.vayu/)) {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: " -DRPMSG_NS_2_0"
             }).addObjects(["ping_rpmsg.c"]);
         } else {
             Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
@@ -144,7 +156,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (platform.match(/^ti\.platform\.omap54xx\.ipu/)) {
             Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
                 cfgScript: "test_omx_ipu_omap5",
-                defs: "-D IPU -D OMAP5xxx -DOMAP5"
+                defs: "-D IPU -D OMAP5xxx -DRPMSG_NS_2_0"
             }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
                     "MxServer.c"]);
         }
@@ -152,8 +164,24 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (platform.match(/^ti\.platform\.omap54xx\.dsp/)) {
             Pkg.addExecutable(name + "/test_omx_dsp_omap5", targ, platform, {
                 cfgScript: "test_omx_dsp_omap5",
-                defs: "-D DSP -D OMAP5xxx"
-            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task",
+                defs: "-D DSP -D OMAP5xxx -DRPMSG_NS_2_0"
+            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
+                    "MxServer.c"]);
+        }
+
+        if (platform.match(/^ti\.platform\.vayu\.ipu2/)) {
+            Pkg.addExecutable(name + "/test_omx_ipu2_vayu", targ, platform, {
+                cfgScript: "test_omx_ipu_vayu",
+                defs: "-D IPU -D VAYU -DRPMSG_NS_2_0"
+            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
+                    "MxServer.c"]);
+        }
+
+        if (platform.match(/^ti\.platform\.vayu\.dsp1/)) {
+            Pkg.addExecutable(name + "/test_omx_dsp1_vayu", targ, platform, {
+                cfgScript: "test_omx_dsp_vayu",
+                defs: "-D DSP -D VAYU -DRPMSG_NS_2_0"
+            }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
                     "MxServer.c"]);
         }
     }

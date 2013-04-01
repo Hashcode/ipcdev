@@ -92,7 +92,8 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     if (MultiProc_self() == MultiProc_getId("CORE1")) {
         NameMap_register("rpmsg-omx", "rpmsg-omx1", OMX_MGR_PORT);
     }
-    if (MultiProc_self() == MultiProc_getId("DSP")) {
+    if (MultiProc_self() == MultiProc_getId("DSP") ||
+        MultiProc_self() == MultiProc_getId("DSP1")) {
         NameMap_register("rpmsg-omx", "rpmsg-omx2", OMX_MGR_PORT);
     }
 #endif

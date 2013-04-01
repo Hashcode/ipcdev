@@ -73,8 +73,31 @@ for (var i = 0; i < Build.targets.length; i++) {
             /* for now, build 'special' lib compatible with OMAP5 HLOS */
             Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_omap5", targ, {
                 profile: profile,
-                copts: myCopts + " -DOMAP5"
+                copts: myCopts + " -DRPMSG_NS_2_0"
+            }).addObjects(SRCS);
+
+            /* for now, build 'special' lib compatible with VAYU HLOS */
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_vayu", targ, {
+                profile: profile,
+                copts: myCopts + " -DRPMSG_NS_2_0"
             }).addObjects(SRCS);
         }
+
+        if (targ.isa == "C64T") {
+            /* for now, build 'special' lib compatible with OMAP5 HLOS */
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_omap5", targ, {
+                profile: profile,
+                copts: myCopts + " -DRPMSG_NS_2_0"
+            }).addObjects(SRCS);
+        }
+
+        if (targ.isa == "66") {
+            /* for now, build 'special' lib compatible with VAYU HLOS */
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_vayu", targ, {
+                profile: profile,
+                copts: myCopts + " -DRPMSG_NS_2_0"
+            }).addObjects(SRCS);
+        }
+
     }
 }

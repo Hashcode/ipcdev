@@ -136,11 +136,14 @@ for (arg = 0; arg < arguments.length; arg++) {
     }
 
     if (targetName.match(/elf\.C66/)) {
+        target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
         target.lnkOpts.suffix += " -cr";
         target.platforms = [
             //"ti.platforms.simKepler"
             //"ti.platforms.evm6614:DSP"
-            "ti.platforms.evmTCI6638K2K"
+            "ti.platforms.evmTCI6638K2K",
+            /* NOTE: This platform (from omapzoom) is local, custom: */
+            "ti.platform.vayu.dsp1"
         ];
     }
 
@@ -163,6 +166,7 @@ for (arg = 0; arg < arguments.length; arg++) {
 
         target.platforms =  [
             "ti.platform.omap54xx.ipu",
+            "ti.platform.vayu.ipu2",
         ];
     }
 

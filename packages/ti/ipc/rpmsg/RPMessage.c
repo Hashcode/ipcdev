@@ -106,6 +106,8 @@
 #include <ti/ipc/family/tci6638/VirtQueue.h>
 #elif defined(OMAP5)
 #include <ti/ipc/family/omap54xx/VirtQueue.h>
+#elif defined(VAYU)
+#include <ti/ipc/family/vayu/VirtQueue.h>
 #else
 #error unknown processor!
 #endif
