@@ -80,17 +80,11 @@ for (var i = 0; i < Build.targets.length; i++) {
                 copts: myCopts,
                 defs: "-DTCI6614"
             }).addObjects(SRCS);
-        } else if (targ.isa == "v7M") {
+        } else if (targ.isa.match(/^v7M(|4)$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5_smp", targ, {
                 profile: profile,
                 copts: myCopts,
                 defs: "-DOMAP5 -DSMP"
-            }).addObjects(SRCS);
-
-            Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
-                profile: profile,
-                copts: myCopts,
-                defs: "-DOMAP5 -DDM3_ONLY"
             }).addObjects(SRCS);
         } else if (targ.isa == "64T") {
             Pkg.addLibrary("lib/" + profile + "/" + name + "_omap5", targ, {
