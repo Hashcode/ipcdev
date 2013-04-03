@@ -70,12 +70,12 @@ function getLibs(prog)
     }
 
     /* make sure the library exists, else fallback to a built library */
-    file = "lib/" + profile + "/ti.ipc.rpmsg" + smp + ".a" + suffix;
+    file = "lib/" + profile + "/ti.ipc.family.omap54xx" + smp + ".a" + suffix;
     if (java.io.File(this.packageBase + file).exists()) {
         libAry.push(file);
     }
     else {
-        file = "lib/release/ti.ipc.rpmsg" + smp + ".a" + suffix;
+        file = "lib/release/ti.ipc.family.omap54xx" + smp + ".a" + suffix;
         if (java.io.File(this.packageBase + file).exists()) {
             libAry.push(file);
         }

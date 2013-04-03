@@ -52,10 +52,10 @@ Pkg.generatedFiles.$add("lib/");
 /* list of libraries to build */
 var libArray = new Array();
 
-/* rpmsg library for IPU SMP target */
+/* IPU SMP library */
 libArray.push(
     {
-        name: "ti.ipc.rpmsg_smp",
+        name: "ti.ipc.family.omap54xx_smp",
         sources: [
             "VirtQueue",
             "InterruptIpu",
@@ -63,30 +63,14 @@ libArray.push(
         libAttrs: {
             defs: " -DSMP"
         },
-        isas: [ "v7M" ],
+        isas: [ "v7M", "v7M4" ],
     }
 );
 
-/* rpmsg library for IPU non-SMP target */
+/* DSP library */
 libArray.push(
     {
-        name: "ti.ipc.rpmsg",
-        sources: [
-            "VirtQueue",
-            "InterruptIpu",
-            "OffloadM3",
-        ],
-        libAttrs: {
-            defs: " -DM3_ONLY"
-        },
-        isas: [ "v7M" ],
-    }
-);
-
-/* rpmsg library for DSP target */
-libArray.push(
-    {
-        name: "ti.ipc.rpmsg",
+        name: "ti.ipc.family.omap54xx",
         sources: [
             "VirtQueue",
             "InterruptDsp",
