@@ -63,18 +63,7 @@ libArray.push(
         libAttrs: {
             defs: " -DSMP"
         },
-        isas: [ "v7M" ],
-    }
-);
-
-/* pm library for IPU non-SMP target */
-libArray.push(
-    {
-        name: "ti.pm",
-        sources: [
-            "IpcPower",
-        ],
-        isas: [ "v7M" ],
+        isas: [ "v7M", "v7M4" ],
     }
 );
 
