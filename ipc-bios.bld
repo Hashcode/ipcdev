@@ -63,9 +63,6 @@
  *	Build	    an alias for xdc.om.xdc.bld.BuildEnvironment
  */
 
-/* for M3-devices only (OMAP5), build using the SMP-enabled platform */
-var build_smp = "1";
-
 /* Common ccopts suffix used for all C6x targets */
 var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
 
@@ -147,32 +144,19 @@ for (arg = 0; arg < arguments.length; arg++) {
 
     if (targetName.match(/elf\.C64T/)) {
         target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
-        /* NOTE: These platforms (from omapzoom) are local, custom: */
+
         target.platforms = [
-                    //"ti.platform.omap4430.dsp",
-                    "ti.platform.omap54xx.dsp",
-                ];
+            "ti.platform.omap54xx.dsp",
+        ];
     }
 
     if (targetName.match(/elf\.M3/)) {
         target.lnkOpts.prefix += " --retain=.resource_table";
         target.lnkOpts.prefix += " --cinit_compression=off";
-        /* NOTE: These platforms (from omapzoom) are local, custom: */
-        /* Set default platform and list of all interested platforms for M3 */
-        if (build_smp == null || build_smp == "0") {
-            /* Helps boot times, plus unmasks issues w/ uninit'd vars */
-            target.lnkOpts.prefix +=  " --zero_init=off";
-            target.platforms = [
-                        //"ti.platform.omap4430.core0",
-                        "ti.platform.omap54xx.core0",
-                   ];
-        }
-        else {
-            target.platforms =  [
-                        //"ti.platform.omap4430.ipu",
-                        "ti.platform.omap54xx.ipu",
-                   ];
-        }
+
+        target.platforms =  [
+            "ti.platform.omap54xx.ipu",
+        ];
     }
 
     Build.targets.$add(target);
