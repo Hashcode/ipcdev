@@ -40,7 +40,7 @@ metaonly module Platform inherits xdc.platform.IPlatform {
         ti.platforms.generic.Platform.create("plat", {
             clockRate:      466,
             catalogName:    "ti.catalog.c6000",
-            deviceName:     "OMAP4430",
+            deviceName:     "OMAP5430",
             externalMemoryMap: [
                 ["EXT_CODE",  {name: "EXT_CODE",  base: 0x20000000, len: 0x00100000, space: "code", access: "RWX"}],
                 ["EXT_DATA",  {name: "EXT_DATA",  base: 0x90000000, len: 0x00100000, space: "data", access: "RW"}],

@@ -74,7 +74,8 @@ for (var i = 0; i < Build.targets.length; i++) {
 //    print("building for target " + targ.name + " ...");
 
     /* currently only build for OMAPL138, Keystone II, and OMAP5*/
-    if (!((targ.isa == "674") || (targ.isa == "66") || (targ.isa == "v7M"))) {
+    if (!((targ.isa == "674") || (targ.isa == "66") ||
+          (targ.isa.match(/v7M(|4)/)))) {
         continue;
     }
 

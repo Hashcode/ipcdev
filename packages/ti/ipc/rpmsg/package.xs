@@ -68,6 +68,7 @@ function getLibs(prog)
 
     switch (device) {
         case "OMAP4430":
+        case "OMAP5430":
             /* OMAP5 */
             platform = "omap5";
             break;

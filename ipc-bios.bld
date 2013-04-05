@@ -150,7 +150,12 @@ for (arg = 0; arg < arguments.length; arg++) {
         ];
     }
 
-    if (targetName.match(/elf\.M3/)) {
+    /*
+     * TODO: for now, continue to support OMAP5 for M3 targets until all users
+     * migrate to the new OMAP5-based M4 platform.  Eventually remove omap54xx
+     * from the M3 target.platforms[] array.
+     */
+    if (targetName.match(/elf\.M(3|4)$/)) {
         target.lnkOpts.prefix += " --retain=.resource_table";
         target.lnkOpts.prefix += " --cinit_compression=off";
 

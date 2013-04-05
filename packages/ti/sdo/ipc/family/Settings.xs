@@ -184,6 +184,13 @@ var procNames = {
     'TMS320C6474'       : ["CORE0", "CORE1", "CORE2"],
     'OMAP3530'          : ["DSP", "HOST"],
     'OMAP4430'          : ["DSP", "CORE0", "CORE1", "HOST"],
+
+    /*
+     * Note that only SMP-BIOS is supported on OMAP5430, so there's only
+     * one "IPU" proc defined for the dual-core M4.
+     */
+    'OMAP5430'          : ["DSP", "IPU", "HOST"],
+
     'Arctic'            : ["DSP", "ARP32"],
     'F28M3.*'           : ["M3", "C28"],
     'LM3.*'             : [ "" ],  /* single core, any name can be used */
