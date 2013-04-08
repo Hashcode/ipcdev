@@ -50,20 +50,21 @@ endif
 
 all: .qnx
 
-.qnx: .qnx,omap5432
+.qnx: .qnx,$(DEVICE)
 
 .qnx,%: PATH:=$(QNX_PATH):$(PATH)
 .qnx,%:
 	@echo "building Qnx user libraries for" $(*:.qnx,=) "..."
 	@make -C qnx \
                 IPC_REPO=`pwd` \
-                PLATFORM=$(*:.qnx,=)
+                PLATFORM=$(*:.qnx,=) \
+                BUILD_FOR_VIRTIO=$(BUILD_FOR_VIRTIO)
 
 clean:
 	@echo "cleaning Qnx user libraries ..."
 	@make -C qnx clean
 
-install: .install,omap5432
+install: .install,$(DEVICE)
 
 .install,%: PATH:=$(QNX_PATH):$(PATH)
 .install,%:
@@ -72,5 +73,6 @@ install: .install,omap5432
 	@make -C qnx \
                 IPC_REPO=`pwd` \
                 PLATFORM=$(*:.qnx,=) \
+                BUILD_FOR_VIRTIO=$(BUILD_FOR_VIRTIO) \
 		DESTDIR=$(DESTDIR) \
 		install

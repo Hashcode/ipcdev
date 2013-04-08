@@ -57,13 +57,16 @@ endif # ifeq ("$(TILER_PLATFORM)", "omap4430")
 ifeq ("$(TILER_PLATFORM)", "omap5430")
 CCOPTS += -DTILER_PLATFORM_OMAP5
 endif # ifeq ("$(TILER_PLATFORM)", "omap5430")
+ifeq ("$(TILER_PLATFORM)", "vayu")
+CCOPTS += -DTILER_PLATFORM_OMAP5
+endif # ifeq ("$(TILER_PLATFORM)", "vayu")
 
 EXTRA_INCVPATH+=$(PROJECT_ROOT)/public \
 				$(PROJECT_ROOT)/../../tiler_pat
 EXTRA_SRCVPATH+=$(PROJECT_ROOT)/tcm
 
-ifneq ("$(TILER_PLATFORM)", "omap5430")
+ifeq ("$(TILER_PLATFORM)", "omap4430")
 LIBS += login
-endif # ifneq ("$(TILER_PLATFORM)", "omap5430")
+endif # ifneq ("$(TILER_PLATFORM)", "omap4430")
 
 include $(MKFILES_ROOT)/qtargets.mk

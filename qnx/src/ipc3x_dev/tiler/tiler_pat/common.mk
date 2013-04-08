@@ -55,6 +55,9 @@ endif # ifeq ("$(TILER_PLATFORM)", "omap4430")
 ifeq ("$(TILER_PLATFORM)", "omap5430")
 CCOPTS += -DTILER_PLATFORM_OMAP5
 endif # ifeq ("$(TILER_PLATFORM)", "omap5430")
+ifeq ("$(TILER_PLATFORM)", "vayu")
+CCOPTS += -DTILER_PLATFORM_OMAP5
+endif # ifeq ("$(TILER_PLATFORM)", "vayu")
 
 USEFILE =
 NAME = tiler_pat
