@@ -31,24 +31,21 @@
  */
 /*
  *  ======== TableInit.xdc ========
- *
  */
-
-import ti.sdo.utils.MultiProc;
 
 /*!
  *  ======== TableInit ========
  */
 
-module TableInit
+metaonly module TableInit
 {
     /*!
      *  ======== initProcId ========
      */
-    metaonly Void initProcId(Any InterruptCore);
+    Void initProcId(Any InterruptCore);
 
     /*!
      *  ======== generateTable ========
      */
-    metaonly Void generateTable(Any InterruptCore);
+    Void generateTable(Any InterruptCore);
 }
