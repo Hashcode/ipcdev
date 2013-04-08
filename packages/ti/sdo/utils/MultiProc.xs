@@ -170,8 +170,16 @@ function setConfig(name, nameList)
         var id = this.getIdMeta(name);
 
         if (id == MultiProc.INVALIDID) {
+            /* convert XDC array into js array for easy printing */
+            var nameListArray = new Array();
+
+            for (var k in MultiProc.nameList) {
+                nameListArray.push(MultiProc.nameList[k]);
+            }
+
             MultiProc.$logError("The processor name (" + name +
-                ") is not contained within the nameList", this);
+                ") is not contained within the following configured names: '" +
+                nameListArray.join(", ") + "'", this);
         }
 
         /* only get here if id is valid */
