@@ -38,13 +38,13 @@ include $(QCONFIG)
 
 hinstall:
 install:
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_omx.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/rpmsg_omx.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_dce.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/rpmsg_dce.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/ti_ipc.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/ti_ipc.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_rpc.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/rpmsg_rpc.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/HwSpinLockUsr.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/HwSpinLockUsr.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/GateHWSpinlock.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/GateHWSpinlock.h
-	$(CP_HOST) -Rv $(PROJECT_ROOT)../Std.h $(INSTALL_ROOT_nto)/usr/include/ti/syslink/ti/syslink/Std.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_omx.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/rpmsg_omx.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_dce.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/rpmsg_dce.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/ti_ipc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/ti_ipc.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/rpmsg_rpc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/rpmsg_rpc.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/ti/ipc/HwSpinLockUsr.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/HwSpinLockUsr.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../inc/GateHWSpinlock.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/GateHWSpinlock.h
+	$(CP_HOST) -Rv $(PROJECT_ROOT)../Std.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/ti/ipc/Std.h
 clean:
 	true
 
