@@ -7,7 +7,7 @@
 sharedmemallocator/resmgr/arm/le.v7/shmemallocator
 sharedmemallocator/samples/sharedMemAllocator/usr/arm/le.v7/SharedMemoryAllocatorTestApp
 ti/syslink/build/Qnx/resmgr/arm/le.v7/syslink
-ti/syslink/build/Qnx/traceDaemon/arm/le.v7/syslink_trace_daemon
+ti/syslink/build/Qnx/traceDaemon/arm/le.v7/ipc_trace_daemon
 ti/syslink/samples/hlos/MessageQCopy/usr/arm/le.v7/mqcopytestapp
 ti/syslink/samples/hlos/benchmark/usr/arm/le.v7/rpmsg-omx-benchmark
 ti/syslink/samples/hlos/hwspinlock/usr/arm/le.v7/HwSpinLockTestApp

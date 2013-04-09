@@ -37,7 +37,7 @@ define PINFO
 PINFO DESCRIPTION=Trace daemon
 endef
 
-NAME = syslink_trace_daemon
+NAME = ipc_trace_daemon
 INSTALLDIR = bin
 
 #SYSLINK Product root path

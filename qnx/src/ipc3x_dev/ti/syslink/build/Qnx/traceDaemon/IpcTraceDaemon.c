@@ -1,28 +1,28 @@
 /*
- *  @file  SyslinkDaemon.c
+ *  @file  IpcTraceDaemon.c
  *
- *  @brief  Daemon for Syslink trace
+ *  @brief  Daemon for remote core IPC traces
  *
  *
  *  ============================================================================
- *  
+ *
  *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
- *  
+ *
  *  *  Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
- *  
+ *
  *  *  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *  
+ *
  *  *  Neither the name of Texas Instruments Incorporated nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
- *  
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  *  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -38,11 +38,11 @@
  *  Texas Instruments
  *  Post Office Box 655303
  *  Dallas, Texas 75265
- *  Contact information: 
+ *  Contact information:
  *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
  *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
  *  ============================================================================
- *  
+ *
  */
 
 /* OS-specific headers */
@@ -158,7 +158,7 @@ int main (int argc, char * argv [])
         }
     }
 
-    printf ("Spawning SysLink Trace daemon...\n");
+    printf ("Spawning IPC Trace daemon...\n");
 
     /* background the process, if requested */
     if (daemon) {
