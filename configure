@@ -461,7 +461,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE CMEM_TRUE CMEM_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE CMEM_TRUE CMEM_FALSE KDIR_TRUE KDIR_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -16809,10 +16809,20 @@ fi
 fi
 
 
-if test "x$KERNEL_INSTALL_DIR" = "x"; then
-  { { echo "$as_me:$LINENO: error: Kernel path is not set" >&5
-echo "$as_me: error: Kernel path is not set" >&2;}
+# Test platform for omap5 variable and require a KERNEL path
+if test "x$PLATFORM" = "xomap54xx_smp"; then
+  if test "x$KERNEL_INSTALL_DIR" = "x"; then
+  { { echo "$as_me:$LINENO: error: Kernel path for ${PLATFORM} is not set" >&5
+echo "$as_me: error: Kernel path for ${PLATFORM} is not set" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
+fi
+
+
+# Ignore KERNEL path when no platform is set
+if test "x$PLATFORM" = "x"; then
+  KERNEL_INSTALL_DIR=
 fi
 
 
@@ -16873,6 +16883,16 @@ else
 fi
 
 
+
+if test "x$KERNEL_INSTALL_DIR" != "x"; then
+  KDIR_TRUE=
+  KDIR_FALSE='#'
+else
+  KDIR_TRUE='#'
+  KDIR_FALSE=
+fi
+
+
 # Generate Makefile(s)
           ac_config_files="$ac_config_files Makefile"
 
@@ -16884,11 +16904,11 @@ fi
 
           ac_config_files="$ac_config_files linux/src/family/Makefile"
 
+          ac_config_files="$ac_config_files linux/src/mm/Makefile"
+
           ac_config_files="$ac_config_files linux/src/daemon/Makefile"
 
           ac_config_files="$ac_config_files linux/src/tests/Makefile"
-
-          ac_config_files="$ac_config_files linux/src/mm/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -17079,6 +17099,13 @@ if test -z "${CMEM_TRUE}" && test -z "${CMEM_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"CMEM\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"CMEM\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${KDIR_TRUE}" && test -z "${KDIR_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"KDIR\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"KDIR\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -17526,9 +17553,9 @@ do
   "linux/src/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/utils/Makefile" ;;
   "linux/src/api/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/api/Makefile" ;;
   "linux/src/family/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/family/Makefile" ;;
+  "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
   "linux/src/daemon/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/daemon/Makefile" ;;
   "linux/src/tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/tests/Makefile" ;;
-  "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -17694,6 +17721,8 @@ s,@OMAP54XX_SMP_TRUE@,$OMAP54XX_SMP_TRUE,;t t
 s,@OMAP54XX_SMP_FALSE@,$OMAP54XX_SMP_FALSE,;t t
 s,@CMEM_TRUE@,$CMEM_TRUE,;t t
 s,@CMEM_FALSE@,$CMEM_FALSE,;t t
+s,@KDIR_TRUE@,$KDIR_TRUE,;t t
+s,@KDIR_FALSE@,$KDIR_FALSE,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF
@@ -18177,7 +18206,10 @@ Compilation command: '${CC} ${CFLAGS} ${CPPFLAGS}'
 
 You have configured to build for the '${PLATFORM}' platform
 
-Your CMEM installation is at:
+Your KERNEL installation directory is set to:
+    '${KERNEL_INSTALL_DIR}'
+
+Your CMEM installation directory is set to:
     '${CMEM_INSTALL_DIR}'
 
 Now type 'make; sudo make install' to generate the program

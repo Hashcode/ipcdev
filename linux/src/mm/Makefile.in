@@ -37,6 +37,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@KDIR_TRUE@am__append_1 = libmmrpc.la
 subdir = linux/src/mm
 DIST_COMMON = $(libmmrpc_la_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -59,6 +60,7 @@ libmmrpc_la_LIBADD =
 am__objects_1 =
 am_libmmrpc_la_OBJECTS = $(am__objects_1) MmRpc.lo
 libmmrpc_la_OBJECTS = $(am_libmmrpc_la_OBJECTS)
+@KDIR_TRUE@am_libmmrpc_la_rpath = -rpath $(libdir)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -115,6 +117,8 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+KDIR_FALSE = @KDIR_FALSE@
+KDIR_TRUE = @KDIR_TRUE@
 KERNEL_INSTALL_DIR = @KERNEL_INSTALL_DIR@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
@@ -196,7 +200,7 @@ target_alias = @target_alias@
 ###############################################################################
 
 # the library names to build (note we are building shared libs)
-lib_LTLIBRARIES = libmmrpc.la
+lib_LTLIBRARIES = $(am__append_1)
 
 # where to install the headers on the system
 libmmrpc_ladir = $(includedir)
@@ -273,7 +277,7 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libmmrpc.la: $(libmmrpc_la_OBJECTS) $(libmmrpc_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libmmrpc_la_LDFLAGS) $(libmmrpc_la_OBJECTS) $(libmmrpc_la_LIBADD) $(LIBS)
+	$(LINK) $(am_libmmrpc_la_rpath) $(libmmrpc_la_LDFLAGS) $(libmmrpc_la_OBJECTS) $(libmmrpc_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

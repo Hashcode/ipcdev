@@ -41,11 +41,14 @@ VPATH = ../../../packages/ti/ipc/tests
 ###############################################################################
 
 # the program to build (the names of the final binaries)
-bin_PROGRAMS = ping_rpmsg mmrpc_test
+bin_PROGRAMS = ping_rpmsg
 
 if OMAP54XX_SMP
   bin_PROGRAMS += MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
                 MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp
+if KDIR
+  bin_PROGRAMS += mmrpc_test
+endif
 else
 if OMAPL138
   bin_PROGRAMS += MessageQApp_omapl138 MessageQBench_omapl138 \

@@ -39,7 +39,11 @@ AM_CFLAGS = -Wall @AM_CFLAGS@ -DKERNEL_INSTALL_DIR="$(KERNEL_INSTALL_DIR)"
 ###############################################################################
 
 # the library names to build (note we are building shared libs)
-lib_LTLIBRARIES = libmmrpc.la
+lib_LTLIBRARIES =
+
+if KDIR
+lib_LTLIBRARIES += libmmrpc.la
+endif
 
 # where to install the headers on the system
 libmmrpc_ladir = $(includedir)

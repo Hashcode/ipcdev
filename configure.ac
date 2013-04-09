@@ -83,7 +83,13 @@ AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
   [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])
 
-AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"], [AC_MSG_ERROR([Kernel path is not set])])
+# Test platform for omap5 variable and require a KERNEL path
+AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
+   [AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
+   [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])])
+
+# Ignore KERNEL path when no platform is set
+AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=]) 
 
 # Export optional user variable to Makefile(s)
 AC_SUBST([PLATFORM])
@@ -96,6 +102,7 @@ AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xtci6614"])
 AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xtci6638"]) 
 AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xomap54xx_smp"])
 AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"]) 
+AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"]) 
 
 # Generate Makefile(s)
 AC_CONFIG_FILES([Makefile])
@@ -103,9 +110,9 @@ AC_CONFIG_FILES([linux/etc/Makefile])
 AC_CONFIG_FILES([linux/src/utils/Makefile])
 AC_CONFIG_FILES([linux/src/api/Makefile])
 AC_CONFIG_FILES([linux/src/family/Makefile])
+AC_CONFIG_FILES([linux/src/mm/Makefile])
 AC_CONFIG_FILES([linux/src/daemon/Makefile])
 AC_CONFIG_FILES([linux/src/tests/Makefile])
-AC_CONFIG_FILES([linux/src/mm/Makefile])
 AC_OUTPUT
 
 echo \
@@ -118,7 +125,10 @@ Compilation command: '${CC} ${CFLAGS} ${CPPFLAGS}'
 
 You have configured to build for the '${PLATFORM}' platform
 
-Your CMEM installation is at:
+Your KERNEL installation directory is set to:
+    '${KERNEL_INSTALL_DIR}'
+
+Your CMEM installation directory is set to:
     '${CMEM_INSTALL_DIR}'
 
 Now type 'make; sudo make install' to generate the program
