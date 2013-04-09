@@ -43,8 +43,7 @@ var MultiProc            = null;
 function module$use()
 {
     TransportRpmsgSetup = this;
-    TransportRpmsg =
-            xdc.useModule("ti.ipc.transports.TransportRpmsg");
+    TransportRpmsg = xdc.useModule("ti.ipc.transports.TransportRpmsg");
     MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
 }
 

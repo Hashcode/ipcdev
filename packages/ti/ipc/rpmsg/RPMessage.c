@@ -78,10 +78,8 @@
 #include <string.h>
 
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Error.h>
 #include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Memory.h>
-#include <xdc/runtime/Main.h>
 #include <xdc/runtime/Registry.h>
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>

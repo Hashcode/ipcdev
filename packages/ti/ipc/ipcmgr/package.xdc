@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,9 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * */
+ *
+ */
+
 /*
  *  ======== package.xdc ========
  */
@@ -37,5 +39,6 @@
  *  ======== ti.ipc.ipcmgr ========
  *  Home for ipc startup (and later config/other fxns) for rpmsg based IPC.
  */
-package ti.ipc.ipcmgr [1,0,0,0] {
+package ti.ipc.ipcmgr [1,0,0] {
+    module IpcMgr;
 }

@@ -69,7 +69,13 @@ function init()
  */
 function close()
 {
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
     Program.exportModule('ti.sysbios.knl.Idle');
+
+    xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
 }
 
 /*
