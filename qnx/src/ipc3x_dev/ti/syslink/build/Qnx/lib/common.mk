@@ -6,9 +6,9 @@ include $(QCONFIG)
 INSTALLDIR=/usr/lib
 
 define PINFO
-PINFO DESCRIPTION=Syslink QNX Usr Libs
+PINFO DESCRIPTION=IPC QNX Usr Libs
 endef
-NAME=syslink_client
+NAME=ipc_client
 
 # ---------------------------------------------------------------------------- #
 # Defines                                                                      #

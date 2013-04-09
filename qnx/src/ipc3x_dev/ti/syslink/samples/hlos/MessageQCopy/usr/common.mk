@@ -59,6 +59,6 @@ CCOPTS+=-g -O0 -DSYSLINK_PLATFORM_OMAP4430 -DSYSLINK_BUILDOS_QNX
 
 EXTRA_LIBVPATH += $(SYSLINK_ROOT)/ti/syslink/build/$(SYSLINK_BUILDOS)/lib/arm/so.le.v7 \
 				  $(SYSLINK_ROOT)/ti/syslink/build/$(SYSLINK_BUILDOS)/lib/arm/a.le.v7
-LDOPTS+=-lsyslink_client
+LDOPTS+=-lipc_client
 
 include $(MKFILES_ROOT)/qtargets.mk

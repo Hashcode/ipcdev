@@ -36,7 +36,7 @@ CCFLAGS += -O3
 $(PROJECT_ROOT)/arm/o.le.v7/MessageQApp: $(IPC_REPO)/qnx/src/api/arm/a.le.v7/libipc.a
 $(PROJECT_ROOT)/arm/o.le.v7/MessageQApp: $(IPC_REPO)/qnx/src/utils/arm/a.le.v7/libutils.a
 $(PROJECT_ROOT)/arm/o.le.v7/MessageQApp: $(IPC_REPO)/qnx/src/family/arm/a.le.v7/libcfg.a
-$(PROJECT_ROOT)/arm/o.le.v7/MessageQApp: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libsyslink_clientS.a
+$(PROJECT_ROOT)/arm/o.le.v7/MessageQApp: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
 # link with syslink static library, dynamic for others
 LIBPREF_ipc = -Bstatic
@@ -45,8 +45,8 @@ LIBPREF_utils = -Bstatic
 LIBPOST_utils = -Bdynamic
 LIBPREF_cfg = -Bstatic
 LIBPOST_cfg = -Bdynamic
-LIBPREF_syslink_client = -Bstatic
-LIBPOST_syslink_client = -Bdynamic
+LIBPREF_ipc_client = -Bstatic
+LIBPOST_ipc_client = -Bdynamic
 
 # add libpath and libs
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/api/arm/a.le.v7
@@ -56,7 +56,7 @@ LIBS += utils
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/family/arm/a.le.v7
 LIBS += cfg
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7
-LIBS += syslink_clientS
+LIBS += ipc_clientS
 
 # copy and rename executables to suit our preferences (TODO: where do we copy the executables)
 #POST_BUILD = \

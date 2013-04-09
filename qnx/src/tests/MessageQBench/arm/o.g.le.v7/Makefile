@@ -34,7 +34,7 @@ include ../../common.mk
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQBenchApp_g: $(IPC_REPO)/qnx/src/api/arm/a.g.le.v7/libipc_g.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQBenchApp_g: $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7/libutils_g.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQBenchApp_g: $(IPC_REPO)/qnx/src/family/arm/a.g.le.v7/libcfg_g.a
-$(PROJECT_ROOT)/arm/o.g.le.v7/MessageQBench_g: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libsyslink_clientS.a
+$(PROJECT_ROOT)/arm/o.g.le.v7/MessageQBench_g: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
 # link with syslink static library, dynamic for others
 LIBPREF_ipc_g = -Bstatic
@@ -43,8 +43,8 @@ LIBPREF_utils_g = -Bstatic
 LIBPOST_utils_g = -Bdynamic
 LIBPREF_cfg_g = -Bstatic
 LIBPOST_cfg_g = -Bdynamic
-LIBPREF_syslink_client = -Bstatic
-LIBPOST_syslink_client = -Bdynamic
+LIBPREF_ipc_client = -Bstatic
+LIBPOST_ipc_client = -Bdynamic
 
 # add libpath and libs
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/api/arm/a.g.le.v7
@@ -54,7 +54,7 @@ LIBS += utils_g
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/family/arm/a.g.le.v7
 LIBS += cfg_g
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7
-LIBS += syslink_clientS
+LIBS += ipc_clientS
 
 
 # copy and rename executables to suit our preferences (TODO: where do we copy the executables)

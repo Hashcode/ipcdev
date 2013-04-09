@@ -50,6 +50,6 @@ EXTRA_INCVPATH+=$(SYSLINK_ROOT)/inc	\
 CCOPTS+=-g -O0
 
 EXTRA_LIBVPATH += $(SYSLINK_ROOT)/build/Qnx/lib/arm/so.le.v7
-LDOPTS+= -lsyslink_client
+LDOPTS+= -lipc_client
 
 include $(MKFILES_ROOT)/qtargets.mk
