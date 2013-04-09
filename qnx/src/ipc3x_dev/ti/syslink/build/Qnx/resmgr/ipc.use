@@ -1,6 +1,6 @@
-syslink - SysLink Resource Manager
+ipc - IPC Resource Manager
 
-syslink [-fHT]
+ipc [-fHT]
 
 Options:
  -f <file_name> Name of the Ducati firmware file to load.  *Must be specified*

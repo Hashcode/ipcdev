@@ -1153,7 +1153,7 @@ int main(int argc, char *argv[])
     char *user_parm = NULL;
     struct stat          sbuf;
 
-    if (-1 != stat("/dev/syslink", &sbuf)) {
+    if (-1 != stat(IPC_DEVICE_PATH, &sbuf)) {
         printf ("Syslink Already Running...\n");
         return EXIT_FAILURE;
     }
