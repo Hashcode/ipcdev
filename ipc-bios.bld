@@ -105,10 +105,12 @@ var ccOpts = {
 };
 
 /* Enable building SMP-BIOS enabled libraries for targets that support it */
-xdc.module("ti.targets.arm.elf.M3").profiles["smp"] =
-        xdc.module("ti.targets.arm.elf.M3").profiles["debug"];
-xdc.module("ti.targets.arm.elf.M4").profiles["smp"] =
-        xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
+if (Pkg.name.match(/^ti\.sdo\.(ipc|utils)/)) {
+    xdc.module("ti.targets.arm.elf.M3").profiles["smp"] =
+            xdc.module("ti.targets.arm.elf.M3").profiles["debug"];
+    xdc.module("ti.targets.arm.elf.M4").profiles["smp"] =
+            xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
+}
 
 /* initialize local vars with those set in xdcpaths.mak (via XDCARGS) */
 for (arg = 0; arg < arguments.length; arg++) {
