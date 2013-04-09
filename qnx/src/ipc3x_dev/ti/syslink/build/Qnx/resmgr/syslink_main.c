@@ -361,7 +361,7 @@ int init_syslink_device(syslink_dev_t *dev)
         trace_attr->procid = i;
         iofunc_time_update(&trace_attr->attr);
         snprintf (dev->syslink.device_name, _POSIX_PATH_MAX,
-                  "/dev/syslink-trace%d", syslink_firmware[i].proc_id);
+                  "/dev/ipc-trace%d", syslink_firmware[i].proc_id);
         dev->syslink.iofuncs_trace[i].read = syslink_read;
         snprintf (trace_name, _POSIX_PATH_MAX, "%d", 0);
         pa = 0;

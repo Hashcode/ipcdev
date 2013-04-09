@@ -6,7 +6,7 @@
  *
  *  ============================================================================
  *  
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -89,10 +89,10 @@ void printTraces (void *arg)
     fprintf (log, "\nSpawning procId %d trace thread\n ", index);
 
     /* Initialize read indexes to zero */
-    snprintf (path, _POSIX_PATH_MAX, "/dev/syslink-trace%d", index);
+    snprintf (path, _POSIX_PATH_MAX, "/dev/ipc-trace%d", index);
     fd = open(path, O_RDONLY);
     if (fd < 0) {
-        perror("Unable to open syslink-trace");
+        perror("Unable to open ipc-trace");
         goto EXIT;
     }
     do {
@@ -112,7 +112,7 @@ void printTraces (void *arg)
         fflush (log);
         sem_post(&semPrint);    /* Release exclusive access to printing */
         if (numOfBytesInBuffer < 0) {
-            perror ("\nError reading from syslink-trace");
+            perror ("\nError reading from ipc-trace");
             break;
         }
         sleep (TIMEOUT_SECS);
@@ -173,7 +173,7 @@ int main (int argc, char * argv [])
 
     sem_init(&semPrint, 0, 1);
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
-        snprintf (names[i], _POSIX_PATH_MAX, "/dev/syslink-trace%d", i);
+        snprintf (names[i], _POSIX_PATH_MAX, "/dev/ipc-trace%d", i);
         if (-1 != stat(names[i], &sbuf)) {
             pthread_create (&threads[i], NULL, (void *)&printTraces, (void *)i);
         }
