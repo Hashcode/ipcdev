@@ -353,7 +353,8 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
 
         Task_Params_init(&taskParams);
         taskParams.instance->name = channelName;
-        taskParams.priority = 1;   /* Lowest priority thread */
+        taskParams.stackSize = 0x2000; /* must cover all proxy stack usage */
+        taskParams.priority = 1;   /* lowest priority thread */
         taskParams.arg0 = (UArg)obj;
 
         obj->exitSem = Semaphore_create(0, NULL, NULL);
