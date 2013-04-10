@@ -98,9 +98,16 @@ for (var i = 0; i < Build.targets.length; i++) {
                 // replace all ':' and '.' with '_' in platform name
                 platform.replace(/\:/g, "_").replace(/\./g, "_");
 
-        Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
-            cfgScript: "ping_rpmsg"
-        }).addObjects(["ping_rpmsg.c"]);
+        if (targ.isa.match(/^v7M(|4)$/)) {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg",
+                defs: " -DOMAP5"
+            }).addObjects(["ping_rpmsg.c"]);
+        } else {
+            Pkg.addExecutable(name + "/ping_rpmsg", targ, platform, {
+                cfgScript: "ping_rpmsg"
+            }).addObjects(["ping_rpmsg.c"]);
+        }
 
         /* Only build this for our multicore platforms: */
         if (platform.match(/^ti\.platforms\.simKepler/) ||
@@ -137,7 +144,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (platform.match(/^ti\.platform\.omap54xx\.ipu/)) {
             Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
                 cfgScript: "test_omx_ipu_omap5",
-                defs: "-D IPU -D OMAP5xxx"
+                defs: "-D IPU -D OMAP5xxx -DOMAP5"
             }).addObjects(["test_omx.c","ping_tasks.c","rpc_task.c",
                     "MxServer.c"]);
         }

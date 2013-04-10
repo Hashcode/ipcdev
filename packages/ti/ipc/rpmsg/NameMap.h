@@ -33,7 +33,12 @@
 #ifndef _NAMEMAP_H_
 #define _NAMEMAP_H_
 
+#ifdef OMAP5  /* temporarily OMAP5-specific until upstream change ready */
 extern void NameMap_register(Char * name, Char * desc, UInt32 value);
 extern void NameMap_unregister(Char * name, Char * desc, UInt32 value);
+#else
+extern void NameMap_register(Char * name, UInt32 value);
+extern void NameMap_unregister(Char * name, UInt32 value);
+#endif
 
 #endif

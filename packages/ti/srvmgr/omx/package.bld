@@ -58,16 +58,24 @@ for (var i = 0; i < Build.targets.length; i++) {
 
     /* Build for all profiles */
     for (var profile in targ.profiles) {
-        Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
-            profile: profile,
-        }).addObjects(SRCS);
 
-        /* And SMP-enabled libraries for M3 and M4 */
+        /* Unfortunately, only OMAP5 HLOS's currently support this (due to an
+         * update required in the rpmsg name service announcement).
+         */
+
+        /* SMP-enabled libraries for M3 and M4 */
         if (targ.isa.match(/^v7M(|4)$/)) {
             Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_smp", targ, {
                 profile: profile,
-                defs: " -DSMP"
+                defs: " -DOMAP5 -DSMP"
             }).addObjects(SRCS);
+        } else if (targ.isa == "64T") {
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
+                profile: profile,
+                defs: " -DOMAP5"
+            }).addObjects(SRCS);
+        } else {
+            /* skip it - no non-OMAP5 targets are supported */
         }
     }
 }

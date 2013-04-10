@@ -69,7 +69,11 @@ Void copyTaskFxn(UArg arg0, UArg arg1)
     /* Create the messageQ for receiving (and get our endpoint for sending). */
     handle = RPMessage_create(arg0, NULL, NULL, &myEndpoint);
 
+#ifdef OMAP5
     NameMap_register("rpmsg-client-sample", "sample-desc", arg0);
+#else
+    NameMap_register("rpmsg-client-sample", arg0);
+#endif
 
     for (i = 0; i < APP_NUM_ITERATIONS; i++) {
        /* Await a character message: */
