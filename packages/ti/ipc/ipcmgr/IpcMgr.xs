@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
- *  ======== TransportRpmsgSetup.xs ========
+ *  ======== IpcMgr.xs ========
  */
 
-var TransportRpmsgSetup = null;
-var TransportRpmsg      = null;
-var MultiProc            = null;
 
 /*
  *  ======== module$use ========
+ *  Use other modules required by this module
  */
 function module$use()
 {
-    TransportRpmsgSetup = this;
-    TransportRpmsg = xdc.useModule("ti.ipc.transports.TransportRpmsg");
-    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
-}
+    var IpcMgr = this;
 
-/*
- * ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
-    /* set the length of handles to the number of processors */
-    mod.handles.length = MultiProc.numProcessors;
+    switch (IpcMgr.transportCombo) {
 
-    /* init the remote processor handles to null */
-    for (var i=0; i < mod.handles.length; i++) {
-        mod.handles[i] = null;
+        case IpcMgr.TransCombo_RPMSG:
+            xdc.loadPackage('ti.ipc.rpmsg');
+            break;
+
+        case IpcMgr.TransCombo_RMSG_MESSAGEQ:
+            xdc.useModule('ti.ipc.namesrv.NameServerRemoteRpmsg');
+            xdc.loadPackage('ti.ipc.rpmsg');
+            xdc.useModule('ti.ipc.transports.TransportRpmsgSetup');
+            xdc.loadPackage('xdc.runtime');
+            break;
+
+        case IpcMgr.TransCombo_IPC:
+            break;
     }
 }

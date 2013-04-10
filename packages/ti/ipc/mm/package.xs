@@ -36,6 +36,23 @@
  */
 
 /*
+ *  ======== close ========
+ */
+function close()
+{
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
+    xdc.useModule('ti.grcm.RcmServer');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+    xdc.loadPackage('ti.srvmgr');
+    xdc.loadPackage('ti.srvmgr.omaprpc');
+    xdc.useModule('xdc.runtime.Memory');
+    xdc.useModule('xdc.runtime.System');
+}
+
+/*
  *  ======== getLibs ========
  */
 function getLibs(prog)

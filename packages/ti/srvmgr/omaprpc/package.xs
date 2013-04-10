@@ -36,6 +36,15 @@
  */
 
 /*
+ *  ======== close ========
+ */
+function close()
+{
+    xdc.loadPackage('ti.ipc.rpmsg');
+    xdc.loadPackage('ti.srvmgr');
+}
+
+/*
  *  ======== getLibs ========
  */
 function getLibs(prog)

@@ -37,4 +37,5 @@
  */
 
 package ti.ipc.mm [1,0,0] {
+    module MmServiceMgr;
 };

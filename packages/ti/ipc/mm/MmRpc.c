@@ -111,7 +111,7 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
     obj->fd = open(cbuf, O_RDWR);
 
     if (obj->fd < 0) {
-        printf("MmRpc_create: Error: open failed\n");
+        printf("MmRpc_create: Error: open failed, name=%s\n", cbuf);
         status = MmRpc_E_FAIL;
         goto leave;
     }

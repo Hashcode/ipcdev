@@ -42,6 +42,44 @@ function close()
 {
     Program.exportModule('ti.sysbios.hal.Cache');
     Program.exportModule('ti.sysbios.knl.Idle');
+
+    var device = Program.cpu.deviceName;
+
+    switch (device) {
+        case "OMAP5430": /* OMAP5 */
+            xdc.loadPackage('ti.ipc.family.omap54xx');
+            break;
+
+        case "OMAPL138":
+            xdc.useModule('ti.ipc.family.omapl138.VirtQueue');
+            break;
+
+        case "TMS320TCI6614":
+            xdc.useModule('ti.ipc.family.tci6614.VirtQueue');
+            break;
+
+        case "Kepler":
+        case "TMS320TCI6638":
+            xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
+            break;
+
+        default:
+            throw new Error("Unspported device: " + device);
+            break;
+    }
+
+    xdc.useModule('xdc.runtime.Assert');
+    xdc.useModule('xdc.runtime.Diags');
+    xdc.useModule('xdc.runtime.Log');
+    xdc.useModule('xdc.runtime.Memory');
+    xdc.useModule('xdc.runtime.Registry');
+    xdc.useModule('xdc.runtime.System');
+
+    xdc.useModule('ti.sysbios.BIOS');
+    xdc.useModule('ti.sysbios.gates.GateSwi');
+    xdc.useModule('ti.sysbios.heaps.HeapBuf');
+    xdc.useModule('ti.sysbios.knl.Semaphore');
+    xdc.useModule('ti.sysbios.knl.Swi');
 }
 
 /*
@@ -61,7 +99,8 @@ function getLibs(prog)
         return ("");
     }
 
-    if (prog.platformName.match(/ipu/)) {
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    if (BIOS.smpEnabled == true) {
         smp = "_smp";
     }
 

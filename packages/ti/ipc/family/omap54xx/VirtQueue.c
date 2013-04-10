@@ -61,7 +61,6 @@
 #include <xdc/runtime/Diags.h>
 
 #include <ti/sysbios/hal/Hwi.h>
-#include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/knl/Clock.h>
 #include <ti/sysbios/gates/GateAll.h>
 #include <ti/sysbios/BIOS.h>

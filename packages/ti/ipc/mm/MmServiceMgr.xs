@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,21 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== TransportRpmsgSetup.xs ========
- */
 
-var TransportRpmsgSetup = null;
-var TransportRpmsg      = null;
-var MultiProc            = null;
+/*
+ *  ======== MmServiceMgr.xs ========
+ */
 
 /*
  *  ======== module$use ========
+ *  Use other modules required by this module
  */
 function module$use()
 {
-    TransportRpmsgSetup = this;
-    TransportRpmsg = xdc.useModule("ti.ipc.transports.TransportRpmsg");
-    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
-}
-
-/*
- * ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
-    /* set the length of handles to the number of processors */
-    mod.handles.length = MultiProc.numProcessors;
-
-    /* init the remote processor handles to null */
-    for (var i=0; i < mod.handles.length; i++) {
-        mod.handles[i] = null;
-    }
+    xdc.useModule('ti.grcm.RcmServer');
+    xdc.useModule('ti.sdo.utils.MultiProc');
+    xdc.loadPackage('ti.srvmgr');
+    xdc.loadPackage('ti.srvmgr.omaprpc');
+    xdc.useModule('xdc.runtime.Memory');
+    xdc.useModule('xdc.runtime.System');
 }

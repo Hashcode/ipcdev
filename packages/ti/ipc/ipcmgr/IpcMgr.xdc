@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,34 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  ======== TransportRpmsgSetup.xs ========
- */
-
-var TransportRpmsgSetup = null;
-var TransportRpmsg      = null;
-var MultiProc            = null;
 
 /*
- *  ======== module$use ========
+ *  ======== IpcMgr.xdc ========
  */
-function module$use()
+package ti.ipc.ipcmgr;
+
+/*!
+ *  ======== IpcMgr ========
+ *  IPC Manager
+ */
+metaonly module IpcMgr
 {
-    TransportRpmsgSetup = this;
-    TransportRpmsg = xdc.useModule("ti.ipc.transports.TransportRpmsg");
-    MultiProc = xdc.useModule("ti.sdo.utils.MultiProc");
-}
+    /*!
+     *  Transport combinations
+     *
+     *  IpcMgr supports the following transport combinations.
+     */
+    enum TransCombo {
+        TransCombo_RPMSG,               //! RPMessage only
+        TransCombo_RPMSG_MESSAGEQ,      //! RPMessage over MessageQ
+        TransCombo_RPMSG_IPC            //! RpMessage plus IPC between slaves
+    };
 
-/*
- * ======== module$static$init ========
- */
-function module$static$init(mod, params)
-{
-    /* set the length of handles to the number of processors */
-    mod.handles.length = MultiProc.numProcessors;
-
-    /* init the remote processor handles to null */
-    for (var i=0; i < mod.handles.length; i++) {
-        mod.handles[i] = null;
-    }
+    /*!
+     *  Specifies which transport combination will be used
+     *
+     *  This config param must be set in the application config script.
+     *  It has no default value.
+     */
+    config TransCombo transportCombo;
 }

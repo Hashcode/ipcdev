@@ -40,11 +40,17 @@
  */
 function close()
 {
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
     /* bring in modules we use in this package */
-    xdc.useModule('ti.sysbios.knl.Swi');
-    xdc.useModule('ti.sysbios.hal.Cache');
+    xdc.useModule('ti.ipc.remoteproc.Resource');
     xdc.loadPackage('ti.pm');
     xdc.useModule('ti.sysbios.gates.GateAll');
+    xdc.useModule('ti.sysbios.hal.Cache');
+    xdc.useModule('ti.sysbios.knl.Semaphore');
+    xdc.useModule('ti.sysbios.knl.Swi');
 }
 
 /*
@@ -91,4 +97,16 @@ function getLibs(prog)
     }
 
     return libAry.join(";");
+}
+
+/*
+ *  ======== validate ========
+ */
+function validate()
+{
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+
+    if (!BIOS.smpEnabled) {
+        throw new Error(Pkg.$name+" must have BIOS.smpEnabled set to true.");
+    }
 }

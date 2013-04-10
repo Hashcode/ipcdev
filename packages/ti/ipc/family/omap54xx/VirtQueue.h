@@ -88,6 +88,8 @@
 #ifndef ti_ipc_family_omap54xx_VirtQueue__include
 #define ti_ipc_family_omap54xx_VirtQueue__include
 
+#include <xdc/runtime/Error.h>
+
 #if defined (__cplusplus)
 extern "C" {
 #endif

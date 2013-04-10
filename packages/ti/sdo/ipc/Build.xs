@@ -567,8 +567,10 @@ function getProfiles(xdcArgs)
  */
 function buildLibs(objList, relList, filter, xdcArgs)
 {
-    for (var i = 0; i < xdc.module('xdc.bld.BuildEnvironment').targets.length; i++) {
-        var targ = xdc.module('xdc.bld.BuildEnvironment').targets[i];
+    var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+
+    for (var i = 0; i < Build.targets.length; i++) {
+        var targ = Build.targets[i];
 
         /* skip target if not supported */
         if (!supportsTarget(targ, filter)) {
