@@ -105,10 +105,6 @@ Int IpcMgr_Module_startup(Int phase)
     NotifyDriverCirc_Params notifyDrvParams;
     TransportCirc_Params transportParams;
 #ifdef xdc_target__isaCompatible_v7M
-    UInt32 i;
-    volatile UInt32 *memcnf  = (volatile UInt32 *)IpcMgr_MEMCNF;
-    volatile UInt32 *msmsel  = (volatile UInt32 *)IpcMgr_MSxMSEL;
-    volatile UInt32 *mssrcr  = (volatile UInt32 *)IpcMgr_MSxSRCR;
     volatile UInt32 *set = (volatile UInt32 *)MTOCIPCSET;
     volatile UInt32 *stat = (volatile UInt32 *)CTOMIPCSTS;
     volatile UInt32 *ack = (volatile UInt32 *)CTOMIPCACK;
@@ -138,24 +134,6 @@ Int IpcMgr_Module_startup(Int phase)
     }
 
 #ifdef xdc_target__isaCompatible_v7M
-    /*
-     *  The M3 writes the shared memory enable and owner select
-     *  registers before either processor starts using shared memory.
-     */
-
-    /* write the shared memory configuration register */
-    *memcnf = IpcMgr_sharedMemoryEnable;
-
-    /* write the owner select register */
-    *msmsel = IpcMgr_sharedMemoryOwnerMask;
-
-    /* init the owner write access registers */
-    for (i = 0; i < 2; i++) {
-        mssrcr[i] = (IpcMgr_sharedMemoryAccess[(i * 4)])           |
-                    (IpcMgr_sharedMemoryAccess[(i * 4) + 1] << 8)  |
-                    (IpcMgr_sharedMemoryAccess[(i * 4) + 2] << 16) |
-                    (IpcMgr_sharedMemoryAccess[(i * 4) + 3] << 24);
-    }
 
 #else
 
@@ -235,22 +213,6 @@ Int IpcMgr_Module_startup(Int phase)
 Void IpcMgr_init()
 {
 #ifdef xdc_target__isaCompatible_v7M
-    volatile UInt32 *mwrallow  = (volatile UInt32 *)IpcMgr_MWRALLOW;
-    volatile UInt32 *mtocrTestInit = (volatile UInt32 *)IpcMgr_MTOCRTESTINIT;
-    volatile UInt32 *mtocrInitDone = (volatile UInt32 *)IpcMgr_MTOCRINITDONE;
-
-    /* allow writes to protected registers. */
-    *mwrallow = 0xA5A5A5A5;
-
-    /* init MtoCMsgRam */
-    *mtocrTestInit |= 0x1;
-
-    /* make sure init is done */
-    while ((*mtocrInitDone & 0x1) != 0x1) {
-    }
-
-    /* Disable writes to protected registers. */
-    *mwrallow = 0;
 
 #else
 

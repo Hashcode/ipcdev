@@ -40,6 +40,7 @@ var NotifyDriverCirc = null;
 var NameServerBlock  = null;
 var TransportCirc    = null;
 var Hwi              = null;
+var Boot             = null;
 
 /*
  *  ======== module$meta$init ========
@@ -82,6 +83,10 @@ function module$use()
     Hwi = xdc.useModule("ti.sysbios.hal.Hwi");
     Startup = xdc.useModule("xdc.runtime.Startup");
 
+    if (Program.build.target.name.match(/M3.*/)) {
+        Boot = xdc.useModule("ti.catalog.arm.cortexm3.concertoInit.Boot");
+    }
+
     /* Init the number of messages for notify driver */
     NotifyDriverCirc.numMsgs = IpcMgr.numNotifyMsgs;
 
@@ -96,6 +101,42 @@ function module$use()
         this.$logWarning("Warning: IpcMgr.sharedMemoryOwnerMask must only be " +
         "configured on the M3 core.  Configuring this on the C28 core has no " +
         "effect", this);
+    }
+
+    if ((Program.build.target.name.match(/M3.*/)) &&
+        ("sharedMemoryEnable" in Boot)) {
+        if (Boot.$written("sharedMemoryEnable") &&
+            Boot.sharedMemoryEnable != IpcMgr.sharedMemoryEnable) {
+            IpcMgr.$logWarning("Boot.sharedMemoryEnable was set to " +
+            "a value different from IpcMgr.sharedMemoryEnable. " +
+            "IpcMgr.sharedMemoryEnable will override the Boot setting.",
+            IpcMgr, "sharedMemoryEnable");
+        }
+
+        /* override Boot's sharedMemoryEnable with IpcMgr's */
+        Boot.sharedMemoryEnable = IpcMgr.sharedMemoryEnable;
+
+        if (Boot.$written("sharedMemoryOwnerMask") &&
+            Boot.sharedMemoryOwnerMask != IpcMgr.sharedMemoryOwnerMask) {
+            IpcMgr.$logWarning("Boot.sharedMemoryOwnerMask was set to " +
+            "a value different from IpcMgr.sharedMemoryOwnerMask. " +
+            "IpcMgr.sharedMemoryOwnerMask will override the Boot setting.",
+            IpcMgr, "sharedMemoryOwnerMask");
+        }
+
+        /* override Boot's sharedMemoryOwnerMask with IpcMgr's */
+        Boot.sharedMemoryOwnerMask = IpcMgr.sharedMemoryOwnerMask;
+
+        if (Boot.$written("sharedMemoryAccess")) {
+            IpcMgr.$logWarning("Boot.sharedMemoryAccess was modified " +
+            "but IpcMgr.sharedMemoryAccess will override the Boot setting.",
+            IpcMgr, "sharedMemoryAccess");
+        }
+
+        /* override Boot's sharedMemoryAccess with IpcMgr's */
+	for (var i = 0; i < IpcMgr.sharedMemoryAccess.length; i++) {
+            Boot.sharedMemoryAccess[i] = IpcMgr.sharedMemoryAccess[i];
+        }
     }
 }
 

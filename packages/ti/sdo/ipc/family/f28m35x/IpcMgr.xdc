@@ -222,7 +222,7 @@ module IpcMgr
      *  If any data is loaded to a shared RAM segment, the segment must
      *  be enabled prior to loading the program through other means.
      */
-    config Bits32 sharedMemoryEnable = 0xffffffff;
+    metaonly config Bits32 sharedMemoryEnable = 0xffffffff;
 
     /*!
      *  ======== sharedMemoryOwnerMask ========
@@ -235,7 +235,7 @@ module IpcMgr
      *  the sharedMemoryAccess bits.  Setting a '1' in any bit position
      *  makes the C28 the owner of that shared RAM segment.
      */
-    config Bits32 sharedMemoryOwnerMask = 0;
+    metaonly config Bits32 sharedMemoryOwnerMask = 0;
 
     /*!
      *  ======== sharedMemoryAccess ========
@@ -246,7 +246,7 @@ module IpcMgr
      *  It determines the owner write access to each shared RAM segment.
      *  By default, the owner is allowed to fetch, DMA write, and CPU write.
      */
-    config Bits32 sharedMemoryAccess[8];
+    metaonly config Bits32 sharedMemoryAccess[8];
 
     /*!
      *  ======== readAddr ========
