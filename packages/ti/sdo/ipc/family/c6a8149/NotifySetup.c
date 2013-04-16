@@ -140,14 +140,5 @@ SizeT NotifySetup_sharedMemReq(UInt16 remoteProcId, Ptr sharedAddr)
  */
 UInt16 NotifySetup_numIntLines(UInt16 remoteProcId)
 {
-    UInt16 myId = MultiProc_self();
-
-    if (((myId == NotifySetup_eveProcId) &&
-        (remoteProcId == NotifySetup_vpssProcId)) ||
-        ((myId == NotifySetup_vpssProcId) &&
-        (remoteProcId == NotifySetup_eveProcId))) {
-        return (0);
-    }
-
     return (1);
 }

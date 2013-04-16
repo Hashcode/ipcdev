@@ -52,6 +52,9 @@ module InterruptDucati inherits ti.sdo.ipc.notifyDrivers.IInterrupt
     /* Base address for the EVE Mailbox */
     config UInt32 mailboxEveBaseAddr = 0x5908B000;
 
+    /* enables VPSS to EVE communication in place of VIDEO to EVE */
+    config Bool enableVpssToEve = false;
+
 internal:
 
     /*! Statically retrieve procIds to avoid doing this at runtime */

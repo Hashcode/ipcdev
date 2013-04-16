@@ -85,7 +85,8 @@ Void InterruptEve_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     if (remoteProcId == InterruptEve_hostProcId) {
         REG32(MAILBOX_IRQENABLE_SET_EVE) = MAILBOX_REG_VAL(HOST_TO_EVE);
     }
-    else if (remoteProcId == InterruptEve_videoProcId) {
+    else if ((remoteProcId == InterruptEve_videoProcId) ||
+        (remoteProcId == InterruptEve_vpssProcId)) {
         REG32(MAILBOX_IRQENABLE_SET_EVE) = MAILBOX_REG_VAL(VIDEO_TO_EVE);
     }
     else if (remoteProcId == InterruptEve_dspProcId) {
@@ -106,7 +107,8 @@ Void InterruptEve_intDisable(UInt16 remoteProcId,
     if (remoteProcId == InterruptEve_hostProcId) {
         REG32(MAILBOX_IRQENABLE_CLR_EVE) = MAILBOX_REG_VAL(HOST_TO_EVE);
     }
-    else if (remoteProcId == InterruptEve_videoProcId) {
+    else if ((remoteProcId == InterruptEve_videoProcId) ||
+        (remoteProcId == InterruptEve_vpssProcId)) {
         REG32(MAILBOX_IRQENABLE_CLR_EVE) = MAILBOX_REG_VAL(VIDEO_TO_EVE);
     }
     else if (remoteProcId == InterruptEve_dspProcId) {
@@ -143,7 +145,8 @@ Void InterruptEve_intRegister(UInt16 remoteProcId,
     if (remoteProcId == InterruptEve_hostProcId) {
         index = 0;
     }
-    else if (remoteProcId == InterruptEve_videoProcId) {
+    else if ((remoteProcId == InterruptEve_videoProcId) ||
+        (remoteProcId == InterruptEve_vpssProcId)) {
         index = 1;
     }
     else if (remoteProcId == InterruptEve_dspProcId) {
@@ -198,7 +201,8 @@ Void InterruptEve_intUnregister(UInt16 remoteProcId,
     if (remoteProcId == InterruptEve_hostProcId) {
         index = 0;
     }
-    else if (remoteProcId == InterruptEve_videoProcId) {
+    else if ((remoteProcId == InterruptEve_videoProcId) ||
+        (remoteProcId == InterruptEve_vpssProcId)) {
         index = 1;
     }
     else if (remoteProcId == InterruptEve_dspProcId) {
@@ -246,7 +250,8 @@ Void InterruptEve_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
         /* restore interrupts */
         Hwi_restore(key);
     }
-    else if (remoteProcId == InterruptEve_videoProcId) {
+    else if ((remoteProcId == InterruptEve_videoProcId) ||
+        (remoteProcId == InterruptEve_vpssProcId)) {
         /* disable interrupts */
         key = Hwi_disable();
 
@@ -293,7 +298,8 @@ Void InterruptEve_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
         /* restore interrupts */
         Hwi_restore(key);
     }
-    else if (srcProcId == InterruptEve_videoProcId) {
+    else if ((srcProcId == InterruptEve_videoProcId) ||
+        (srcProcId == InterruptEve_vpssProcId)) {
         /* disable interrupts */
         key = Hwi_disable();
 
@@ -332,7 +338,8 @@ UInt InterruptEve_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
         arg = REG32(MAILBOX_MESSAGE(HOST_TO_EVE));
         REG32(MAILBOX_IRQSTATUS_CLR_EVE) = MAILBOX_REG_VAL(HOST_TO_EVE);
     }
-    else if (remoteProcId == InterruptEve_videoProcId) { /* VIDEO-M3 */
+    else if ((remoteProcId == InterruptEve_videoProcId) || /* VIDEO-M3 */
+        (remoteProcId == InterruptEve_vpssProcId)) {
         arg = REG32(MAILBOX_MESSAGE(VIDEO_TO_EVE));
         REG32(MAILBOX_IRQSTATUS_CLR_EVE) = MAILBOX_REG_VAL(VIDEO_TO_EVE);
     }
@@ -367,7 +374,7 @@ Void InterruptEve_intShmStub(UArg arg)
         (table->func)(table->arg);
     }
 
-    /* Process messages from VIDEO  */
+    /* Process messages from VIDEO OR VPSS */
     if ((REG32(MAILBOX_IRQENABLE_SET_EVE) & MAILBOX_REG_VAL(VIDEO_TO_EVE))
         && REG32(MAILBOX_STATUS(VIDEO_TO_EVE)) != 0) {
         table = &(InterruptEve_module->fxnTable[1]);

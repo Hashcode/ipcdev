@@ -149,6 +149,10 @@ Void InterruptDucati_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
         else if (remoteProcId == InterruptDucati_dspProcId) {
             REG32(MAILBOX_IRQENABLE_SET_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
         }
+        else if (remoteProcId == InterruptDucati_eveProcId) {
+            REG32(EVE_MAILBOX_IRQENABLE_SET_VIDEO) =
+                MAILBOX_REG_VAL(EVE_TO_VIDEO);
+        }
         else {
             Hwi_enableInterrupt(M3INTERCOREINT);
         }
@@ -188,6 +192,10 @@ Void InterruptDucati_intDisable(UInt16 remoteProcId,
         }
         else if (remoteProcId == InterruptDucati_dspProcId) {
             REG32(MAILBOX_IRQENABLE_CLR_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
+        }
+        else if (remoteProcId == InterruptDucati_eveProcId) {
+            REG32(EVE_MAILBOX_IRQENABLE_CLR_VIDEO) =
+                MAILBOX_REG_VAL(EVE_TO_VIDEO);
         }
         else {
             Hwi_disableInterrupt(M3INTERCOREINT);
@@ -250,11 +258,26 @@ Void InterruptDucati_intRegister(UInt16 remoteProcId,
     else if (remoteProcId == InterruptDucati_eveProcId) {
         index = 3;
         if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
-            intInfo->localIntId = EVE_MAILBOX_M3VIDEOINT;
+            if (InterruptDucati_enableVpssToEve) {
+                /* Core0 communication to EVE is not supported */
+                Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
+            }
+            else {
+                intInfo->localIntId = EVE_MAILBOX_M3VIDEOINT;
+            }
         }
         else {
-            /* Core1 communication to EVE is not supported */
-            Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
+            if (InterruptDucati_enableVpssToEve) {
+                /*
+                 *  Core1 communication to EVE use same mbox
+                 *  so only 1 can communicate to EVE.
+                 */
+                intInfo->localIntId = EVE_MAILBOX_M3VIDEOINT;
+            }
+            else {
+                /* Core1 communication to EVE is not supported */
+                Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
+            }
         }
     }
     else {
@@ -295,7 +318,8 @@ Void InterruptDucati_intRegister(UInt16 remoteProcId,
                   &eb);
     }
     else {
-        if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
+        if ((BIOS_smpEnabled) || (Core_getId() == 0) ||
+            (InterruptDucati_enableVpssToEve)) {
             Hwi_create(intInfo->localIntId,
                       (Hwi_FuncPtr)InterruptDucati_intShmEveMbxStub,
                       &hwiAttrs,
@@ -330,7 +354,8 @@ Void InterruptDucati_intUnregister(UInt16 remoteProcId,
     }
     else if (remoteProcId == InterruptDucati_eveProcId) {
         index = 3;
-        if (!(BIOS_smpEnabled) && (Core_getId() == 1)) {
+        if (!(BIOS_smpEnabled) && (Core_getId() == 1) &&
+            !(InterruptDucati_enableVpssToEve)) {
             /* Core1 communication to EVE is not supported */
             return;
         }
@@ -427,8 +452,9 @@ Void InterruptDucati_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
         }
     }
     else {
-        if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
-            /* VIDEO-M3 to EVE */
+        if ((BIOS_smpEnabled) || (Core_getId() == 0) ||
+            (InterruptDucati_enableVpssToEve)) {
+            /* VIDEO-M3/VPSS-M3 to EVE */
             key = Hwi_disable();
             if (REG32(EVE_MAILBOX_STATUS(VIDEO_TO_EVE)) == 0) {
                 REG32(EVE_MAILBOX_MESSAGE(VIDEO_TO_EVE)) = arg;
@@ -496,8 +522,9 @@ Void InterruptDucati_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
         }
     }
     else {
-        if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
-            /* EVE to VIDEO-M3 */
+        if ((BIOS_smpEnabled) || (Core_getId() == 0) ||
+            (InterruptDucati_enableVpssToEve)) {
+            /* EVE to VIDEO-M3/VPSS-M3 */
             key = Hwi_disable();
             if (REG32(EVE_MAILBOX_STATUS(EVE_TO_VIDEO)) == 0) {
                 REG32(EVE_MAILBOX_MESSAGE(EVE_TO_VIDEO)) = arg;
@@ -546,9 +573,16 @@ UInt InterruptDucati_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
             REG32(MAILBOX_IRQSTATUS_CLR_VIDEO) = MAILBOX_REG_VAL(DSP_TO_VIDEO);
         }
         else {
-            /* EVE to VIDEO-M3 */
-            arg = REG32(EVE_MAILBOX_MESSAGE(EVE_TO_VIDEO));
-            REG32(EVE_MAILBOX_IRQSTATUS_CLR_VIDEO) = MAILBOX_REG_VAL(EVE_TO_VIDEO);
+            if (InterruptDucati_enableVpssToEve) {
+                /* EVE cannot send an interrupt to VIDEO-M3 in this case */
+                Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
+                arg = 0;    /* keep Coverity happy */
+            }
+            else {
+                /* EVE to VIDEO-M3 */
+                arg = REG32(EVE_MAILBOX_MESSAGE(EVE_TO_VIDEO));
+                REG32(EVE_MAILBOX_IRQSTATUS_CLR_VIDEO) = MAILBOX_REG_VAL(EVE_TO_VIDEO);
+            }
         }
     }
     else { /* M3DSSINT */
@@ -563,9 +597,16 @@ UInt InterruptDucati_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
             REG32(MAILBOX_IRQSTATUS_CLR_VPSS) = MAILBOX_REG_VAL(DSP_TO_VPSS);
         }
         else {
-            /* EVE cannot send an interrupt to VPSS-M3! */
-            Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
-            arg = 0;    /* keep Coverity happy */
+            if (InterruptDucati_enableVpssToEve) {
+                /* EVE to VPSS-M3 */
+                arg = REG32(EVE_MAILBOX_MESSAGE(EVE_TO_VIDEO));
+                REG32(EVE_MAILBOX_IRQSTATUS_CLR_VIDEO) = MAILBOX_REG_VAL(EVE_TO_VIDEO);
+            }
+            else {
+                /* EVE cannot send an interrupt to VPSS-M3 */
+                Assert_isTrue(FALSE, ti_sdo_ipc_Ipc_A_internal);
+                arg = 0;    /* keep Coverity happy */
+            }
         }
     }
 
@@ -633,10 +674,12 @@ Void InterruptDucati_intShmEveMbxStub(UArg arg)
 {
     InterruptDucati_FxnTable *table;
 
-    if ((BIOS_smpEnabled) || (Core_getId() == 0)) {
+    if ((BIOS_smpEnabled) || (Core_getId() == 0) ||
+        (InterruptDucati_enableVpssToEve)) {
         if ((REG32(EVE_MAILBOX_IRQENABLE_SET_VIDEO) &
             MAILBOX_REG_VAL(EVE_TO_VIDEO)) &&
-            REG32(EVE_MAILBOX_STATUS(EVE_TO_VIDEO)) != 0) { /* EVE to VIDEO-M3 */
+            REG32(EVE_MAILBOX_STATUS(EVE_TO_VIDEO)) != 0) {
+             /* EVE to VIDEO-M3/VPSS-M3 */
             table = &(InterruptDucati_module->fxnTable[3]);
             (table->func)(table->arg);
         }
