@@ -87,27 +87,38 @@
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptHost_Module_startup ========
  */
 Int InterruptHost_Module_startup(Int phase)
 {
     if (IntXbar_Module_startupDone()) {
         /* connect mailbox interrupts at startup */
-        //M4 Core 0
-        IntXbar_connect(42, 286);  // eve1 mailbox 0 user 3
-        IntXbar_connect(43, 295);  // eve2 mailbox 0 user 3
-        IntXbar_connect(44, 304);  // eve3 mailbox 0 user 3
-        IntXbar_connect(45, 313);  // eve4 mailbox 0 user 3
-        IntXbar_connect(46, 255);  // system mailbox 6 user 2
-        IntXbar_connect(47, 251);  // system mailbox 5 user 2
+        IntXbar_connect(127, 286);  // eve1 mailbox 0 user 3
+        IntXbar_connect(128, 295);  // eve2 mailbox 0 user 3
+        IntXbar_connect(129, 251);  // system mailbox 5 user 2
+
+        /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+        if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+            IntXbar_connect(130, 304);  // eve3 mailbox 0 user 3
+            IntXbar_connect(131, 313);  // eve4 mailbox 0 user 3
+        }
+
+        /* plug mbx6 only if DSP2 or IPU2 exists */
+        if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
+            (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
+            IntXbar_connect(132, 255);  // system mailbox 6 user 2
+        }
+
         return (Startup_DONE);
     }
 
     return (Startup_NOTDONE);
 }
 
-/*!
+/*
  *  ======== InterruptHost_intEnable ========
  *  Enable remote processor interrupt
  */
@@ -124,7 +135,7 @@ Void InterruptHost_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptHost_intDisable ========
  *  Disables remote processor interrupt
  */
@@ -142,7 +153,7 @@ Void InterruptHost_intDisable(UInt16 remoteProcId,
     REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptHost_intRegister ========
  */
 Void InterruptHost_intRegister(UInt16 remoteProcId,
@@ -198,7 +209,7 @@ Void InterruptHost_intRegister(UInt16 remoteProcId,
     Hwi_restore(key);
 }
 
-/*!
+/*
  *  ======== InterruptHost_intUnregister ========
  */
 Void InterruptHost_intUnregister(UInt16 remoteProcId,
@@ -230,7 +241,7 @@ Void InterruptHost_intUnregister(UInt16 remoteProcId,
 }
 
 
-/*!
+/*
  *  ======== InterruptHost_intSend ========
  *  Send interrupt to the remote processor
  */
@@ -249,7 +260,7 @@ Void InterruptHost_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 }
 
 
-/*!
+/*
  *  ======== InterruptHost_intPost ========
  *  Simulate an interrupt from a remote processor
  */
@@ -268,7 +279,7 @@ Void InterruptHost_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
 }
 
 
-/*!
+/*
  *  ======== InterruptHost_intClear ========
  *  Clear interrupt
  */
@@ -290,7 +301,7 @@ UInt InterruptHost_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptHost_intShmMbxStub ========
  */
 Void InterruptHost_intShmStub(UArg arg)

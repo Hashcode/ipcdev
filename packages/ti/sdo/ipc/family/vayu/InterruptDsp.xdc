@@ -69,7 +69,7 @@ module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
         });
 
     /* Total number of cores on Vayu SoC */
-    const UInt8 NUM_CORES = 9;
+    const UInt8 NUM_CORES = 11;
 
     /* Number of Cores in EVE Sub-system */
     const UInt8 NUM_EVES = 4;
@@ -81,10 +81,12 @@ module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
     const UInt8 NUM_EVE_MBX = 12;
 
     /* Number of System Mailboxes */
-    const UInt8 NUM_SYS_MBX = 3;
+    const UInt8 NUM_SYS_MBX = 4;
 
     /* Base address for the Mailbox subsystem */
     config UInt32 mailboxBaseAddr[NUM_EVE_MBX + NUM_SYS_MBX];
+
+internal:
 
     /*
      * Mailbox table for storing encoded Base Address, mailbox user Id,
@@ -92,21 +94,20 @@ module InterruptDsp inherits ti.sdo.ipc.notifyDrivers.IInterrupt
      */
     config UInt32 mailboxTable[NUM_CORES * NUM_CORES];
 
-    config UInt32 dspInterruptTable[NUM_CORES];
-
     config UInt32 procIdTable[NUM_CORES];
 
-internal:
-
+    /*! Statically retrieve procIds to avoid doing this at runtime */
     config UInt eve1ProcId     = MultiProc.INVALIDID;
     config UInt eve2ProcId     = MultiProc.INVALIDID;
     config UInt eve3ProcId     = MultiProc.INVALIDID;
     config UInt eve4ProcId     = MultiProc.INVALIDID;
     config UInt dsp1ProcId     = MultiProc.INVALIDID;
     config UInt dsp2ProcId     = MultiProc.INVALIDID;
-    config UInt ipu1ProcId     = MultiProc.INVALIDID;
-    config UInt ipu2ProcId     = MultiProc.INVALIDID;
+    config UInt ipu1_0ProcId   = MultiProc.INVALIDID;
+    config UInt ipu2_0ProcId   = MultiProc.INVALIDID;
     config UInt hostProcId     = MultiProc.INVALIDID;
+    config UInt ipu1_1ProcId   = MultiProc.INVALIDID;
+    config UInt ipu2_1ProcId   = MultiProc.INVALIDID;
 
     /*! Function table */
     struct FxnTable {
@@ -122,14 +123,18 @@ internal:
 
     struct Module_State {
         /*
-         * Create a function table of length 8 (Total number of cores in the
+         * Create a function table of length (Total number of cores in the
          * System) for each DSP core.
          */
         FxnTable   fxnTable[NUM_CORES];
+
         /*
          * Number of numPlugged counters is equal to the number of combined
          * events used by the mailbox interrupts.
          */
-        UInt       numPlugged;  /* # of times the interrupt was registered */
+        UInt16 numPlugged;  /* # of times the interrupt was registered */
+
+        /* table of interrupt event ids use to communicate with this proc */
+        UInt16 interruptTable[NUM_CORES];
     };
 }

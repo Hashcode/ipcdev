@@ -71,18 +71,23 @@ function module$use()
     this.mailboxBaseAddr[9]  = 0x4238B000;  /* EVE4 Internal Mailbox 0 */
     this.mailboxBaseAddr[10] = 0x4238C000;  /* EVE4 Internal Mailbox 1 */
     this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
-    this.mailboxBaseAddr[12] = 0x48844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
     this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
-    this.mailboxBaseAddr[14] = 0x48840000;  /* System Mailbox 5 */
+    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
 
-    this.hostInterruptTable[0] = 79;        /* EVE1 */
-    this.hostInterruptTable[1] = 80;        /* EVE2 */
-    this.hostInterruptTable[2] = 81;        /* EVE3 */
-    this.hostInterruptTable[3] = 82;        /* EVE4 */
-    this.hostInterruptTable[4] = 83;        /* DSP1 */
-    this.hostInterruptTable[5] = 83;        /* DSP2 */
-    this.hostInterruptTable[6] = 84;        /* IPU1 */
-    this.hostInterruptTable[7] = 84;        /* IPU2 */
+    /* These are obtained by looking at MPU IRQ + 32 */
+    this.hostInterruptTable[0] = 134 + 32;        /* EVE1 */
+    this.hostInterruptTable[1] = 135 + 32;        /* EVE2 */
+    this.hostInterruptTable[2] = 137 + 32;        /* EVE3 */
+    this.hostInterruptTable[3] = 138 + 32;        /* EVE4 */
+    this.hostInterruptTable[4] = 136 + 32;        /* DSP1 */
+    this.hostInterruptTable[5] = 139 + 32;        /* DSP2 */
+    this.hostInterruptTable[6] = 136 + 32;        /* IPU1-0 */
+    this.hostInterruptTable[7] = 139 + 32;        /* IPU2-0 */
+    this.hostInterruptTable[8] = 0;               /* HOST */
+    this.hostInterruptTable[9] = 136 + 32;        /* IPU1-1 */
+    this.hostInterruptTable[10] = 139 + 32;       /* IPU2-1 */
 
     /*
      * In case of a spec change, follow the process shown below:

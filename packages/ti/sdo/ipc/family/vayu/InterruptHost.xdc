@@ -46,7 +46,7 @@ import ti.sdo.utils.MultiProc;
 module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
 {
     /* Total number of cores on Vayu SoC */
-    const UInt8 NUM_CORES = 9;
+    const UInt8 NUM_CORES = 11;
 
     /* Number of Cores in EVE Sub-system */
     const UInt8 NUM_EVES = 4;
@@ -61,7 +61,7 @@ module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
     const UInt8 NUM_EVE_MBX = 12;
 
     /* Number of System Mailboxes */
-    const UInt8 NUM_SYS_MBX = 3;
+    const UInt8 NUM_SYS_MBX = 4;
 
     /* Base address for the Mailbox subsystem */
     config UInt32 mailboxBaseAddr[NUM_EVE_MBX + NUM_SYS_MBX];
@@ -72,7 +72,7 @@ module InterruptHost inherits ti.sdo.ipc.notifyDrivers.IInterrupt
      */
     config UInt32 mailboxTable[NUM_CORES * NUM_CORES];
 
-    config UInt32 hostInterruptTable[NUM_CORES - 1];
+    config UInt32 hostInterruptTable[NUM_CORES];
 
     config UInt32 procIdTable[NUM_CORES];
 internal:
@@ -84,9 +84,11 @@ internal:
     config UInt eve4ProcId     = MultiProc.INVALIDID;
     config UInt dsp1ProcId     = MultiProc.INVALIDID;
     config UInt dsp2ProcId     = MultiProc.INVALIDID;
-    config UInt ipu1ProcId     = MultiProc.INVALIDID;
-    config UInt ipu2ProcId     = MultiProc.INVALIDID;
+    config UInt ipu1_0ProcId   = MultiProc.INVALIDID;
+    config UInt ipu2_0ProcId   = MultiProc.INVALIDID;
     config UInt hostProcId     = MultiProc.INVALIDID;
+    config UInt ipu1_1ProcId   = MultiProc.INVALIDID;
+    config UInt ipu2_1ProcId   = MultiProc.INVALIDID;
 
     /*! Function table */
     struct FxnTable {
@@ -106,7 +108,8 @@ internal:
          * in the System).
          */
         FxnTable   fxnTable[NUM_CORES];
+
         /* # of times interrupt registered */
-        UInt       numPlugged[NUM_EVE_MBX + NUM_SYS_MBX];
+        UInt16       numPlugged[NUM_EVE_MBX + NUM_SYS_MBX];
     };
 }

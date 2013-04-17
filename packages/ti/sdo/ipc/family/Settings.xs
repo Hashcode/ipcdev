@@ -195,7 +195,8 @@ var procNames = {
     'F28M3.*'           : ["M3", "C28"],
     'LM3.*'             : [ "" ],  /* single core, any name can be used */
     'Vayu'              : ["DSP1", "DSP2", "EVE1", "EVE2", "EVE3", "EVE4",
-                           "IPU1", "IPU2", "HOST"],
+                           "IPU1", "IPU2", "IPU1-0", "IPU1-1", "IPU2-0",
+                           "IPU2-1", "HOST"],
 };
 setDeviceAliases(procNames, deviceAliases);
 

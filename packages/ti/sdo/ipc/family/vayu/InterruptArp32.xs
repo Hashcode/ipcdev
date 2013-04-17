@@ -57,44 +57,49 @@ function module$use()
     TableInit.generateTable(InterruptArp32);
 
     /* Initialize mailbox base address table */
-    this.mailboxBaseAddr[0]  = 0x4008B000;
-    this.mailboxBaseAddr[1]  = 0x4008C000;
-    this.mailboxBaseAddr[2]  = 0x4008D000;
-    this.mailboxBaseAddr[3]  = 0x4008B000;
-    this.mailboxBaseAddr[4]  = 0x4008C000;
-    this.mailboxBaseAddr[5]  = 0x4218D000;
-    this.mailboxBaseAddr[6]  = 0x4008B000;
-    this.mailboxBaseAddr[7]  = 0x4008C000;
-    this.mailboxBaseAddr[8]  = 0x4228D000;
-    this.mailboxBaseAddr[9]  = 0x4008B000;
-    this.mailboxBaseAddr[10] = 0x4008C000;
-    this.mailboxBaseAddr[11] = 0x4238D000;
-    this.mailboxBaseAddr[12] = 0x48844000;
-    this.mailboxBaseAddr[13] = 0x48842000;
-    this.mailboxBaseAddr[14] = 0x48840000;
+    this.mailboxBaseAddr[0]  = 0x4008B000;  /* EVE1 Internal Mailbox 0 */
+    this.mailboxBaseAddr[1]  = 0x4008C000;  /* EVE1 Internal Mailbox 1 */
+    this.mailboxBaseAddr[2]  = 0x4208D000;  /* EVE1 Internal Mailbox 2 */
+    this.mailboxBaseAddr[3]  = 0x4008B000;  /* EVE2 Internal Mailbox 0 */
+    this.mailboxBaseAddr[4]  = 0x4008C000;  /* EVE2 Internal Mailbox 1 */
+    this.mailboxBaseAddr[5]  = 0x4218D000;  /* EVE2 Internal Mailbox 2 */
+    this.mailboxBaseAddr[6]  = 0x4008B000;  /* EVE3 Internal Mailbox 0 */
+    this.mailboxBaseAddr[7]  = 0x4008C000;  /* EVE3 Internal Mailbox 1 */
+    this.mailboxBaseAddr[8]  = 0x4228D000;  /* EVE3 Internal Mailbox 2 */
+    this.mailboxBaseAddr[9]  = 0x4008B000;  /* EVE4 Internal Mailbox 0 */
+    this.mailboxBaseAddr[10] = 0x4008C000;  /* EVE4 Internal Mailbox 1 */
+    this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
+    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
+    this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
+    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
 
-    if (MultiProc.id == this.eve2ProcId) {
-        this.mailboxBaseAddr[2] = 0x4208D000;
+    /* each EVE receives its message using the local mailbox address */
+    if (MultiProc.id == this.eve1ProcId) {
+        this.mailboxBaseAddr[2] = 0x4008D000;
+    }
+    else if (MultiProc.id == this.eve2ProcId) {
         this.mailboxBaseAddr[5] = 0x4008D000;
     }
     else if (MultiProc.id == this.eve3ProcId) {
-        this.mailboxBaseAddr[2]  = 0x4208D000;
         this.mailboxBaseAddr[8] = 0x4008D000;
     }
     else if (MultiProc.id == this.eve4ProcId) {
-        this.mailboxBaseAddr[2]  = 0x4208D000;
         this.mailboxBaseAddr[11] = 0x4008D000;
     }
 
-    this.eveInterruptTable[0] = 60; /* EVE1 - Group1/INTC1 */
-    this.eveInterruptTable[1] = 60; /* EVE2 - Group1/INTC1 */
-    this.eveInterruptTable[2] = 60; /* EVE3 - Group1/INTC1 */
-    this.eveInterruptTable[3] = 60; /* EVE4 - Group1/INTC1 */
-    this.eveInterruptTable[4] = 29; /* DSP1 - Group0/INTC0 */
-    this.eveInterruptTable[5] = 30; /* DSP2 - Group0/INTC0 */
-    this.eveInterruptTable[6] = 29; /* IPU1 */
-    this.eveInterruptTable[7] = 30; /* IPU2 */
-    this.eveInterruptTable[8] = 29; /* HOST */
+    /* EVE interrupt mapping. See EVE28 functional specs */
+    this.eveInterruptTable[0] = 60;  /* EVE1 - Group1/INTC1 */
+    this.eveInterruptTable[1] = 60;  /* EVE2 - Group1/INTC1 */
+    this.eveInterruptTable[2] = 60;  /* EVE3 - Group1/INTC1 */
+    this.eveInterruptTable[3] = 60;  /* EVE4 - Group1/INTC1 */
+    this.eveInterruptTable[4] = 29;  /* DSP1 - Group0/INTC0 */
+    this.eveInterruptTable[5] = 30;  /* DSP2 - Group0/INTC0 */
+    this.eveInterruptTable[6] = 29;  /* IPU1-0 */
+    this.eveInterruptTable[7] = 30;  /* IPU2-0 */
+    this.eveInterruptTable[8] = 29;  /* HOST */
+    this.eveInterruptTable[9] = 30;  /* IPU1-1 */
+    this.eveInterruptTable[10] = 30; /* IPU2-1 */
 
     /*
      * In case of a spec change, follow the process shown below:

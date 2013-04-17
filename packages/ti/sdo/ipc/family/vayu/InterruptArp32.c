@@ -87,6 +87,8 @@
 #define IPU1_ID     6
 #define IPU2_ID     7
 #define HOST_ID     8
+#define IPU1_1_ID   9
+#define IPU2_1_ID   10
 
 /*
  *************************************************************************
@@ -94,7 +96,7 @@
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptArp32_intEnable ========
  *  Enable remote processor interrupt
  */
@@ -107,7 +109,7 @@ Void InterruptArp32_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptArp32_intDisable ========
  *  Disables remote processor interrupt
  */
@@ -121,7 +123,7 @@ Void InterruptArp32_intDisable(UInt16 remoteProcId,
     REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptArp32_intRegister ========
  */
 Void InterruptArp32_intRegister(UInt16 remoteProcId,
@@ -162,7 +164,8 @@ Void InterruptArp32_intRegister(UInt16 remoteProcId,
     if ((index == DSP1_ID) || (index == IPU1_ID) || (index == HOST_ID)) {
         mbxIdx = 0;
     }
-    else if ((index == DSP2_ID) || (index == IPU2_ID)) {
+    else if ((index == DSP2_ID) || (index == IPU2_ID) ||
+             (index == IPU1_1_ID) || (index == IPU2_1_ID)) {
         mbxIdx = 1;
     }
     else if (index < InterruptArp32_NUM_EVES) {
@@ -191,7 +194,7 @@ Void InterruptArp32_intRegister(UInt16 remoteProcId,
     Hwi_restore(key);
 }
 
-/*!
+/*
  *  ======== InterruptArp32_intUnregister ========
  */
 Void InterruptArp32_intUnregister(UInt16 remoteProcId,
@@ -204,10 +207,12 @@ Void InterruptArp32_intUnregister(UInt16 remoteProcId,
 
     index = PROCID(remoteProcId);
 
-    if ((remoteProcId == DSP1_ID) || (remoteProcId == IPU1_ID) || (remoteProcId == HOST_ID)) {
+    if ((remoteProcId == DSP1_ID) || (remoteProcId == IPU1_ID) ||
+        (remoteProcId == HOST_ID)) {
         mbxIdx = 0;
     }
-    else if ((remoteProcId == DSP2_ID) || (remoteProcId == IPU2_ID)) {
+    else if ((remoteProcId == DSP2_ID) || (remoteProcId == IPU2_ID) ||
+        (remoteProcId == IPU1_1_ID) || (remoteProcId == IPU2_1_ID)) {
         mbxIdx = 1;
     }
     else if (remoteProcId < InterruptArp32_NUM_EVES) {
@@ -231,7 +236,7 @@ Void InterruptArp32_intUnregister(UInt16 remoteProcId,
 }
 
 
-/*!
+/*
  *  ======== InterruptArp32_intSend ========
  *  Send interrupt to the remote processor
  */
@@ -256,7 +261,7 @@ Void InterruptArp32_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
 }
 
 
-/*!
+/*
  *  ======== InterruptArp32_intPost ========
  *  Simulate an interrupt from a remote processor
  */
@@ -281,7 +286,7 @@ Void InterruptArp32_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
 }
 
 
-/*!
+/*
  *  ======== InterruptArp32_intClear ========
  *  Clear interrupt
  */
@@ -308,7 +313,7 @@ UInt InterruptArp32_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptArp32_intShmStub ========
  */
 Void InterruptArp32_intShmStub(UArg arg)

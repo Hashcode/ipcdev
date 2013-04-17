@@ -34,8 +34,9 @@
  *
  */
 
-var Hwi         = null;
-var Core        = null;
+var BIOS    = null;
+var Hwi     = null;
+var Core    = null;
 var Ipu     = null;
 
 /*
@@ -43,12 +44,13 @@ var Ipu     = null;
  */
 function module$use()
 {
-    Hwi              = xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
-    Core             = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
-    Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
-    Ipu              = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
-    Xbar             = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
-    TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
+    BIOS            = xdc.useModule("ti.sysbios.BIOS");
+    Hwi             = xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
+    Core            = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
+    Ipc             = xdc.useModule("ti.sdo.ipc.Ipc");
+    Ipu             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
+    Xbar            = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
+    TableInit       = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     /* Initisalize procIdTable */
     TableInit.initProcId(Ipu);
@@ -57,31 +59,22 @@ function module$use()
     TableInit.generateTable(Ipu);
 
     /* Initialize mailbox base address table */
-    this.mailboxBaseAddr[0]  = 0x9208B000;
-    this.mailboxBaseAddr[1]  = 0x9208C000;
-    this.mailboxBaseAddr[2]  = 0x9208D000;
-    this.mailboxBaseAddr[3]  = 0x9218B000;
-    this.mailboxBaseAddr[4]  = 0x9218C000;
-    this.mailboxBaseAddr[5]  = 0x9218D000;
-    this.mailboxBaseAddr[6]  = 0x9228B000;
-    this.mailboxBaseAddr[7]  = 0x9228C000;
-    this.mailboxBaseAddr[8]  = 0x9228D000;
-    this.mailboxBaseAddr[9]  = 0x9238B000;
-    this.mailboxBaseAddr[10] = 0x9238C000;
-    this.mailboxBaseAddr[11] = 0x9238D000;
-    this.mailboxBaseAddr[12] = 0x48844000;
-    this.mailboxBaseAddr[13] = 0x48842000;
-    this.mailboxBaseAddr[14] = 0x48840000;
-
-    this.IpuInterruptTable[0] = 64; /* EVE1 */
-    this.IpuInterruptTable[1] = 65; /* EVE2 */
-    this.IpuInterruptTable[2] = 66; /* EVE3 */
-    this.IpuInterruptTable[3] = 67; /* EVE4 */
-    this.IpuInterruptTable[4] = 68; /* DSP1 */
-    this.IpuInterruptTable[5] = 68; /* DSP2 */
-    this.IpuInterruptTable[6] = 69; /* Ipu1 */
-    this.IpuInterruptTable[7] = 69; /* Ipu2 */
-    this.IpuInterruptTable[8] = 69; /* HOST */
+    this.mailboxBaseAddr[0]  = 0x9208B000;  /* EVE1 Internal Mailbox 0 */
+    this.mailboxBaseAddr[1]  = 0x9208C000;  /* EVE1 Internal Mailbox 1 */
+    this.mailboxBaseAddr[2]  = 0x9208D000;  /* EVE1 Internal Mailbox 2 */
+    this.mailboxBaseAddr[3]  = 0x9218B000;  /* EVE2 Internal Mailbox 0 */
+    this.mailboxBaseAddr[4]  = 0x9218C000;  /* EVE2 Internal Mailbox 1 */
+    this.mailboxBaseAddr[5]  = 0x9218D000;  /* EVE2 Internal Mailbox 2 */
+    this.mailboxBaseAddr[6]  = 0x9228B000;  /* EVE3 Internal Mailbox 0 */
+    this.mailboxBaseAddr[7]  = 0x9228C000;  /* EVE3 Internal Mailbox 1 */
+    this.mailboxBaseAddr[8]  = 0x9228D000;  /* EVE3 Internal Mailbox 2 */
+    this.mailboxBaseAddr[9]  = 0x9238B000;  /* EVE4 Internal Mailbox 0 */
+    this.mailboxBaseAddr[10] = 0x9238C000;  /* EVE4 Internal Mailbox 1 */
+    this.mailboxBaseAddr[11] = 0x9238D000;  /* EVE4 Internal Mailbox 2 */
+    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
+    this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
+    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
 
     /*
      * In case of a spec change, follow the process shown below:
@@ -109,5 +102,38 @@ function module$static$init(mod, params)
 
     for (mbxId = 0; mbxId < Ipu.mailboxBaseAddr.length; mbxId++) {
         mod.numPlugged[mbxId] = 0;
+    }
+
+    /* Initialize Interrupt Event Ids for communicating with this processor */
+    if (Core.id == 0) {
+        mod.interruptTable[0] = 64; /* EVE1 */
+        mod.interruptTable[1] = 65; /* EVE2 */
+        mod.interruptTable[2] = 67; /* EVE3 */
+        mod.interruptTable[3] = 68; /* EVE4 */
+
+        /* These are not known at config time and is set a runtime */
+        mod.interruptTable[4] = 0; /* DSP1 */
+        mod.interruptTable[5] = 0; /* DSP2 */
+        mod.interruptTable[6] = 0; /* Ipu1-0 */
+        mod.interruptTable[7] = 0; /* Ipu2-0 */
+        mod.interruptTable[8] = 0; /* HOST */
+        mod.interruptTable[9] = 0; /* Ipu1-1 */
+        mod.interruptTable[10] = 0; /* Ipu2-1 */
+    }
+    else {
+        mod.interruptTable[0] = 71; /* EVE1 */
+        mod.interruptTable[1] = 72; /* EVE2 */
+        mod.interruptTable[2] = 74; /* EVE3 */
+        mod.interruptTable[3] = 75; /* EVE4 */
+
+        /* These are not known at config time and is set a runtime */
+        mod.interruptTable[4] = 0; /* DSP1 */
+        mod.interruptTable[5] = 0; /* DSP2 */
+        mod.interruptTable[6] = 0; /* Ipu1-0 */
+        mod.interruptTable[7] = 0; /* Ipu2-0 */
+        mod.interruptTable[8] = 0; /* HOST */
+        mod.interruptTable[9] = 0; /* Ipu1-1 */
+        mod.interruptTable[10] = 0; /* Ipu2-1 */
+
     }
 }

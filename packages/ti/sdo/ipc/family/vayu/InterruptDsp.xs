@@ -55,32 +55,22 @@ function module$use()
     TableInit.generateTable(InterruptDsp);
 
     /* Initialize mailbox base address table */
-    this.mailboxBaseAddr[0]  = 0x4208B000;
-    this.mailboxBaseAddr[1]  = 0x4208C000;
-    this.mailboxBaseAddr[2]  = 0x4208D000;
-    this.mailboxBaseAddr[3]  = 0x4218B000;
-    this.mailboxBaseAddr[4]  = 0x4218C000;
-    this.mailboxBaseAddr[5]  = 0x4218D000;
-    this.mailboxBaseAddr[6]  = 0x4228B000;
-    this.mailboxBaseAddr[7]  = 0x4228C000;
-    this.mailboxBaseAddr[8]  = 0x4228D000;
-    this.mailboxBaseAddr[9]  = 0x4238B000;
-    this.mailboxBaseAddr[10] = 0x4238C000;
-    this.mailboxBaseAddr[11] = 0x4238D000;
-    this.mailboxBaseAddr[12] = 0x48844000;
-    this.mailboxBaseAddr[13] = 0x48842000;
-    this.mailboxBaseAddr[14] = 0x48840000;
-
-    /* Initialize Dsp Interrupt Id Table */
-    this.dspInterruptTable[0] = 64; /* EVE1 */
-    this.dspInterruptTable[1] = 65; /* EVE2 */
-    this.dspInterruptTable[2] = 66; /* EVE3 */
-    this.dspInterruptTable[3] = 67; /* EVE4 */
-    this.dspInterruptTable[4] = 69; /* DSP1 */
-    this.dspInterruptTable[5] = 69; /* DSP2 */
-    this.dspInterruptTable[6] = 68; /* IPU1 */
-    this.dspInterruptTable[7] = 68; /* IPU2 */
-    this.dspInterruptTable[8] = 69; /* HOST */
+    this.mailboxBaseAddr[0]  = 0x4208B000;  /* EVE1 Internal Mailbox 0 */
+    this.mailboxBaseAddr[1]  = 0x4208C000;  /* EVE1 Internal Mailbox 1 */
+    this.mailboxBaseAddr[2]  = 0x4208D000;  /* EVE1 Internal Mailbox 2 */
+    this.mailboxBaseAddr[3]  = 0x4218B000;  /* EVE2 Internal Mailbox 0 */
+    this.mailboxBaseAddr[4]  = 0x4218C000;  /* EVE2 Internal Mailbox 1 */
+    this.mailboxBaseAddr[5]  = 0x4218D000;  /* EVE2 Internal Mailbox 2 */
+    this.mailboxBaseAddr[6]  = 0x4228B000;  /* EVE3 Internal Mailbox 0 */
+    this.mailboxBaseAddr[7]  = 0x4228C000;  /* EVE3 Internal Mailbox 1 */
+    this.mailboxBaseAddr[8]  = 0x4228D000;  /* EVE3 Internal Mailbox 2 */
+    this.mailboxBaseAddr[9]  = 0x4238B000;  /* EVE4 Internal Mailbox 0 */
+    this.mailboxBaseAddr[10] = 0x4238C000;  /* EVE4 Internal Mailbox 1 */
+    this.mailboxBaseAddr[11] = 0x4238D000;  /* EVE4 Internal Mailbox 2 */
+    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
+    this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
+    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
 
     /*
      * In case of a spec change, follow the process shown below:
@@ -97,10 +87,26 @@ function module$static$init(mod, params)
     var remoteProcId;
     var idx;
 
-    for (remoteProcId = 0; remoteProcId < InterruptDsp.procIdTable.length; remoteProcId++) {
+    for (remoteProcId = 0; remoteProcId < InterruptDsp.procIdTable.length;
+        remoteProcId++) {
         mod.fxnTable[remoteProcId].func  = null;
         mod.fxnTable[remoteProcId].arg   = 0;
     }
+
+    /* Initialize Interrupt Event Ids for communicating with this processor */
+    mod.interruptTable[0] = 55; /* EVE1 -> DSP1 or DSP2 */
+    mod.interruptTable[1] = 56; /* EVE2 -> DSP1 or DSP2 */
+    mod.interruptTable[2] = 58; /* EVE3 -> DSP1 or DSP2 */
+    mod.interruptTable[3] = 59; /* EVE4 -> DSP1 or DSP2 */
+    mod.interruptTable[4] = 60; /* DSP1 -> DSP2 */
+    mod.interruptTable[5] = 60; /* DSP2 -> DSP1 */
+    mod.interruptTable[8] = 57; /* HOST -> DSP1 or DSP2 */
+
+    /* These are not known at config time and is set a runtime */
+    mod.interruptTable[6] = 0; /* IPU1 -> DSP1 or DSP2 */
+    mod.interruptTable[7] = 0; /* IPU2 -> DSP1 or DSP2 */
+    mod.interruptTable[9] = 0; /* IPU1-1 -> DSP1 or DSP2 */
+    mod.interruptTable[10] = 0; /* IPU2-1 -> DSP1 or DSP2 */
 
     /* Intialize numPlugged */
     mod.numPlugged = 0;

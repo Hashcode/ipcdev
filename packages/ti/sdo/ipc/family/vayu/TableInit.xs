@@ -46,9 +46,9 @@
  *
  * Virtual Index Assignment:
  *
- * | EVE1 -> 0 | EVE2 -> 1 | EVE3 -> 2 | EVE4 -> 3 |
- * | DSP1 -> 4 | DSP2 -> 5 | IPU1 -> 6 | IPU2 -> 7 |
- * | HOST -> 8
+ * | EVE1 -> 0 | EVE2 -> 1   | EVE3 -> 2   | EVE4 -> 3   |
+ * | DSP1 -> 4 | DSP2 -> 5   | IPU1-0 -> 6 | IPU2-0 -> 7 |
+ * | HOST -> 8 | IPU1-1 -> 9 | IPU2-1 -> 10
  *
  */
 var eve1VirtId    = 0;
@@ -57,9 +57,11 @@ var eve3VirtId    = 2;
 var eve4VirtId    = 3;
 var dsp1VirtId    = 4;
 var dsp2VirtId    = 5;
-var ipu1VirtId    = 6;
-var ipu2VirtId    = 7;
+var ipu1_0VirtId  = 6;
+var ipu2_0VirtId  = 7;
 var hostVirtId    = 8;
+var ipu1_1VirtId  = 9;
+var ipu2_1VirtId  = 10;
 
 /*
  * Function to initialize coreIds.
@@ -68,7 +70,7 @@ function initProcId(InterruptCore)
 {
     var MultiProc        = xdc.useModule("ti.sdo.utils.MultiProc");
 
-    for (var loopIdx=0 ;loopIdx<InterruptCore.procIdTable.length ;loopIdx++) {
+    for (var loopIdx=0; loopIdx<InterruptCore.procIdTable.length; loopIdx++) {
         InterruptCore.procIdTable[loopIdx] = -1;
     }
 
@@ -78,9 +80,11 @@ function initProcId(InterruptCore)
     InterruptCore.eve4ProcId     = MultiProc.getIdMeta("EVE4");
     InterruptCore.dsp1ProcId     = MultiProc.getIdMeta("DSP1");
     InterruptCore.dsp2ProcId     = MultiProc.getIdMeta("DSP2");
-    InterruptCore.ipu1ProcId     = MultiProc.getIdMeta("IPU1");
-    InterruptCore.ipu2ProcId     = MultiProc.getIdMeta("IPU2");
+    InterruptCore.ipu1_0ProcId   = MultiProc.getIdMeta("IPU1");
+    InterruptCore.ipu2_0ProcId   = MultiProc.getIdMeta("IPU2");
     InterruptCore.hostProcId     = MultiProc.getIdMeta("HOST");
+    InterruptCore.ipu1_1ProcId   = MultiProc.getIdMeta("IPU1-1");
+    InterruptCore.ipu2_1ProcId   = MultiProc.getIdMeta("IPU2-1");
 
     if (InterruptCore.eve1ProcId != MultiProc.INVALIDID) {
         InterruptCore.procIdTable[InterruptCore.eve1ProcId] = eve1VirtId;
@@ -100,14 +104,32 @@ function initProcId(InterruptCore)
     if (InterruptCore.dsp2ProcId != MultiProc.INVALIDID) {
         InterruptCore.procIdTable[InterruptCore.dsp2ProcId] = dsp2VirtId;
     }
-    if (InterruptCore.ipu1ProcId != MultiProc.INVALIDID) {
-        InterruptCore.procIdTable[InterruptCore.ipu1ProcId] = ipu1VirtId;
+    if (InterruptCore.ipu1_0ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu1_0ProcId] = ipu1_0VirtId;
     }
-    if (InterruptCore.ipu2ProcId != MultiProc.INVALIDID) {
-        InterruptCore.procIdTable[InterruptCore.ipu2ProcId] = ipu2VirtId;
+    else {
+        InterruptCore.ipu1_0ProcId = MultiProc.getIdMeta("IPU1-0");
+        if (InterruptCore.ipu1_0ProcId != MultiProc.INVALIDID) {
+            InterruptCore.procIdTable[InterruptCore.ipu1_0ProcId] = ipu1_0VirtId;
+        }
+    }
+    if (InterruptCore.ipu2_0ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu2_0ProcId] = ipu2_0VirtId;
+    }
+    else {
+        InterruptCore.ipu2_0ProcId = MultiProc.getIdMeta("IPU2-0");
+        if (InterruptCore.ipu2_0ProcId != MultiProc.INVALIDID) {
+            InterruptCore.procIdTable[InterruptCore.ipu2_0ProcId] = ipu2_0VirtId;
+        }
     }
     if (InterruptCore.hostProcId != MultiProc.INVALIDID) {
         InterruptCore.procIdTable[InterruptCore.hostProcId] = hostVirtId;
+    }
+    if (InterruptCore.ipu1_1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu1_1ProcId] = ipu1_1VirtId;
+    }
+    if (InterruptCore.ipu2_1ProcId != MultiProc.INVALIDID) {
+        InterruptCore.procIdTable[InterruptCore.ipu2_1ProcId] = ipu2_1VirtId;
     }
 }
 
@@ -116,9 +138,10 @@ function initProcId(InterruptCore)
  */
 function generateTable(InterruptCore)
 {
-    var SYS_MBX5_OFFSET = 2;
+    var SYS_MBX5_OFFSET = 0;
     var SYS_MBX6_OFFSET = 1;
-    var SYS_MBX7_OFFSET = 0;
+    var SYS_MBX7_OFFSET = 2;
+    var SYS_MBX8_OFFSET = 3;
     var eveMbx2BaseIdx = 2;
 
     var subMbxIdx;
@@ -151,6 +174,9 @@ function generateTable(InterruptCore)
      */
     for (var i = 0; i < InterruptCore.NUM_CORES; i++) {
         for (var j = 0; j < InterruptCore.NUM_CORES; j++) {
+            /* init mailboxTable */
+            InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = -1;
+
             /* EVE Internal Mailbox 2 */
             if ((i < InterruptCore.NUM_EVES) && (j < InterruptCore.NUM_EVES)) {
 
@@ -179,15 +205,20 @@ function generateTable(InterruptCore)
                         mbxUserIdx = 1 << 8;
                         subMbxIdx = 0;
                     }
-                    else if ((j == ipu1VirtId) || (j == ipu2VirtId)) {
-                        /* Destination is IPU1 or IPU2 */
+                    else if ((j == ipu1_0VirtId) || (j == ipu2_0VirtId)) {
+                        /* Destination is IPU1-0 or IPU2-0 */
                         mbxUserIdx = 2 << 8;
                         subMbxIdx = 2;
                     }
-                    else {
-                        /* Destination is Host */
+                    else if ((j == ipu1_1VirtId) || (j == hostVirtId) ||
+                        (j == ipu2_1VirtId)) {
+                        /* Destination is Host or IPU1-1 */
                         mbxUserIdx = 3 << 8;
                         subMbxIdx = 4;
+
+                        if (j == ipu2_1VirtId) {
+                            mbxBaseAddrIdx = ((i * 3) + ((j - 1) % 2)) << 16;
+                        }
                     }
 
                     tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
@@ -202,13 +233,18 @@ function generateTable(InterruptCore)
                         /* Source is DSP1 or DSP2 */
                         subMbxIdx = 1;
                     }
-                    else if ((i == ipu1VirtId) || (i == ipu2VirtId)) {
-                        /* Source is IPU1 or IPU2 */
+                    else if ((i == ipu1_0VirtId) || (i == ipu2_0VirtId)) {
+                        /* Source is IPU1-0 or IPU2-0 */
                         subMbxIdx = 3;
                     }
-                    else {
-                        /* Source is Host */
+                    else if ((i == ipu1_1VirtId) || (i == hostVirtId) ||
+                        (i == ipu2_1VirtId)) {
+                        /* Source is Host or IPU1-1*/
                         subMbxIdx = 5;
+
+                        if (i == ipu2_1VirtId) {
+                            mbxBaseAddrIdx = ((j * 3) + ((i - 1) % 2)) << 16;
+                        }
                     }
 
                     tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
@@ -218,36 +254,61 @@ function generateTable(InterruptCore)
             }
 
             /* System Mailbox 5 */
-            /* For communication between HOST and IPU1/2 and inter IPU */
-            if (((i == ipu1VirtId) || (i == ipu2VirtId) || (i == hostVirtId)) &&
-                ((j == ipu1VirtId) || (j == ipu2VirtId) || (j == hostVirtId))) {
+            /* For communication between HOST<->DSP1/IPU1 */
+            if (((i == dsp1VirtId) || (i == ipu1_0VirtId) ||
+                (i == hostVirtId) || (i == ipu1_1VirtId)) &&
+                ((j == dsp1VirtId) || (j == ipu1_0VirtId) ||
+                (j == hostVirtId) || (j == ipu1_1VirtId))) {
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                   SYS_MBX5_OFFSET) << 16;
-                if (j == ipu1VirtId) {
-                    mbxUserIdx = 0;
-                    if (i == ipu2VirtId) {
-                        subMbxIdx = 2;
-                    }
-                    else if (i == hostVirtId) {
-                        subMbxIdx = 4;
-                    }
+
+                /* These combinations does not need mailbox */
+                if ((i == j) ||
+                    (i == ipu1_0VirtId && j == ipu1_1VirtId) ||
+                    (i == ipu1_1VirtId && j == ipu1_0VirtId)) {
+                    continue;
                 }
-                else if (j == ipu2VirtId) {
-                    mbxUserIdx = 1 << 8;
-                    if (i == ipu1VirtId) {
-                        subMbxIdx = 0;
+
+                if (j == dsp1VirtId) {
+                    mbxUserIdx = 0;
+                    if (i == ipu1_0VirtId) {
+                        subMbxIdx = 3;
                     }
                     else if (i == hostVirtId) {
                         subMbxIdx = 5;
                     }
+                    else if (i == ipu1_1VirtId) {
+                        subMbxIdx = 8;
+                    }
                 }
-                else {
+                else if (j == ipu1_0VirtId) {
+                    mbxUserIdx = 1 << 8;
+                    if (i == dsp1VirtId) {
+                        subMbxIdx = 0;
+                    }
+                    else if (i == hostVirtId) {
+                        subMbxIdx = 6;
+                    }
+                }
+                else if (j == hostVirtId) {
                     mbxUserIdx = 2 << 8;
-                    if (i == ipu1VirtId) {
+                    if (i == dsp1VirtId) {
                         subMbxIdx = 1;
                     }
-                    else if (i == ipu2VirtId) {
-                        subMbxIdx = 3;
+                    else if (i == ipu1_0VirtId) {
+                        subMbxIdx = 4;
+                    }
+                    else if (i == ipu1_1VirtId) {
+                        subMbxIdx = 9;
+                    }
+                }
+                else if (j == ipu1_1VirtId) {
+                    mbxUserIdx = 3 << 8;
+                    if (i == dsp1VirtId) {
+                        subMbxIdx = 2;
+                    }
+                    else if (i == hostVirtId) {
+                        subMbxIdx = 7;
                     }
                 }
 
@@ -257,37 +318,61 @@ function generateTable(InterruptCore)
             }
 
             /* System Mailbox 6 */
-            /* For communication between HOST and DSP1/2 and inter DSP */
-            if (((i == dsp1VirtId) || (i == dsp2VirtId) || (i == hostVirtId)) &&
-                ((j == dsp1VirtId) || (j == dsp2VirtId) || (j == hostVirtId))) {
+            /* For communication between HOST<->DSP2/IPU2 */
+            if (((i == dsp2VirtId) || (i == ipu2_0VirtId) ||
+                (i == hostVirtId) || (i == ipu2_1VirtId)) &&
+                ((j == dsp2VirtId) || (j == ipu2_0VirtId) ||
+                (j == hostVirtId) || (j ==ipu2_1VirtId))) {
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                    SYS_MBX6_OFFSET) << 16;
 
-                if (j == dsp1VirtId) {
-                    mbxUserIdx = 0;
-                    if (i == dsp2VirtId) {
-                        subMbxIdx = 2;
-                    }
-                    else if (i == hostVirtId) {
-                        subMbxIdx = 4;
-                    }
+                /* These combinations does not need mailbox */
+                if ((i == j) ||
+                    (i == ipu2_0VirtId && j == ipu2_1VirtId) ||
+                    (i == ipu2_1VirtId && j == ipu2_0VirtId)) {
+                    continue;
                 }
-                else if (j == dsp2VirtId) {
-                    mbxUserIdx = 1 << 8;
-                    if (i == dsp1VirtId) {
-                        subMbxIdx = 0;
+
+                if (j == dsp2VirtId) {
+                    mbxUserIdx = 0;
+                    if (i == ipu2_0VirtId) {
+                        subMbxIdx = 3;
                     }
                     else if (i == hostVirtId) {
                         subMbxIdx = 5;
                     }
+                    else if (i == ipu2_1VirtId) {
+                        subMbxIdx = 8;
+                    }
                 }
-                else {
+                else if (j == ipu2_0VirtId) {
+                    mbxUserIdx = 1 << 8;
+                    if (i == dsp2VirtId) {
+                        subMbxIdx = 0;
+                    }
+                    else if (i == hostVirtId) {
+                        subMbxIdx = 6;
+                    }
+                }
+                else if (j == hostVirtId) {
                     mbxUserIdx = 2 << 8;
-                    if (i == dsp1VirtId) {
+                    if (i == dsp2VirtId) {
                         subMbxIdx = 1;
                     }
-                    else if (i == dsp2VirtId) {
-                        subMbxIdx = 3;
+                    else if (i == ipu2_0VirtId) {
+                        subMbxIdx = 4;
+                    }
+                    else if (i == ipu2_1VirtId) {
+                        subMbxIdx = 9;
+                    }
+                }
+                else if (j == ipu2_1VirtId) {
+                    mbxUserIdx = 3 << 8;
+                    if (i == dsp2VirtId) {
+                        subMbxIdx = 2;
+                    }
+                    else if (i == hostVirtId) {
+                        subMbxIdx = 7;
                     }
                 }
 
@@ -296,40 +381,167 @@ function generateTable(InterruptCore)
                 continue;
             }
 
-            /* System Mailbox 7 */
-            /* For communication between DSP1/2 and IPU1/2 */
-            /* Not to be used for Inter DSP or Inter IPU communication */
-            if (((i >= dsp1VirtId) && (i <= ipu2VirtId)) &&
-                ((j >= dsp1VirtId) && (j <= ipu2VirtId))) {
+            /*
+             *  System Mailbox 7
+             *  This is for communication between DSP1/IPU1_0<->DSP2/IPU2-0
+             *  but not DSP1<->IPU1-0 or DSP<->IPU2-0. Those communication
+             *  lines have already been established above.
+             */
+            if (((i == dsp1VirtId) || (i == dsp2VirtId)     ||
+                (i == ipu1_0VirtId) || (i == ipu2_0VirtId)) &&
+                ((j == dsp1VirtId) || (j == dsp2VirtId)     ||
+                (j == ipu1_0VirtId) || (j == ipu2_0VirtId))) {
 
                 mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
                                   SYS_MBX7_OFFSET) << 16;
-                mbxUserIdx = (j - InterruptCore.NUM_EVES) << 8;
 
-                /* skip all ther inter IPU and DSP communication */
+                /* DSP1/IPU1 and DSP2/IPU2 already established previously */
                 if (i == j) {
                     continue;
                 }
-                if ((i == ipu1VirtId && j == ipu2VirtId) ||
-                    (i == ipu2VirtId && j == ipu1VirtId)) {
-                    continue;
-                }
-                if ((i == dsp1VirtId && j == dsp2VirtId) ||
-                    (i == dsp2VirtId && j == dsp1VirtId)) {
+                if ((i == dsp1VirtId && j == ipu1_0VirtId) ||
+                    (i == dsp2VirtId && j == ipu2_0VirtId)) {
                     continue;
                 }
 
-                if (i == dsp1VirtId) {
-                    subMbxIdx = j - 6;  /* j = ipu1 or ipu2 */
+                if (j == dsp1VirtId) {
+                    mbxUserIdx = 0;
+                    if (i == dsp2VirtId) {
+                        subMbxIdx = 2;
+                    }
+                    else if (i == ipu2_0VirtId) {
+                        subMbxIdx = 6;
+                    }
                 }
-                else if (i == dsp2VirtId) {
-                    subMbxIdx = j - 4;  /* j = ipu1 or ipu2 */
+                else if (j == dsp2VirtId) {
+                    mbxUserIdx = 1 << 8;
+                    if (i == dsp1VirtId) {
+                        subMbxIdx = 0;
+                    }
+                    else if (i == ipu1_0VirtId) {
+                        subMbxIdx = 4;
+                    }
                 }
-                else if (i == ipu1VirtId) {
-                    subMbxIdx = j;      /* j = dsp1 or dsp2 */
+                else if (j == ipu1_0VirtId) {
+                    mbxUserIdx = 2 << 8;
+                    if (i == dsp2VirtId) {
+                        subMbxIdx = 3;
+                    }
+                    else if (i == ipu2_0VirtId) {
+                        subMbxIdx = 7;
+                    }
                 }
-                else if (i == ipu2VirtId) {
-                    subMbxIdx = j + 2;  /* j = dsp1 or dsp2 */
+                else if (j == ipu2_0VirtId) {
+                    mbxUserIdx = 3 << 8;
+                    if (i == dsp1VirtId) {
+                        subMbxIdx = 1;
+                    }
+                    else if (i == ipu1_0VirtId) {
+                        subMbxIdx = 5;
+                    }
+                }
+
+                tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;
+                InterruptCore.mailboxTable[i*InterruptCore.NUM_CORES + j] = tableEntry;
+            }
+
+            /*
+             *  System Mailbox 8
+             *  This only required only if one of the IPU is running
+             *  NON-SMP BIOS. This is for the second core of
+             *  IPU1-1<->DSP2/IPU2 or second core of IPU2-1<->DSP1/IPU1.
+             */
+            if (((i == dsp1VirtId) || (i == dsp2VirtId) ||
+                (i == ipu1_0VirtId) || (i == ipu1_1VirtId) ||
+                (i == ipu2_0VirtId) || (i == ipu2_1VirtId)) &&
+                ((j == dsp1VirtId) || (j == dsp2VirtId) ||
+                (j == ipu1_0VirtId) || (j == ipu1_1VirtId) ||
+                (j == ipu2_0VirtId) || (j == ipu2_1VirtId))) {
+
+                mbxBaseAddrIdx = ((InterruptCore.NUM_EVES * 3) +
+                                  SYS_MBX8_OFFSET) << 16;
+
+                //print("i= " + i + " j= " + j);
+
+                /* Don't set any previously established lines */
+                if (i == j) {
+                    continue;
+                }
+
+                if ((i == dsp1VirtId) && (j != ipu2_1VirtId)) {
+                    continue;
+                }
+
+                if ((i == dsp2VirtId) && (j != ipu1_1VirtId)) {
+                    continue;
+                }
+
+                if ((i == ipu1_0VirtId) && (j != ipu2_1VirtId)) {
+                    continue;
+                }
+
+                if ((i == ipu1_1VirtId) &&
+                    ((j != dsp2VirtId) && (j != ipu2_0VirtId))) {
+                    continue;
+                }
+
+                if ((i == ipu2_0VirtId) && (j != ipu1_1VirtId)) {
+                    continue;
+                }
+
+                if ((i == ipu2_1VirtId) &&
+                    ((j != dsp1VirtId) && (j != ipu1_0VirtId))) {
+                    continue;
+                }
+
+                /* Set new communication lines */
+                if (j == dsp1VirtId) {
+                    /* only required when IPU2 is NON-SMP BIOS */
+                    mbxUserIdx = 0;
+                    if (i == ipu2_1VirtId) {
+                        subMbxIdx = 2;
+                    }
+                }
+                else if (j == dsp2VirtId) {
+                    /* only required when IPU1 is NON-SMP BIOS */
+                    mbxUserIdx = 1 << 8;
+                    if (i == ipu1_1VirtId) {
+                        subMbxIdx = 1;
+                    }
+                }
+                else if (j == ipu1_0VirtId) {
+                    /* only required when IPU2 is NON-SMP BIOS */
+                    mbxUserIdx = 2 << 8;
+                    if (i == ipu2_1VirtId) {
+                        subMbxIdx = 3;
+                    }
+                }
+                else if (j == ipu1_1VirtId) {
+                    /* only required when IPU1 is NON-SMP BIOS */
+                    mbxUserIdx = 2 << 8;
+                    if (i == dsp2VirtId) {
+                        subMbxIdx = 0;
+                    }
+                    else if (i == ipu2_0VirtId) {
+                        subMbxIdx = 3;
+                    }
+                }
+                else if (j == ipu2_0VirtId) {
+                    /* only required when IPU1 is NON-SMP BIOS */
+                    mbxUserIdx = 3 << 8;
+                    if (i == ipu1_1VirtId) {
+                        subMbxIdx = 2;
+                    }
+                }
+                else if (j == ipu2_1VirtId) {
+                    /* only required when IPU2 is NON-SMP BIOS */
+                    mbxUserIdx = 3 << 8;
+                    if (i == dsp1VirtId) {
+                        subMbxIdx = 0;
+                    }
+                    else if (i == ipu1_0VirtId) {
+                        subMbxIdx = 1;
+                    }
                 }
 
                 tableEntry = mbxBaseAddrIdx | mbxUserIdx | subMbxIdx;

@@ -89,7 +89,7 @@
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptDsp_Module_startup ========
  */
 Int InterruptDsp_Module_startup(Int phase)
@@ -98,21 +98,63 @@ Int InterruptDsp_Module_startup(Int phase)
 
     if (IntXbar_Module_startupDone()) {
         /* connect mailbox interrupts at startup */
-        if (DNUM) {                    /* DSP1 */
-            IntXbar_connect(33, 287);  // eve1 mailbox
-            IntXbar_connect(34, 296);  // eve2 mailbox
-            IntXbar_connect(35, 305);  // eve3 mailbox
-            IntXbar_connect(36, 314);  // eve4 mailbox
-            IntXbar_connect(37, 258);  // system mailbox 7
-            IntXbar_connect(38, 254);  // system mailbox 6 user 1
+        if (DNUM == 0) {               /* DSP1 */
+            IntXbar_connect(24, 284);  // eve1 mailbox 0 user 1
+            IntXbar_connect(25, 293);  // eve2 mailbox 0 user 1
+            IntXbar_connect(26, 249);  // system mailbox 5 user 0
+
+            InterruptDsp_module->interruptTable[6] = 57;    // IPU1-0
+            InterruptDsp_module->interruptTable[9] = 57;    // IPU1-1
+
+            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+                IntXbar_connect(27, 302);  // eve3 mailbox 0 user 1
+                IntXbar_connect(28, 311);  // eve4 mailbox 0 user 1
+            }
+
+            /* plug mbx7 only if DSP2 or IPU2 exists */
+            if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
+                IntXbar_connect(29, 257);  // system mailbox 7 user 0
+                InterruptDsp_module->interruptTable[7] = 60;    // IPU2-0
+            }
+
+            /* plug mbx8 only if IPU2-1 exists */
+            if (MultiProc_getId("IPU2-1") != MultiProc_INVALIDID) {
+                IntXbar_connect(30, 261);  // system mailbox 8 user 0
+                InterruptDsp_module->interruptTable[10] = 61;    // IPU2-1
+            }
         }
-        else {                         /* DSP0 */
-            IntXbar_connect(33, 284);  // eve1 mailbox
-            IntXbar_connect(34, 293);  // eve2 mailbox
-            IntXbar_connect(35, 302);  // eve3 mailbox
-            IntXbar_connect(36, 311);  // eve4 mailbox
-            IntXbar_connect(37, 257);  // system mailbox 7
-            IntXbar_connect(38, 253);  // system mailbox 6 user 0
+        else if (DNUM == 1) {          /* DSP2 */
+            IntXbar_connect(24, 287);  // eve1 mailbox 1 user 1
+            IntXbar_connect(25, 296);  // eve2 mailbox 1 user 1
+            IntXbar_connect(26, 253);  // system mailbox 6 user 0
+
+            InterruptDsp_module->interruptTable[7] = 57;    // IPU2-0
+            InterruptDsp_module->interruptTable[10] = 57;   // IPU2-1
+
+            /* plug eve3 and eve4 mbxs only if eve3 and eve4 exists */
+            if ((MultiProc_getId("EVE3") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("EVE4") != MultiProc_INVALIDID)) {
+                IntXbar_connect(27, 305);  // eve3 mailbox 1 user 1
+                IntXbar_connect(28, 314);  // eve4 mailbox 1 user 1
+            }
+
+            /* plug mbx7 only if DSP1 or IPU1 exists */
+            if ((MultiProc_getId("DSP1") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("IPU1") != MultiProc_INVALIDID) ||
+                (MultiProc_getId("IPU1-0") != MultiProc_INVALIDID)) {
+                IntXbar_connect(29, 258);  // system mailbox 7 user 1
+                InterruptDsp_module->interruptTable[6] = 60;    // IPU1-0
+            }
+
+            /* plug mbx8 only if IPU1-1 exists */
+            if (MultiProc_getId("IPU1-1") != MultiProc_INVALIDID) {
+                IntXbar_connect(30, 262);  // system mailbox 8 user 1
+                InterruptDsp_module->interruptTable[9] = 61;    // IPU1-1
+            }
         }
         return (Startup_DONE);
     }
@@ -120,7 +162,7 @@ Int InterruptDsp_Module_startup(Int phase)
     return (Startup_NOTDONE);
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intEnable ========
  *  Enable remote processor interrupt
  */
@@ -136,7 +178,7 @@ Void InterruptDsp_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     REG32(MAILBOX_IRQENABLE_SET_DSP(index))=MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intDisable ========
  *  Disables remote processor interrupt
  */
@@ -152,7 +194,7 @@ Void InterruptDsp_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
     REG32(MAILBOX_IRQENABLE_CLR_DSP(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intRegister ========
  */
 Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
@@ -180,17 +222,16 @@ Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     InterruptDsp_intClear(remoteProcId, intInfo);
 
     /* Make sure the interrupt only gets plugged once */
-    eventId = InterruptDsp_dspInterruptTable[index];
+    eventId = InterruptDsp_module->interruptTable[index];
 
     InterruptDsp_module->numPlugged++;
 
     if (InterruptDsp_module->numPlugged == 1) {
         EventCombiner_dispatchPlug(eventId,
             (Hwi_FuncPtr)InterruptDsp_intShmStub, eventId, TRUE);
+
         Hwi_Params_init(&params);
-
         combinedEventId = eventId / EVENT_GROUP_SIZE;
-
         params.eventId = combinedEventId;
         params.arg = combinedEventId;
         params.enableInt = TRUE;
@@ -210,7 +251,7 @@ Void InterruptDsp_intRegister(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     Hwi_restore(key);
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intUnregister ========
  */
 Void InterruptDsp_intUnregister(UInt16 remoteProcId,
@@ -230,7 +271,7 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
     InterruptDsp_intDisable(remoteProcId, intInfo);
 
     /* Make sure the interrupt only gets plugged once */
-    eventId = InterruptDsp_dspInterruptTable[index];
+    eventId = InterruptDsp_module->interruptTable[index];
 
     InterruptDsp_module->numPlugged--;
 
@@ -247,7 +288,7 @@ Void InterruptDsp_intUnregister(UInt16 remoteProcId,
     table->arg  = NULL;
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intSend ========
  *  Send interrupt to the remote processor
  */
@@ -283,7 +324,7 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo,
     Hwi_restore(key);
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intPost ========
  */
 Void InterruptDsp_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
@@ -301,7 +342,7 @@ Void InterruptDsp_intPost(UInt16 srcProcId, IInterrupt_IntInfo *intInfo,
     Hwi_restore(key);
 }
 
-/*!
+/*
  *  ======== InterruptDsp_intClear ========
  *  Clear interrupt
  */
@@ -327,7 +368,7 @@ UInt InterruptDsp_intClear(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
  *************************************************************************
  */
 
-/*!
+/*
  *  ======== InterruptDsp_intShmStub ========
  */
 Void InterruptDsp_intShmStub(UArg arg)
