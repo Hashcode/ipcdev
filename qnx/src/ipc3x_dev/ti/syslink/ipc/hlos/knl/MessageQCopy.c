@@ -537,8 +537,8 @@ MessageQCopy_attach (UInt16 remoteProcId, Ptr sharedAddr, UInt16 startId)
                     if (status >= 0) {
                         /* Startup the VirtQueue module for this procId. */
                         VirtQueue_startup(obj->procId,
-                                          MessageQCopy_module->cfg.intId,
-                                          vqPAddr);
+                                    MessageQCopy_module->cfg.intId[obj->procId],
+                                    vqPAddr);
 
                         /*
                          * The buffer area is divided into two parts, one

@@ -101,7 +101,9 @@ typedef enum {
     /* !< Indicates that the architecture is CORTEX M3. */
     Processor_ProcArch_M4            = 4u,
     /* !< Indicates that the architecture is CORTEX M4. */
-    Processor_ProcArch_EndValue      = 5u
+    Processor_ProcArch_C66x          = 5u,
+    /* !< Indicates that the architecture is C66x. */
+    Processor_ProcArch_EndValue      = 6u
     /*!< End delimiter indicating start of invalid values for this enum */
 } Processor_ProcArch;
 

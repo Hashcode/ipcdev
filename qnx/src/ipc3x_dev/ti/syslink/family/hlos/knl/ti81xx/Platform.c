@@ -408,7 +408,8 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 #endif  /* #if !defined (SYSLINK_VARIANT_TI813X) */
 
         /* Override the MESSAGEQCOPY default config */
-        config->MQCopyConfig.intId = 77;
+        config->MQCopyConfig.intId[1] = 77;
+        config->MQCopyConfig.intId[2] = 77;
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }

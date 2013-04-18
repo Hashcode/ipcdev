@@ -297,7 +297,7 @@ ArchIpcInt_clearInterrupt  (UInt16 procId, UInt32 intId)
     GT_assert (curTrace,
               (ArchIpcInt_object.fxnTable->clearInterrupt != NULL));
 
-    retVal = ArchIpcInt_object.fxnTable->clearInterrupt(intId);
+    retVal = ArchIpcInt_object.fxnTable->clearInterrupt(procId, intId);
 
     GT_1trace (curTrace, GT_LEAVE, "ArchIpcInt_clearInterrupt", retVal);
     return (retVal);

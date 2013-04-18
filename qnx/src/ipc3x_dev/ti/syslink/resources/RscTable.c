@@ -410,6 +410,7 @@ Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
                              "Chunk_allocate",
                              status,
                              "Invalid arg passed");
+        GT_3trace(curTrace, GT_4CLASS, "obj [0x%x] obj->chunks [0x%x] pa [0x%x]", obj, obj ? obj->chunks : NULL, pa);
     }
     else {
         // first try to allocate contiguous mem

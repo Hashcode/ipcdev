@@ -51,10 +51,6 @@
 /* Module level headers */
 #include <ti/syslink/inc/ClockOps.h>
 
-#ifndef SYSLINK_BUILDOS_QNX
-/* OSAL & Utils headers */
-#include <ti/syslink/utils/Trace.h>
-#else /* QNX */
 /* standard include for reg access */
 #include <stdint.h>
 #include <sys/mman.h>
@@ -65,105 +61,10 @@
 #include <ti/syslink/utils/Trace.h>
 #include <ti/syslink/utils/String.h>
 
-#endif //SYSLINK_BUILDOS_
-
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
-
-#ifndef SYSLINK_BUILDOS_QNX
-
-/* =============================================================================
- * APIs
- * =============================================================================
- */
-/*!
- *  @brief      Function returns the Clock handle
- *
- *  @handle     Ptr to the clockOps object.conaining the clock function.table
- *  @clkname    name of clk for which handle is to be obtained
- *
- *  @sa         ClockOps_put
- */
-Ptr
-ClockOps_get (ClockOps_Handle handle, String clkName)
-{
-
-    return(handle->clkFxnTable.get(clkName));
-}
-
-/*!
- *  @brief       Function to release a Clock
- *
- *  @handle      Ptr to the clockOps object.conaining the clock function.table
- *  @clkHandle   Handle to the clock
- *
- *  @sa         ClockOps_get
- */
-Void
-ClockOps_put(ClockOps_Handle handle, Ptr clkHandle)
-{
-    handle->clkFxnTable.put(clkHandle);
-}
-/*!
- *  @brief       Function to enable a Clock
- *
- *  @handle      Ptr to the clockOps object.conaining the clock function.table
- *  @clkHandle   Handle to the clock
- *
- *  @sa         ClockOps_disable
- */
-Int32
-ClockOps_enable(ClockOps_Handle handle, Ptr clkHandle)
-{
-    return (handle->clkFxnTable.enable(clkHandle));
-}
-
-/*!
- *  @brief       Function to disable a Clock
- *
- *  @handle      Ptr to the clockOps object.conaining the clock function.table
- *  @clkHandle   Handle to the clock
- *
- *  @sa         ClockOps_enable
- */
-Void
-ClockOps_disable(ClockOps_Handle handle, Ptr clkHandle)
-{
-    handle->clkFxnTable.disable(clkHandle);
-}
-
-/*!
- *  @brief      Function gets the Clock speed .
- *
- *  @handle     Ptr to the clockOps object.conaining the clock function.table
- *  @clkHandle   Handle to the clock
- *
- *  @sa         ClockOps_setRate
- */
-ULong
-ClockOps_getRate(ClockOps_Handle handle, Ptr clkHandle)
-{
-    return(handle->clkFxnTable.getRate(clkHandle));
-}
-
-/*!
- *  @brief       Function sets the dlock speed
- *
- *  @handle      Ptr to the clockOps object.conaining the clock function.table
- *  @clkHandle   Handle to the clock
- *  @rate        Clock speed to be set
- *
- *  @sa         ClockOps_getRate
- */
-Int32
-ClockOps_setRate(ClockOps_Handle handle, Ptr clkHandle, ULong rate)
-{
-    return (handle->clkFxnTable.setRate(clkHandle, rate));
-}
-
-#else /* QNX */
 
 /*Function Prototypes */
 void prcm_enable(UInt32 clkstctrl, UInt32 clkctrl, UInt32 regVal1, UInt32 regVal2, UInt32 cmpVal1, UInt32 cmpVal2, UInt32 wait1, UInt32 wait2);
@@ -191,14 +92,14 @@ String handleArray[] = {
 };
 
 typedef enum {
-	SPINBOX=1,
-	MAILBOX=2,
-	IGPTIMER4=3,
-	FGPTIMER4=4,
-	MMU=5,
-	MMUCFG=6,
-	DSP=7,
-	DUCATI=8
+    SPINBOX=1,
+    MAILBOX=2,
+    IGPTIMER4=3,
+    FGPTIMER4=4,
+    MMU=5,
+    MMUCFG=6,
+    DSP=7,
+    DUCATI=8
 }clkType;
 
 /* =============================================================================
@@ -242,7 +143,7 @@ typedef enum {
 #define SYSCLK18_CLKSRC             (PLL_BASE_ADDRESS+CM_SYSCLK18_CLKSRC)
 #define DMTIMER_CLKSRC              (PLL_BASE_ADDRESS+CM_DMTIMER_CLKSRC)
 
-#define ADPLLJ_CLKCRTL_HS2	0x00000801 //HS2 Mode,TINTZ =1  --used by all PLL's except HDMI
+#define ADPLLJ_CLKCRTL_HS2    0x00000801 //HS2 Mode,TINTZ =1  --used by all PLL's except HDMI
 
 /* ISS PLL releated defines */
 #define ISS_PLL_BASE            (PLL_BASE_ADDRESS+0x140)
@@ -305,36 +206,36 @@ UInt32 refDucati = 0;
 Ptr
 ClockOps_get (ClockOps_Handle handle, String clkName)
 {
-	clkType ctype = SPINBOX;
+    clkType ctype = SPINBOX;
 
-	if (!String_cmp(clkName,"spinbox_ick")) {
-		ctype = SPINBOX;
-	}
-	else if (!String_cmp(clkName,"mailbox_ick")) {
-		ctype = MAILBOX;
-	}
-	else if (!String_cmp(clkName,"gpt4_ick")) {
-		ctype = IGPTIMER4;
-	}
-	else if (!String_cmp(clkName,"gpt4_fck")) {
-		ctype = FGPTIMER4;
-	}
-	else if (!String_cmp(clkName,"mmu_ick")) {
-		ctype = MMU;
-	}
-	else if (!String_cmp(clkName,"mmu_cfg_ick")) {
-		ctype = MMUCFG;
-	}
+    if (!String_cmp(clkName,"spinbox_ick")) {
+        ctype = SPINBOX;
+    }
+    else if (!String_cmp(clkName,"mailbox_ick")) {
+        ctype = MAILBOX;
+    }
+    else if (!String_cmp(clkName,"gpt4_ick")) {
+        ctype = IGPTIMER4;
+    }
+    else if (!String_cmp(clkName,"gpt4_fck")) {
+        ctype = FGPTIMER4;
+    }
+    else if (!String_cmp(clkName,"mmu_ick")) {
+        ctype = MMU;
+    }
+    else if (!String_cmp(clkName,"mmu_cfg_ick")) {
+        ctype = MMUCFG;
+    }
 /* dsp_ick string is changed in latest linux release to gem_ick*/
-	else if (!String_cmp(clkName,"gem_ick")) {
-		ctype = DSP;
-	}
-	else if (!String_cmp(clkName,"ducati_ick")) {
-		ctype = DUCATI;
-	}
-	else {
-		/* should not come here */
-	}
+    else if (!String_cmp(clkName,"gem_ick")) {
+        ctype = DSP;
+    }
+    else if (!String_cmp(clkName,"ducati_ick")) {
+        ctype = DUCATI;
+    }
+    else {
+        /* should not come here */
+    }
 
     return ((Ptr)ctype);
 }
@@ -358,53 +259,54 @@ ClockOps_put(ClockOps_Handle handle, Ptr clkHandle)
  *  @clkHandle   clk handle returned to corresponding clk name
  *  @clkname     name of clk for which handle is to be obtained
  *
- *  @sa         DM8168CLOCK_put
+ *  @sa         ClockOps_put
  */
 Int32
 ClockOps_enable(ClockOps_Handle handle, Ptr clkHandle)
 {
-	switch ((UInt32)clkHandle){
+#if defined(SYSLINK_PLATFORM_TI81XX)
+    switch ((UInt32)clkHandle){
 
-			case SPINBOX:
-				if (refSpinCount == 0) {
-					/*Enable Clock to SPIN box*/
-					prcm_enable(0, PRCM_BASE_ADDR+CM_ALWON_SPINBOX_CLKCTRL, 0 , 2, 0x0, 0x100, TRUE, FALSE);
-					refSpinCount++;
-				}
-				else if(refSpinCount > 0) {
-					refSpinCount++;
-				}
-				else {
-					/* refSpinCount should not be less than zero */
-				}
-				break;
-			case MAILBOX:
-				if (refMboxCount == 0) {
-					/*Enable Clock to mail box*/
-					prcm_enable(0, PRCM_BASE_ADDR+CM_ALWON_MAILBOX_CLKCTRL, 0 , 2, 0x0, 0x100, TRUE, FALSE);
-					refMboxCount++;
-				}
-				else if(refMboxCount > 0) {
-					refMboxCount++;
-				}
-				else {
-					/* refMboxCount should not be less than zero */
-				}
-				break;
-			case IGPTIMER4:
-				if (refGptimer4ick == 0) {
-					prcm_enable(PRCM_BASE_ADDR+CM_ALWON_L3_SLOW_CLKSTCTRL , PRCM_BASE_ADDR+CM_ALWON_TIMER_4_CLKCTRL, 2, 2, 0x0, 0x100, TRUE, TRUE);
-					refGptimer4ick++;
-				}
-				else if(refGptimer4ick > 0) {
-					refGptimer4ick++;
-				}
-				else {
-					/* refGptimer4ick should not be less than zero */
-				}
-				break;
-			case FGPTIMER4:
-				if (refGptimer4fck == 0) {
+            case SPINBOX:
+                if (refSpinCount == 0) {
+                    /*Enable Clock to SPIN box*/
+                    prcm_enable(0, PRCM_BASE_ADDR+CM_ALWON_SPINBOX_CLKCTRL, 0 , 2, 0x0, 0x100, TRUE, FALSE);
+                    refSpinCount++;
+                }
+                else if(refSpinCount > 0) {
+                    refSpinCount++;
+                }
+                else {
+                    /* refSpinCount should not be less than zero */
+                }
+                break;
+            case MAILBOX:
+                if (refMboxCount == 0) {
+                    /*Enable Clock to mail box*/
+                    prcm_enable(0, PRCM_BASE_ADDR+CM_ALWON_MAILBOX_CLKCTRL, 0 , 2, 0x0, 0x100, TRUE, FALSE);
+                    refMboxCount++;
+                }
+                else if(refMboxCount > 0) {
+                    refMboxCount++;
+                }
+                else {
+                    /* refMboxCount should not be less than zero */
+                }
+                break;
+            case IGPTIMER4:
+                if (refGptimer4ick == 0) {
+                    prcm_enable(PRCM_BASE_ADDR+CM_ALWON_L3_SLOW_CLKSTCTRL , PRCM_BASE_ADDR+CM_ALWON_TIMER_4_CLKCTRL, 2, 2, 0x0, 0x100, TRUE, TRUE);
+                    refGptimer4ick++;
+                }
+                else if(refGptimer4ick > 0) {
+                    refGptimer4ick++;
+                }
+                else {
+                    /* refGptimer4ick should not be less than zero */
+                }
+                break;
+            case FGPTIMER4:
+                if (refGptimer4fck == 0) {
 #ifdef CLOCK_FIX
                     uintptr_t sysclk18ClksrcPtr = REMAP(SYSCLK18_CLKSRC);
                     uintptr_t clkselPtr = REMAP(CM_DPLL_SYSCLK18_CLKSEL);
@@ -423,38 +325,38 @@ ClockOps_enable(ClockOps_Handle handle, Ptr clkHandle)
                     UNMAP(clkselPtr);
                     UNMAP(dmtimerClksrcPtr);
 #endif
-					refGptimer4fck++;
-				}
-				else if(refGptimer4fck > 0) {
-					refGptimer4fck++;
-				}
-				else {
-					/* refGptimer4fck should not be less than zero */
-				}
-				break;
-			case MMU:
-				/* required config is done as a part of the case DSP */
-				break;
-			case MMUCFG:
-				/* required config is done as a part of the case DSP */
-				break;
-			case DSP:
-				if (refDSP == 0) {
-					GEMSSClkEnable();
-					refDSP++;
-				}
-				break;
-			case DUCATI:
-				if (refDucati == 0) {
-					DucatiClkEnable();
-					refDucati++;
-				}
-				break;
-			default:
-				break;
+                    refGptimer4fck++;
+                }
+                else if(refGptimer4fck > 0) {
+                    refGptimer4fck++;
+                }
+                else {
+                    /* refGptimer4fck should not be less than zero */
+                }
+                break;
+            case MMU:
+                /* required config is done as a part of the case DSP */
+                break;
+            case MMUCFG:
+                /* required config is done as a part of the case DSP */
+                break;
+            case DSP:
+                if (refDSP == 0) {
+                    GEMSSClkEnable();
+                    refDSP++;
+                }
+                break;
+            case DUCATI:
+                if (refDucati == 0) {
+                    DucatiClkEnable();
+                    refDucati++;
+                }
+                break;
+            default:
+                break;
 
-			}
-
+            }
+#endif
     return 1;
 }
 /*!
@@ -463,74 +365,76 @@ ClockOps_enable(ClockOps_Handle handle, Ptr clkHandle)
  *  @clkHandle   clk handle returned to corresponding clk name
  *  @clkname     name of clk for which handle is to be obtained
  *
- *  @sa         DM8168CLOCK_put
+ *  @sa         ClockOps_put
  */
 Void
 ClockOps_disable(ClockOps_Handle handle, Ptr clkHandle)
 {
+#if defined(SYSLINK_PLATFORM_TI81XX)
    switch ((UInt32)clkHandle){
 
-			case SPINBOX:
-				/*disable Clock to SPIN box*/
-				if (refSpinCount == LAST_CORE) {
-					prcm_disable_spinbox();
-					refSpinCount = 0;
-				}
-				else if(refSpinCount > LAST_CORE) {
-					refSpinCount--;
-				}
-				else {
-					/* refSpinCount is less that or equal to zero */
-				}
-				break;
-			case MAILBOX:
-				/*disable Clock to MAIL box*/
-				if (refMboxCount == LAST_CORE) {
-					prcm_disable_mailbox();
-					refMboxCount = 0;
-				}
-				else if(refMboxCount > LAST_CORE) {
-					refMboxCount--;
-				}
-				else {
-					/* refMboxCount is less that or equal to zero */
-				}
-				break;
-			case IGPTIMER4:
-				if ( refGptimer4ick == LAST_CORE) {
-					prcm_disable_gptimer4();
-					refGptimer4ick = 0;
-					refGptimer4fck = 0;
-				}
-				else if(refGptimer4ick > LAST_CORE) {
-					refGptimer4ick--;
-				}
-				else {
-					/* refGptimer4ick is less that or equal to zero */
-				}
-				break;
-			case FGPTIMER4:
-				break;
-			case MMU:
-				break;
-			case MMUCFG:
-				break;
-			case DSP:
-				if (refDSP > 0 ) {
-					GEMSSClkDisable();
-					refDSP = 0;
-				}
-				break;
-			case DUCATI:
-				if (refDucati > 0) {
-					DucatiClkDisable();
-					refDucati = 0;
-				}
-				break;
-			default:
-				break;
+            case SPINBOX:
+                /*disable Clock to SPIN box*/
+                if (refSpinCount == LAST_CORE) {
+                    prcm_disable_spinbox();
+                    refSpinCount = 0;
+                }
+                else if(refSpinCount > LAST_CORE) {
+                    refSpinCount--;
+                }
+                else {
+                    /* refSpinCount is less that or equal to zero */
+                }
+                break;
+            case MAILBOX:
+                /*disable Clock to MAIL box*/
+                if (refMboxCount == LAST_CORE) {
+                    prcm_disable_mailbox();
+                    refMboxCount = 0;
+                }
+                else if(refMboxCount > LAST_CORE) {
+                    refMboxCount--;
+                }
+                else {
+                    /* refMboxCount is less that or equal to zero */
+                }
+                break;
+            case IGPTIMER4:
+                if ( refGptimer4ick == LAST_CORE) {
+                    prcm_disable_gptimer4();
+                    refGptimer4ick = 0;
+                    refGptimer4fck = 0;
+                }
+                else if(refGptimer4ick > LAST_CORE) {
+                    refGptimer4ick--;
+                }
+                else {
+                    /* refGptimer4ick is less that or equal to zero */
+                }
+                break;
+            case FGPTIMER4:
+                break;
+            case MMU:
+                break;
+            case MMUCFG:
+                break;
+            case DSP:
+                if (refDSP > 0 ) {
+                    GEMSSClkDisable();
+                    refDSP = 0;
+                }
+                break;
+            case DUCATI:
+                if (refDucati > 0) {
+                    DucatiClkDisable();
+                    refDucati = 0;
+                }
+                break;
+            default:
+                break;
 
-			}
+            }
+#endif
 }
 
 /*!
@@ -539,7 +443,7 @@ ClockOps_disable(ClockOps_Handle handle, Ptr clkHandle)
  *  @clkHandle   clk handle returned to corresponding clk name
  *  @clkname     name of clk for which handle is to be obtained
  *
- *  @sa         DM8168CLOCK_put
+ *  @sa         ClockOps_put
  */
 ULong
 ClockOps_getRate(ClockOps_Handle handle, Ptr clkHandle)
@@ -554,10 +458,10 @@ ClockOps_getRate(ClockOps_Handle handle, Ptr clkHandle)
  *  @clkHandle   clk handle returned to corresponding clk name
  *  @clkname     name of clk for which handle is to be obtained
  *
- *  @sa         DM8168CLOCK_put
+ *  @sa         ClockOps_put
  */
 Int32
-DM8168CLOCK_setRate(Ptr clkHandle, ULong rate)
+ClockOps_setRate(ClockOps_Handle handle, Ptr clkHandle, ULong rate)
 {
     //return (clk_set_rate((struct clk *)clkHandle, rate));
     return 1;
@@ -565,6 +469,7 @@ DM8168CLOCK_setRate(Ptr clkHandle, ULong rate)
 
 void PLL_Clocks_Config(UInt32 Base_Address,UInt32 OSC_FREQ,UInt32 N,UInt32 M,UInt32 M2,UInt32 CLKCTRL_VAL)
 {
+#if defined(SYSLINK_PLATFORM_TI81XX)
     UInt32 m2nval,mn2val,read_clkctrl;
     Int32 i = 0;
 
@@ -607,8 +512,10 @@ void PLL_Clocks_Config(UInt32 Base_Address,UInt32 OSC_FREQ,UInt32 N,UInt32 M,UIn
     UNMAP(tenablePtr);
     UNMAP(clkctrlPtr);
     UNMAP(statusPtr);
+#endif
 }
 
+#if defined(SYSLINK_PLATFORM_TI81XX)
 void prcm_enable(UInt32 clkstctrl, UInt32 clkctrl, UInt32 regVal1, UInt32 regVal2, UInt32 cmpVal1, UInt32 cmpVal2, UInt32 wait1, UInt32 wait2){
     uintptr_t clkstctrlPtr = REMAP(PRCM_BASE_ADDR+CM_GEM_CLKSTCTRL);
 
@@ -623,7 +530,7 @@ void prcm_enable(UInt32 clkstctrl, UInt32 clkctrl, UInt32 regVal1, UInt32 regVal
 
     if (clkstctrl == REGRD(clkstctrlPtr)) {
         uintptr_t pwrststPtr = REMAP(PRCM_BASE_ADDR+PM_ACTIVE_PWRSTST);
-        while (REGRD(pwrststPtr)!= 0x37);	/*Check Power is ON*/
+        while (REGRD(pwrststPtr)!= 0x37);    /*Check Power is ON*/
         UNMAP(pwrststPtr);
     }
     UNMAP(clkstctrlPtr);
@@ -801,8 +708,7 @@ void GEMSSClkDisable(void)
     prcm_disable_mmu();
     prcm_disable_mmuconfig();
 }
-
-#endif //SYSLINK_BUILDOS
+#endif
 
 #if defined (__cplusplus)
 

@@ -116,7 +116,7 @@ typedef Int32  (*ArchIpcInt_SendInterrupt)      (UInt16 procId,
  *  @brief  This type defines the function to clear interrupt
  *
  */
-typedef UInt32 (*ArchIpcInt_ClearInterrupt)     (UInt16 mboxNum);
+typedef UInt32 (*ArchIpcInt_ClearInterrupt)     (UInt16 procId, UInt16 mboxNum);
 
 
 /* =============================================================================

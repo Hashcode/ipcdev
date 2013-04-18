@@ -82,6 +82,16 @@ endif
 
 endif # ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
 
+ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+ifeq ("$(VIRTIO)", "true")
+CCOPTS += -DVAYU_VIRTIO
+endif # ifeq ("$(VIRTIO)", "true")
+ifeq ("$(SMP)", "1")
+CCOPTS += -DSYSLINK_SYSBIOS_SMP
+endif # ifeq ("$(SMP)", "1")
+CCOPTS += -DSYSLINK_PLATFORM_VAYU -DARM_TARGET -DC60_TARGET
+endif # ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+
 #SYSLINK Product root path
 SYSLINK_ROOT = $(PROJECT_ROOT)/../../../../..
 SYSLINK_BUILDOS = Qnx
@@ -163,6 +173,18 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
 		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
 		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)videom3	\
 		$(SYSLINK_ROOT)/ti/syslink/family/hlos/knl/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ducati/$(SYSLINK_PLATFORM)vpssm3
+endif
+
+ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
+		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
+		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu	\
+		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core0	\
+		$(SYSLINK_ROOT)/ti/syslink/family/common/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1	\
+		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
+		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
+		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu	\
+		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1
 endif
 
 ifeq ("$(USE_MEMMGR)", "false")

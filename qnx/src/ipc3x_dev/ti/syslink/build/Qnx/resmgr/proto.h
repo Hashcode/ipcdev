@@ -83,10 +83,9 @@ struct syslink_attr;
 
 #include "ti/syslink/utils/List.h"
 #include <OsalThread.h>
+#include <_MultiProc.h>
 
 #define IPC_DEVICE_PATH        "/dev/ipc"
-
-#define NUM_REMOTE_PROCS 3
 
 /*
  *  Define our device attributes structure.
@@ -100,14 +99,14 @@ typedef struct syslink_attr {
 typedef struct named_device {
     iofunc_mount_t      mattr;
     iofunc_attr_t       cattr;
-    syslink_attr_t      cattr_trace[NUM_REMOTE_PROCS];
+    syslink_attr_t      cattr_trace[MultiProc_MAXPROCESSORS];
     int                 resmgr_id;
-    int                 resmgr_id_trace[NUM_REMOTE_PROCS];
+    int                 resmgr_id_trace[MultiProc_MAXPROCESSORS];
     iofunc_funcs_t      mfuncs;
     resmgr_connect_funcs_t  cfuncs;
-    resmgr_connect_funcs_t  cfuncs_trace[NUM_REMOTE_PROCS];
+    resmgr_connect_funcs_t  cfuncs_trace[MultiProc_MAXPROCESSORS];
     resmgr_io_funcs_t   iofuncs;
-    resmgr_io_funcs_t   iofuncs_trace[NUM_REMOTE_PROCS];
+    resmgr_io_funcs_t   iofuncs_trace[MultiProc_MAXPROCESSORS];
     char device_name[_POSIX_PATH_MAX];
 } named_device_t;
 

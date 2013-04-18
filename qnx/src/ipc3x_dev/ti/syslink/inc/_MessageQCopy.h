@@ -72,7 +72,7 @@ extern "C" {
  *  @brief  Structure defining config parameters for the MessageQCopy module.
  */
 typedef struct MessageQCopy_Config_tag {
-    UInt32 intId;
+    UInt32 intId[MultiProc_MAXPROCESSORS];
     /*!< Mailbox interrupt ID */
 } MessageQCopy_Config;
 

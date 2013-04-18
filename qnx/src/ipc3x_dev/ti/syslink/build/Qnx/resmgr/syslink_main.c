@@ -154,7 +154,7 @@ typedef struct syslink_trace_info_t {
     Bool        firstRead;
 } syslink_trace_info;
 
-static syslink_trace_info proc_traces[NUM_REMOTE_PROCS];
+static syslink_trace_info proc_traces[MultiProc_MAXPROCESSORS];
 
 int syslink_read(resmgr_context_t *ctp, io_read_t *msg, syslink_ocb_t *ocb)
 {
@@ -1046,7 +1046,7 @@ static void *ducatiTraceThread(void *parm)
 
     pthread_mutex_lock(&trace_mutex);
     while ( (trace_active == TRUE) && (exit == FALSE) ) {
-        for (core = 0; core < NUM_REMOTE_PROCS; core++) {
+        for (core = 0; core < MultiProc_MAXPROCESSORS; core++) {
             while ((bytesRead = readNextTrace(core, trace_buffer, TRACE_BUFFER_SIZE)) > 0) {
 #if (_NTO_VERSION >= 800)
                 slog2f(buffer_handle, 0, 0, "C%d:%s", core, trace_buffer);

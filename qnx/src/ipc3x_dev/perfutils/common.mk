@@ -53,6 +53,10 @@ ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 CCOPTS += -DSYSLINK_PLATFORM_OMAP5430
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 
+ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+CCOPTS += -DSYSLINK_PLATFORM_OMAP5430
+endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
+
 include $(MKFILES_ROOT)/qtargets.mk
 
 CCOPTS += -DUSE_GPTIMER

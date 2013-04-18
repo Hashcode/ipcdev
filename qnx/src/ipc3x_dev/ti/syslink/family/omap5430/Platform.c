@@ -398,7 +398,9 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         /* Override the PROCMGR default config */
 
         /* Override the MessageQCopy default config */
-        config->MQCopyConfig.intId = 58;
+        config->MQCopyConfig.intId[1] = 58;
+        config->MQCopyConfig.intId[2] = 58;
+        config->MQCopyConfig.intId[3] = 58;
 
         config->ipu_pm_config.int_id = 58;
 #ifdef SYSLINK_SYSBIOS_SMP

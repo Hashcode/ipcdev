@@ -4,11 +4,9 @@
  *  @brief      Implementation of Platform initialization logic.
  *
  *
- *  @ver        02.00.00.46_alpha1
- *
  *  ============================================================================
  *
- *  Copyright (c) 2011, Texas Instruments Incorporated
+ *  Copyright (c) 2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -57,18 +55,18 @@
 #include <ti/syslink/utils/Memory.h>
 #include <ti/syslink/utils/Trace.h>
 #include <ti/ipc/MultiProc.h>
-#include <_MultiProc.h>
 #include <ti/syslink/utils/OsalPrint.h>
+#include <ti/syslink/inc/knl/OsalThread.h>
 #include <ti/syslink/utils/String.h>
+#include <ti/syslink/utils/Cfg.h>
 
 /* SysLink device specific headers */
-#include <ProcDefs.h>
-#include <Processor.h>
-#include <OMAP4430DucatiHal.h>
-#include <OMAP4430DucatiHalReset.h>
-#include <OMAP4430DucatiHalMmu.h>
-#include <OMAP4430DucatiProc.h>
-#include <Omap4430IpcInt.h>
+#include <VAYUIpcInt.h>
+#include <VAYUDspPwr.h>
+#include <VAYUDspProc.h>
+#include <VAYUIpuCore1Proc.h>
+#include <VAYUIpuCore0Proc.h>
+#include <VAYUIpuPwr.h>
 
 /* Module level headers */
 #include <_MessageQCopy.h>
@@ -78,12 +76,12 @@
 #include <ti/syslink/ProcMgr.h>
 #include <_ProcMgr.h>
 #include <ti/syslink/inc/knl/Platform.h>
-#include <rprcloader.h>
+#include <ElfLoader.h>
 
 #include <ti/ipc/Ipc.h>
 #include <_Ipc.h>
 #include <IpcKnl.h>
-#include <ipu_pm.h>
+#include <sys/mman.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -94,12 +92,6 @@ extern "C" {
  *  Macros.
  *  ============================================================================
  */
-#define RESETVECTOR_SYMBOL          "_Ipc_ResetVector"
-
-#define IPC_MEM_VRING0          0xA0000000
-#define IPC_MEM_VRING1          0xA0004000
-#define IPC_MEM_VRING2          0xA0008000
-#define IPC_MEM_VRING3          0xA000c000
 
 /** ============================================================================
  *  Application specific configuration, please change these value according to
@@ -114,67 +106,39 @@ typedef struct Platform_Config {
     /*!< Multiproc config parameter */
 
     MessageQCopy_Config             MQCopyConfig;
-    /*!< Notify config parameter */
+    /*!< MessageQCopy config parameter */
 
     ProcMgr_Config                  procMgrConfig;
     /*!< Processor manager config parameter */
 
-    ipu_pm_config                   ipu_pm_config;
-    /* ipu_pm config parameter */
-
-    rprcloader_Config               rprcloaderConfig;
+    ElfLoader_Config                elfLoaderConfig;
     /*!< Elf loader config parameter */
 } Platform_Config;
-
-
-/* Struct embedded into slave binary */
-typedef struct Platform_SlaveConfig {
-    UInt32  cacheLineSize;
-    UInt32  brOffset;
-} Platform_SlaveConfig;
-
-typedef struct Platform_SlaveSRConfig {
-    UInt32 entryBase;
-    UInt32 entryLen;
-    UInt32 ownerProcId;
-    UInt32 id;
-    UInt32 createHeap;
-    UInt32 cacheLineSize;
-} Platform_SlaveSRConfig;
-
-/* Shared region configuration information for host side. */
-typedef struct Platform_HostSRConfig {
-    UInt16 refCount;
-} Platform_HostSRConfig;
 
 /*! @brief structure for platform instance */
 typedef struct Platform_Object {
     /*!< Flag to indicate platform initialization status */
     ProcMgr_Handle                pmHandle;
     /*!< Handle to the ProcMgr instance used */
-    union{
+    union {
         struct {
-            OMAP4430DUCATIPROC_Handle    pHandle;
+            VAYUDSPPROC_Handle pHandle;
             /*!< Handle to the Processor instance used */
+            VAYUDSPPWR_Handle  pwrHandle;
             /*!< Handle to the PwrMgr instance used */
-            rprcloader_Handle            ldrHandle;
+            ElfLoader_Handle   ldrHandle;
             /*!< Handle to the Loader instance used */
-            UInt32                       fileId;
-            /*!< File ID of loaded image, needed for un-loading */
-        } sysm3;
+        } dsp0;
         struct {
-            OMAP4430DUCATIPROC_Handle    pHandle;
+            VAYUIPUCORE0PROC_Handle pHandle;
             /*!< Handle to the Processor instance used */
+            VAYUIPUPWR_Handle       pwrHandle;
             /*!< Handle to the PwrMgr instance used */
-            /* NOTE: no loader used for appm3, both cores loaded at once */
+            ElfLoader_Handle        ldrHandle;
             /*!< Handle to the Loader instance used */
-        } appm3;
+        } ipu1;
     } sHandles;
     /*!< Slave specific handles */
-    Platform_SlaveConfig          slaveCfg;
-    /*!< Slave embedded config */
-    Platform_SlaveSRConfig *      slaveSRCfg;
-    /*!< Shared region details from slave */
 } Platform_Object, *Platform_Handle;
 
 
@@ -182,19 +146,16 @@ typedef struct Platform_Object {
 typedef struct Platform_Module_State {
     Bool              multiProcInitFlag;
     /*!< MultiProc Initialize flag */
-    Bool              ipu_pm_init_flag;
-    /*!< ipu_pm Initialize flag */
+    Bool              messageQCopyInitFlag;
+    /*!< MessageQCopy Initialize flag */
     Bool              procMgrInitFlag;
     /*!< Processor manager Initialize flag */
-    Bool              rprcloaderInitFlag;
-    /*!< rprc loader Initialize flag */
+    Bool              elfLoaderInitFlag;
+    /*!< Elf loader Initialize flag */
     Bool              ipcIntInitFlag;
     /*!< IpcInt Initialize flag */
     Bool              platformInitFlag;
     /*!< Flag to indicate platform initialization status */
-    Bool              mqcopyInitFlag;
-    /*!< rprc loader Initialize flag */
-    Bool              platform_mem_init_flag;
 } Platform_Module_State;
 
 
@@ -208,6 +169,15 @@ static Platform_Module_State * Platform_module = &Platform_Module_state;
 
 Int32 _Platform_setup  (Ipc_Config * cfg);
 Int32 _Platform_destroy (void);
+
+extern String ProcMgr_sysLinkCfgParams;
+
+String Syslink_Override_Params = "ProcMgr.proc[DSP1].mmuEnable=TRUE;"
+                                 "ProcMgr.proc[DSP1].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[DSP1].carveoutSize0=0x5A00000;"
+                                 "ProcMgr.proc[IPU2].mmuEnable=TRUE;"
+                                 "ProcMgr.proc[IPU2].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[IPU2].carveoutSize0=0x5A00000;";
 
 /** ============================================================================
  *  APIs.
@@ -257,7 +227,7 @@ Platform_getConfig (Platform_Config * config)
         ProcMgr_getConfig (&config->procMgrConfig);
 
         /* Get the ElfLoader default config */
-        rprcloader_getConfig (&config->rprcloaderConfig);
+        ElfLoader_getConfig (&config->elfLoaderConfig);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -266,7 +236,7 @@ Platform_getConfig (Platform_Config * config)
 }
 
 /*!
- *  @brief      Function to override the default confiuration values.
+ *  @brief      Function to override the default configuration values.
  *
  *  @param      config   Configuration values.
  */
@@ -274,6 +244,7 @@ Int32
 Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 {
     Int32  status = Platform_S_SUCCESS;
+    char * pSL_PARAMS;
 
     GT_1trace (curTrace, GT_ENTER, "Platform_overrideConfig", config);
 
@@ -294,30 +265,52 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
-        /* Override the gatepeterson default config */
-        config->multiProcConfig.numProcessors = 4;
-        config->multiProcConfig.id            = 0;
+        /* assign config->params - overriding with SL_PARAMS env var, if set */
+        pSL_PARAMS = getenv("SL_PARAMS");
+        if (pSL_PARAMS != NULL) {
+            GT_2trace(curTrace, GT_1CLASS, "Overriding SysLink_params \"%s\""
+                    " with SL_PARAMS \"%s\"\n", Syslink_Override_Params, pSL_PARAMS);
+            cfg->params = Memory_alloc(NULL, String_len(pSL_PARAMS), 0, NULL);
+            if (cfg->params) {
+                String_cpy(cfg->params, pSL_PARAMS);
+            }
+        }
+        else {
+            cfg->params = Memory_alloc(NULL,
+                                       String_len(Syslink_Override_Params) + 1, 0,
+                                       NULL);
+            if (cfg->params) {
+                String_cpy(cfg->params, Syslink_Override_Params);
+            }
+        }
 
+        _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
+
+        /* Override the gatepeterson default config */
+        config->multiProcConfig.numProcessors = 9;
+        config->multiProcConfig.id            = 0;
         String_cpy (config->multiProcConfig.nameList [0],
                     "HOST");
         String_cpy (config->multiProcConfig.nameList [1],
-                    "CORE0");
+                    "IPU2");
         String_cpy (config->multiProcConfig.nameList [2],
-                    "CORE1");
+                    "IPU1");
         String_cpy (config->multiProcConfig.nameList [3],
-                    "DSP");
+                    "DSP2");
+        String_cpy (config->multiProcConfig.nameList [4],
+                    "DSP1");
+        String_cpy (config->multiProcConfig.nameList [5],
+                    "EVE4");
+        String_cpy (config->multiProcConfig.nameList [6],
+                    "EVE3");
+        String_cpy (config->multiProcConfig.nameList [7],
+                    "EVE2");
+        String_cpy (config->multiProcConfig.nameList [8],
+                    "EVE1");
 
-        /* Override the PROCMGR default config */
-
-        /* Override the MessageQCopy default config */
-        config->MQCopyConfig.intId[1] = 58;
-        config->MQCopyConfig.intId[2] = 58;
-        config->MQCopyConfig.intId[3] = 58;
-
-        config->ipu_pm_config.int_id = 58;
-        config->ipu_pm_config.num_procs = 2;
-        config->ipu_pm_config.proc_ids[0] = 2; // CORE0 is set as 2 above
-        config->ipu_pm_config.proc_ids[1] = 1; // CORE1 is set as 1 above
+        /* Override the MESSAGEQCOPY default config */
+        config->MQCopyConfig.intId[1] = 116; // 84 + 32
+        config->MQCopyConfig.intId[4] = 115; // 83 + 32
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
@@ -336,33 +329,18 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 Int32
 Platform_setup (Ipc_Config * cfg)
 {
-    Int32                   status      = Platform_S_SUCCESS;
-    Platform_Config         _config;
-    Platform_Config *       config;
-    Omap4430IpcInt_Config   omap4430cfg;
+    Int32             status = Platform_S_SUCCESS;
+    Platform_Config   _config;
+    Platform_Config * config;
+    VAYUIpcInt_Config VAYUcfg;
 
     Platform_getConfig (&_config);
     config = &_config;
 
-/* Initialize PlatformMem */
-    status = MemoryOS_setup();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-    if (status < 0) {
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "Platform_setup",
-                             status,
-                             "platform_mem_setup!");
-    } else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        Platform_module->platform_mem_init_flag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-    }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-
     Platform_overrideConfig (config, cfg);
 
     status = MultiProc_setup (&(config->multiProcConfig));
+
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
@@ -399,50 +377,13 @@ Platform_setup (Ipc_Config * cfg)
 
     /* Initialize IpcInt required for VirtQueue/MessageQCopy. */
     if (status >= 0) {
-        /* Do the IPC interrupt setup for the full platform (cfg is not used) */
-        Omap4430IpcInt_setup(&omap4430cfg);
+        /* Do the IPC interrupts setup for the full platform (cfg is not used) */
+        VAYUIpcInt_setup (&VAYUcfg);
         Platform_module->ipcIntInitFlag = TRUE;
     }
 
-/* Initialize rprc loader */
-    if (status >= 0) {
-        status = rprcloader_setup (&config->rprcloaderConfig);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_setup",
-                                 status,
-                                 "rprcloader_setup failed!");
-        }
-        else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->rprcloaderInitFlag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
 
-/* Initialize ipu_pm */
-    if (status >= 0) {
-        status = ipu_pm_setup (&config->ipu_pm_config);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_setup",
-                                 status,
-                                 "ipu_pm_setup failed!");
-        }
-        else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->ipu_pm_init_flag = TRUE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
-
-/* Initialize MessageQCopy */
+/* Intialize MESSAGEQCOPY */
     if (status >= 0) {
         status = MessageQCopy_setup (&config->MQCopyConfig);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -455,7 +396,26 @@ Platform_setup (Ipc_Config * cfg)
         }
         else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->mqcopyInitFlag = TRUE;
+            Platform_module->messageQCopyInitFlag = TRUE;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+/* Intialize Elf loader */
+    if (status >= 0) {
+        status = ElfLoader_setup (&config->elfLoaderConfig);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "Platform_setup",
+                                 status,
+                                 "ElfLoader_setup failed!");
+        }
+        else {
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+            Platform_module->elfLoaderInitFlag = TRUE;
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -468,7 +428,6 @@ Platform_setup (Ipc_Config * cfg)
     }
 
     if (status >= 0) {
-        /* Doing per remote-proc init stuff */
         status = _Platform_setup (cfg);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         if (status < 0) {
@@ -489,7 +448,6 @@ Platform_setup (Ipc_Config * cfg)
     if (status < 0) {
         Platform_destroy();
     }
-
     return status;
 }
 
@@ -525,8 +483,27 @@ Platform_destroy (void)
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
     }
 
-    /* Finalize MessageQCopy */
-    if (Platform_module->mqcopyInitFlag == TRUE) {
+    /* Finalize elf loader */
+    if (Platform_module->elfLoaderInitFlag == TRUE) {
+        status = ElfLoader_destroy ();
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "Platform_destroy",
+                                 status,
+                                 "ElfLoader_destroy failed!");
+        }
+        else {
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+            Platform_module->elfLoaderInitFlag = FALSE;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+    /* Finalize MESSAGEQCOPY */
+    if (Platform_module->messageQCopyInitFlag == TRUE) {
         status = MessageQCopy_destroy ();
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         if (status < 0) {
@@ -538,52 +515,15 @@ Platform_destroy (void)
         }
         else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->mqcopyInitFlag = FALSE;
+            Platform_module->messageQCopyInitFlag = FALSE;
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
     }
 
-    /* Finalize ipu_pm */
-    if (Platform_module->ipu_pm_init_flag == TRUE) {
-        status = ipu_pm_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_destroy",
-                                 status,
-                                 "ipu_pm_destroy failed!");
-        }
-        else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->ipu_pm_init_flag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
-
-    /* Finalize rprc loader */
-    if (Platform_module->rprcloaderInitFlag == TRUE) {
-        status = rprcloader_destroy ();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_destroy",
-                                 status,
-                                 "rprcloader_destroy failed!");
-        }
-        else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->rprcloaderInitFlag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
 
     if (Platform_module->ipcIntInitFlag == TRUE) {
-        Omap4430IpcInt_destroy ();
+        VAYUIpcInt_destroy ();
         Platform_module->ipcIntInitFlag = FALSE;
     }
 
@@ -610,13 +550,13 @@ Platform_destroy (void)
     if (Platform_module->multiProcInitFlag == TRUE) {
         status = MultiProc_destroy ();
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_destroy",
-                                 status,
-                                 "MultiProc_destroy failed!");
-        }
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "Platform_destroy",
+                             status,
+                             "MultiProc_destroy failed!");
+    }
         else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
             Platform_module->multiProcInitFlag = FALSE;
@@ -631,29 +571,36 @@ Platform_destroy (void)
                     (sizeof (Platform_Object) * MultiProc_getNumProcessors()));
     }
 
-    if (Platform_module->platform_mem_init_flag == TRUE) {
-        status = MemoryOS_destroy();
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        if (status < 0) {
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "Platform_destroy",
-                                 status,
-                                 "MemoryOS_destroy failed!");
-        }
-        else {
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            Platform_module->platform_mem_init_flag = FALSE;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
-
     GT_1trace (curTrace, GT_LEAVE, "Platform_destroy", status);
 
     /*! @retval Platform_S_SUCCESS Operation successful */
     return status;
 }
+
+/*
+ * union _Platform_setup_Local exists so that we don't waste stack or
+ * alloc'ed memory on storage for things that exist for just a few
+ * statements of the function _Platform_setup().  The *PROC_Params
+ * elements are large and variably sized, depending on the macro
+ * ProcMgr_MAX_MEMORY_REGIONS.
+ */
+typedef union _Platform_setup_Local {
+    ProcMgr_Params          params;
+    VAYUDSPPROC_Config      dspProcConfig;
+    VAYUIPUCORE1PROC_Config videoProcConfig;
+    VAYUIPUCORE0PROC_Config vpssProcConfig;
+    VAYUDSPPWR_Config       dspPwrConfig;
+    VAYUIPUPWR_Config       videoPwrConfig;
+    VAYUIPUPWR_Config       vpssPwrConfig;
+    VAYUDSPPROC_Params      dspProcParams;
+    VAYUIPUCORE1PROC_Params videoProcParams;
+    VAYUIPUCORE0PROC_Params vpssProcParams;
+    VAYUDSPPWR_Params       dspPwrParams;
+    VAYUIPUPWR_Params       videoPwrParams;
+    VAYUIPUPWR_Params       vpssPwrParams;
+    ElfLoader_Params        elfLoaderParams;
+} _Platform_setup_Local;
+
 
 /*!
  *  @brief      Function to setup platform.
@@ -662,153 +609,98 @@ Platform_destroy (void)
 Int32
 _Platform_setup (Ipc_Config * cfg)
 {
-    Int32                       status              = Platform_S_SUCCESS;
-    ProcMgr_Params              params;
-    OMAP4430DUCATIPROC_Config   sysM3ProcConfig;
-    OMAP4430DUCATIPROC_Config   appM3ProcConfig;
-    OMAP4430DUCATIPROC_Params   sysM3ProcParams;
-    OMAP4430DUCATIPROC_Params   appM3ProcParams;
-    ProcMgr_AddrInfo *          memEntries;
-    rprcloader_Params           rprcloaderParams;
-    rprcloader_Handle           ldrHandle;
-    UInt16                      procId;
-    Platform_Handle             handle;
-    UInt32                      pa, va;
-    UInt32                      i                   = 0;
-    Bool                        core0Setup          = FALSE;
-    Bool                        core1Setup          = FALSE;
-    ProcMgr_AttachParams        attachParams;
+    Int32                   status = Platform_S_SUCCESS;
+    _Platform_setup_Local   *lv;
+    UInt16                  procId;
+    Platform_Handle         handle;
 
     GT_0trace (curTrace, GT_ENTER, "_Platform_setup");
 
-    /* Get MultiProc ID by name. */
-    procId = MultiProc_getId ("CORE0");
-
-    handle = &Platform_objects [procId];
-
-    OMAP4430DUCATIPROC_get_config(&sysM3ProcConfig, procId );
-    status = OMAP4430DUCATIPROC_setup (&sysM3ProcConfig, procId);
-    if (status < 0) {
+    lv = Memory_alloc(NULL, sizeof(_Platform_setup_Local), 0, NULL);
+    if (lv == NULL) {
+        status = Platform_E_FAIL;
         GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "_Platform_setup",
-                             status,
-                             "OMAP4430PROC_setup failed!");
+                                GT_4CLASS,
+                                "_Platform_setup",
+                                status,
+                                "Memory_alloc failed");
+        goto ret;
     }
-    else {
-        core0Setup = TRUE;
-        /* Create an instance of the Processor object for
-         * OMAP4430 */
-        OMAP4430DUCATIPROC_Params_init (NULL, &sysM3ProcParams, procId);
-        pa = cfg->pAddr;
-        va = cfg->vAddr;
-        memEntries = sysM3ProcParams.memEntries;
-        for (i = 0; i < sysM3ProcParams.numMemEntries; i++) {
-            memEntries[i].addr[ProcMgr_AddrType_MasterPhys] = pa;
-            memEntries[i].addr[ProcMgr_AddrType_MasterKnlVirt] = va;
-            pa += memEntries[i].size;
-            va += memEntries[i].size;
-        }
-        handle->sHandles.sysm3.pHandle = OMAP4430DUCATIPROC_create (
-                                                      procId,
-                                                      &sysM3ProcParams);
-
-        /* Create an instance of the rprc Loader object */
-        rprcloader_Params_init (NULL, &rprcloaderParams);
-        handle->sHandles.sysm3.ldrHandle = rprcloader_create (procId,
-                                                          &rprcloaderParams);
-
-        if (handle->sHandles.sysm3.pHandle == NULL) {
-            status = Platform_E_FAIL;
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "_Platform_setup",
-                                 status,
-                                 "OMAP4430PROC_create failed!");
-        }
-        else if (handle->sHandles.sysm3.ldrHandle ==  NULL) {
-            status = Platform_E_FAIL;
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "_Platform_setup",
-                                 status,
-                                 "Failed to create loader instance!");
-        }
-        else {
-            /* Initialize parameters */
-            ProcMgr_Params_init (NULL, &params);
-            params.procHandle = handle->sHandles.sysm3.pHandle;
-            params.loaderHandle = handle->sHandles.sysm3.ldrHandle;
-            ldrHandle = params.loaderHandle;
-            String_cpy (params.rstVectorSectionName,
-                        RESETVECTOR_SYMBOL);
-            handle->pmHandle = ProcMgr_create (procId, &params);
-            if (handle->pmHandle == NULL) {
-                status = Platform_E_FAIL;
-                GT_setFailureReason (curTrace,
-                                     GT_4CLASS,
-                                     "_Platform_setup",
-                                     status,
-                                     "ProcMgr_create failed!");
-            }
-            else {
-                ProcMgr_getAttachParams(handle->pmHandle, &attachParams);
-                ProcMgr_attach(handle->pmHandle, &attachParams);
-                MessageQCopy_attach(procId, (Ptr)IPC_MEM_VRING0, 0);
-            }
-        }
-    }
-
     if (status >= 0) {
         /* Get MultiProc ID by name. */
-        procId = MultiProc_getId ("CORE1");
+        procId = MultiProc_getId ("IPU2");
 
         handle = &Platform_objects [procId];
-        OMAP4430DUCATIPROC_get_config (&appM3ProcConfig, procId );
-        status = OMAP4430DUCATIPROC_setup (&appM3ProcConfig, procId);
+        VAYUIPUCORE0PROC_getConfig (&lv->vpssProcConfig);
+        status = VAYUIPUCORE0PROC_setup (&lv->vpssProcConfig);
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_setup",
                                  status,
-                                 "OMAP4430PROC_setup failed!");
+                                 "VAYUIPUCORE0PROC_setup failed!");
         }
         else {
-            core1Setup = TRUE;
-            /* Create an instance of the Processor object for
-             * OMAP4430 */
-            OMAP4430DUCATIPROC_Params_init(NULL, &appM3ProcParams,procId);
-            pa = cfg->pAddr;
-            va = cfg->vAddr;
-            memEntries = appM3ProcParams.memEntries;
-            for (i = 0; i < appM3ProcParams.numMemEntries; i++) {
-                memEntries[i].addr[ProcMgr_AddrType_MasterPhys] = pa;
-                memEntries[i].addr[ProcMgr_AddrType_MasterKnlVirt] = va;
-                pa += memEntries[i].size;
-                va += memEntries[i].size;
+            VAYUIPUPWR_getConfig (&lv->vpssPwrConfig);
+            status = VAYUIPUPWR_setup (&lv->vpssPwrConfig);
+            if (status < 0) {
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUIPUPWR_setup failed!");
             }
-            handle->sHandles.appm3.pHandle = OMAP4430DUCATIPROC_create(procId,
-                                                          &appM3ProcParams);
+        }
 
-            /* Don't create an instance of the rprc Loader - not needed */
+        if (status >= 0) {
+            /* Create an instance of the Processor object for
+             * VAYUIPUCORE0 */
+            VAYUIPUCORE0PROC_Params_init (NULL, &lv->vpssProcParams);
+            handle->sHandles.ipu1.pHandle = VAYUIPUCORE0PROC_create (procId,
+                                                         &lv->vpssProcParams);
 
-            if (handle->sHandles.appm3.pHandle == NULL) {
+            /* Create an instance of the ELF Loader object */
+            ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
+            handle->sHandles.ipu1.ldrHandle = ElfLoader_create (procId,
+                                                        &lv->elfLoaderParams);
+
+            /* Create an instance of the PwrMgr object for VAYUIPUCORE0 */
+            VAYUIPUPWR_Params_init (&lv->vpssPwrParams);
+            handle->sHandles.ipu1.pwrHandle = VAYUIPUPWR_create (
+                                                           procId,
+                                                           &lv->vpssPwrParams);
+
+            if (handle->sHandles.ipu1.pHandle == NULL) {
                 status = Platform_E_FAIL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "_Platform_setup",
                                      status,
-                                     "OMAP4430PROC_create failed!");
+                                     "VAYUIPUCORE0PROC_create failed!");
+            }
+            else if (handle->sHandles.ipu1.ldrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "Failed to create loader instance!");
+            }
+            else if (handle->sHandles.ipu1.pwrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUIPUPWR_create failed!");
             }
             else {
                 /* Initialize parameters */
-                ProcMgr_Params_init (NULL, &params);
-                params.procHandle = handle->sHandles.appm3.pHandle;
-                /* Use the same loader handle as sysm3 to avoid ProcMgr errors */
-                params.loaderHandle = ldrHandle;
-                String_cpy (params.rstVectorSectionName,
-                            RESETVECTOR_SYMBOL);
-                handle->pmHandle = ProcMgr_create (procId, &params);
+                ProcMgr_Params_init (NULL, &lv->params);
+                lv->params.procHandle = handle->sHandles.ipu1.pHandle;
+                lv->params.loaderHandle = handle->sHandles.ipu1.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.ipu1.pwrHandle;
+                handle->pmHandle = ProcMgr_create (procId, &lv->params);
                 if (handle->pmHandle == NULL) {
                     status = Platform_E_FAIL;
                     GT_setFailureReason (curTrace,
@@ -817,47 +709,99 @@ _Platform_setup (Ipc_Config * cfg)
                                          status,
                                          "ProcMgr_create failed!");
                 }
-                else {
-                    ProcMgr_getAttachParams(handle->pmHandle, &attachParams);
-                    ProcMgr_attach(handle->pmHandle, &attachParams);
-                    MessageQCopy_attach(procId, (Ptr)IPC_MEM_VRING2, 200);
+            }
+        }
+    }
+
+    if (status >= 0) {
+        /* Get MultiProc ID by name. */
+        procId = MultiProc_getId ("DSP1");
+
+        handle = &Platform_objects [procId];
+        VAYUDSPPROC_getConfig (&lv->dspProcConfig);
+        status = VAYUDSPPROC_setup (&lv->dspProcConfig);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_setup",
+                                 status,
+                                 "VAYUDSPPROC_setup failed!");
+        }
+        else {
+            VAYUDSPPWR_getConfig (&lv->dspPwrConfig);
+            status = VAYUDSPPWR_setup (&lv->dspPwrConfig);
+            if (status < 0) {
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPWR_setup failed!");
+            }
+        }
+
+        if (status >= 0) {
+            /* Create an instance of the Processor object for
+             * VAYUDSP */
+            VAYUDSPPROC_Params_init (NULL, &lv->dspProcParams);
+            handle->sHandles.dsp0.pHandle = VAYUDSPPROC_create (procId,
+                                                              &lv->dspProcParams);
+
+            /* Create an instance of the ELF Loader object */
+            ElfLoader_Params_init (NULL, &lv->elfLoaderParams);
+            handle->sHandles.dsp0.ldrHandle =
+                                           ElfLoader_create (procId,
+                                                             &lv->elfLoaderParams);
+            /* Create an instance of the PwrMgr object for VAYUDSP */
+            VAYUDSPPWR_Params_init (&lv->dspPwrParams);
+            handle->sHandles.dsp0.pwrHandle = VAYUDSPPWR_create (procId,
+                                                    &lv->dspPwrParams);
+
+            if (handle->sHandles.dsp0.pHandle == NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPROC_create failed!");
+            }
+            else if (handle->sHandles.dsp0.ldrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "Failed to create loader instance!");
+            }
+            else if (handle->sHandles.dsp0.pwrHandle ==  NULL) {
+                status = Platform_E_FAIL;
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_Platform_setup",
+                                     status,
+                                     "VAYUDSPPWR_create failed!");
+            }
+            else {
+                /* Initialize parameters */
+                ProcMgr_Params_init (NULL, &lv->params);
+                lv->params.procHandle = handle->sHandles.dsp0.pHandle;
+                lv->params.loaderHandle = handle->sHandles.dsp0.ldrHandle;
+                lv->params.pwrHandle = handle->sHandles.dsp0.pwrHandle;
+                handle->pmHandle = ProcMgr_create (procId, &lv->params);
+                if (handle->pmHandle == NULL) {
+                    status = Platform_E_FAIL;
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "_Platform_setup",
+                                         status,
+                                         "ProcMgr_create failed!");
                 }
             }
         }
     }
 
-    if (status < 0) {
-        /* Cleanup in case of error */
-        procId = MultiProc_getId ("CORE1");
-        handle = &Platform_objects [procId];
-        if (handle->pmHandle) {
-            ProcMgr_delete(&handle->pmHandle);
-            handle->pmHandle = NULL;
-        }
-        if (handle->sHandles.appm3.pHandle) {
-            OMAP4430DUCATIPROC_delete(&handle->sHandles.appm3.pHandle);
-            handle->sHandles.appm3.pHandle = NULL;
-        }
-        if (core1Setup)
-            OMAP4430DUCATIPROC_destroy(procId);
+    Memory_free(NULL, lv, sizeof(_Platform_setup_Local));
 
-        procId = MultiProc_getId ("CORE0");
-        handle = &Platform_objects [procId];
-        if (handle->pmHandle) {
-            ProcMgr_delete(&handle->pmHandle);
-            handle->pmHandle = NULL;
-        }
-        if (handle->sHandles.sysm3.ldrHandle) {
-            rprcloader_delete(&handle->sHandles.sysm3.ldrHandle);
-            handle->sHandles.sysm3.ldrHandle = NULL;
-        }
-        if (handle->sHandles.sysm3.pHandle) {
-            OMAP4430DUCATIPROC_delete(&handle->sHandles.sysm3.pHandle);
-            handle->sHandles.sysm3.pHandle = NULL;
-        }
-        if (core0Setup)
-            OMAP4430DUCATIPROC_destroy(procId);
-    }
+ret:
     GT_1trace (curTrace, GT_LEAVE, "_Platform_setup", status);
 
     /*! @retval Platform_S_SUCCESS operation was successful */
@@ -875,33 +819,28 @@ _Platform_destroy (void)
     Int32           status    = Platform_S_SUCCESS;
     Int32           tmpStatus = Platform_S_SUCCESS;
     Platform_Handle handle;
-    /*UInt16          procId;*/
-
-    /* Get MultiProc ID by name. */
 
     GT_0trace (curTrace, GT_ENTER, "_Platform_destroy");
 
-    /* ------------------------- APPM3 cleanup ------------------------------ */
-    handle = &Platform_objects [MultiProc_getId ("CORE1")];
+    /* ------------------------- DSP cleanup -------------------------------- */
+    handle = &Platform_objects [MultiProc_getId ("DSP1")];
     if (handle->pmHandle != NULL) {
-        tmpStatus = ProcMgr_delete (&handle->pmHandle);
-        GT_assert (curTrace, (tmpStatus >= 0));
-        if ((status >= 0) && (tmpStatus < 0)) {
-            status = tmpStatus;
+        status = ProcMgr_delete (&handle->pmHandle);
+        GT_assert (curTrace, (status >= 0));
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
+        if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
                                  "ProcMgr_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
     }
 
     /* Delete the Processor, Loader and PwrMgr instances */
-
-    if (handle->sHandles.appm3.pHandle != NULL) {
-        tmpStatus = OMAP4430DUCATIPROC_delete (&handle->sHandles.appm3.pHandle);
+    if (handle->sHandles.dsp0.pwrHandle != NULL) {
+        tmpStatus = VAYUDSPPWR_delete (&handle->sHandles.dsp0.pwrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -910,45 +849,13 @@ _Platform_destroy (void)
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
-                                 "OMAP4430PROC_delete failed!");
+                                 "VAYUDSPPWR_delete failed!");
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         }
     }
 
-    tmpStatus = OMAP4430DUCATIPROC_destroy (MultiProc_getId ("CORE1"));
-    GT_assert (curTrace, (tmpStatus >= 0));
-    if ((status >= 0) && (tmpStatus < 0)) {
-        status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "_Platform_destroy",
-                             status,
-                             "OMAP4430PROC_destroy failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-    }
-
-    /* ------------------------- SYSM3 cleanup ------------------------------ */
-    handle = &Platform_objects [MultiProc_getId ("CORE0")];
-    if (handle->pmHandle != NULL) {
-        tmpStatus = ProcMgr_delete (&handle->pmHandle);
-        GT_assert (curTrace, (tmpStatus >= 0));
-        if ((status >= 0) && (tmpStatus < 0)) {
-            status = tmpStatus;
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "_Platform_destroy",
-                                 status,
-                                 "ProcMgr_delete failed!");
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        }
-    }
-
-    /* Delete the Processor, Loader and PwrMgr instances */
-
-    if (handle->sHandles.sysm3.ldrHandle != NULL) {
-        tmpStatus = rprcloader_delete (&handle->sHandles.sysm3.ldrHandle);
+    if (handle->sHandles.dsp0.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.dsp0.ldrHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -962,8 +869,8 @@ _Platform_destroy (void)
         }
     }
 
-    if (handle->sHandles.sysm3.pHandle != NULL) {
-        tmpStatus = OMAP4430DUCATIPROC_delete (&handle->sHandles.sysm3.pHandle);
+    if (handle->sHandles.dsp0.pHandle != NULL) {
+        tmpStatus = VAYUDSPPROC_delete (&handle->sHandles.dsp0.pHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
         if ((status >= 0) && (tmpStatus < 0)) {
             status = tmpStatus;
@@ -972,12 +879,12 @@ _Platform_destroy (void)
                                  GT_4CLASS,
                                  "_Platform_destroy",
                                  status,
-                                 "OMAP4430PROC_delete failed!");
+                                 "VAYUDSPPROC_delete failed!");
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         }
     }
 
-    tmpStatus = OMAP4430DUCATIPROC_destroy (MultiProc_getId ("CORE0"));
+    tmpStatus = VAYUDSPPWR_destroy ();
     GT_assert (curTrace, (tmpStatus >= 0));
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
@@ -986,7 +893,109 @@ _Platform_destroy (void)
                              GT_4CLASS,
                              "_Platform_destroy",
                              status,
-                             "OMAP4430PROC_destroy failed!");
+                             "VAYUDSPPWR_destroy failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+    tmpStatus = VAYUDSPPROC_destroy ();
+    GT_assert (curTrace, (tmpStatus >= 0));
+    if ((status >= 0) && (tmpStatus < 0)) {
+        status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_Platform_destroy",
+                             status,
+                             "VAYUDSPPROC_destroy failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+    /* ------------------------- IPU1 cleanup ------------------------------- */
+    handle = &Platform_objects [MultiProc_getId ("IPU2")];
+    if (handle->pmHandle != NULL) {
+        tmpStatus = ProcMgr_delete (&handle->pmHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "ProcMgr_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    /* Delete the Processor, Loader and PwrMgr instances */
+    if (handle->sHandles.ipu1.pwrHandle != NULL) {
+        tmpStatus = VAYUIPUPWR_delete (&handle->sHandles.ipu1.pwrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUIPUPWR_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.ipu1.ldrHandle != NULL) {
+        tmpStatus = ElfLoader_delete (&handle->sHandles.ipu1.ldrHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "Failed to delete loader instance!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    if (handle->sHandles.ipu1.pHandle != NULL) {
+        tmpStatus = VAYUIPUCORE0PROC_delete (&handle->sHandles.ipu1.pHandle);
+        GT_assert (curTrace, (tmpStatus >= 0));
+        if ((status >= 0) && (tmpStatus < 0)) {
+            status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "_Platform_destroy",
+                                 status,
+                                 "VAYUIPUCORE0PROC_delete failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        }
+    }
+
+    tmpStatus = VAYUIPUPWR_destroy ();
+    GT_assert (curTrace, (tmpStatus >= 0));
+    if ((status >= 0) && (tmpStatus < 0)) {
+        status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_Platform_destroy",
+                             status,
+                             "VAYUIPUPWR_destroy failed!");
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+    }
+
+    tmpStatus = VAYUIPUCORE0PROC_destroy ();
+    GT_assert (curTrace, (tmpStatus >= 0));
+    if ((status >= 0) && (tmpStatus < 0)) {
+        status = tmpStatus;
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_Platform_destroy",
+                             status,
+                             "VAYUIPUCORE0PROC_destroy failed!");
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
     }
 
@@ -999,4 +1008,4 @@ _Platform_destroy (void)
 
 #if defined (__cplusplus)
 }
-#endif /* defined (__cplusplus) */
+#endif
