@@ -183,11 +183,11 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
 
     len = strlen(instanceName);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
-    strncpy((Char *)msg.instanceName, instanceName, len);
+    strncpy((Char *)msg.instanceName, instanceName, len+1);
 
     len = strlen(name);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
-    strncpy((Char *)msg.name, name, len);
+    strncpy((Char *)msg.name, name, len+1);
 
     Log_print3(Diags_INFO, FXNN": Requesting from procId %d, %s:%s...\n",
                obj->remoteProcId, (IArg)msg.instanceName, (IArg)msg.name);
