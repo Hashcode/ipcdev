@@ -142,7 +142,7 @@ all:
 libs:
 	@echo "#"
 	@echo "# Making $@ ..."
-	$(XDC) .libraries -P $(LIST)
+	$(XDC) .dlls -P $(LIST)
 
 release:
 	@ echo building ipc packages ...
