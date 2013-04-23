@@ -58,23 +58,28 @@ function module$use()
     /* Initialize mailboxTable */
     TableInit.generateTable(Ipu);
 
-    /* Initialize mailbox base address table */
-    this.mailboxBaseAddr[0]  = 0x9208B000;  /* EVE1 Internal Mailbox 0 */
-    this.mailboxBaseAddr[1]  = 0x9208C000;  /* EVE1 Internal Mailbox 1 */
-    this.mailboxBaseAddr[2]  = 0x9208D000;  /* EVE1 Internal Mailbox 2 */
-    this.mailboxBaseAddr[3]  = 0x9218B000;  /* EVE2 Internal Mailbox 0 */
-    this.mailboxBaseAddr[4]  = 0x9218C000;  /* EVE2 Internal Mailbox 1 */
-    this.mailboxBaseAddr[5]  = 0x9218D000;  /* EVE2 Internal Mailbox 2 */
-    this.mailboxBaseAddr[6]  = 0x9228B000;  /* EVE3 Internal Mailbox 0 */
-    this.mailboxBaseAddr[7]  = 0x9228C000;  /* EVE3 Internal Mailbox 1 */
-    this.mailboxBaseAddr[8]  = 0x9228D000;  /* EVE3 Internal Mailbox 2 */
-    this.mailboxBaseAddr[9]  = 0x9238B000;  /* EVE4 Internal Mailbox 0 */
-    this.mailboxBaseAddr[10] = 0x9238C000;  /* EVE4 Internal Mailbox 1 */
-    this.mailboxBaseAddr[11] = 0x9238D000;  /* EVE4 Internal Mailbox 2 */
-    this.mailboxBaseAddr[12] = 0x48840000;  /* System Mailbox 5 */
-    this.mailboxBaseAddr[13] = 0x48842000;  /* System Mailbox 6 */
-    this.mailboxBaseAddr[14] = 0x48844000;  /* System Mailbox 7 */
-    this.mailboxBaseAddr[15] = 0x48846000;  /* System Mailbox 8 */
+    /*
+     * Initialize mailbox base address table
+     *
+     * Note, these are Virtual addrs, which the user must correctly map to
+     * phys addrs in the AMMU!
+     */
+    this.mailboxBaseAddr[0]  = 0x6208B000;  /* EVE1 MBOX0 - PA: 0x4208B000 */
+    this.mailboxBaseAddr[1]  = 0x6208C000;  /*          1 - PA: 0x4208C000 */
+    this.mailboxBaseAddr[2]  = 0x6208D000;  /*          2 - PA: N/A        */
+    this.mailboxBaseAddr[3]  = 0x6218B000;  /* EVE2 MBOX0 - PA: 0x4218B000 */
+    this.mailboxBaseAddr[4]  = 0x6218C000;  /*          1 - PA: 0x4218C000 */
+    this.mailboxBaseAddr[5]  = 0x6218D000;  /*          2 - PA: N/A        */
+    this.mailboxBaseAddr[6]  = 0x6228B000;  /* EVE3 MBOX0 - PA: 0x4228B000 */
+    this.mailboxBaseAddr[7]  = 0x6228C000;  /*          1 - PA: 0x4228C000 */
+    this.mailboxBaseAddr[8]  = 0x6228D000;  /*          2 - PA: N/A        */
+    this.mailboxBaseAddr[9]  = 0x6238B000;  /* EVE4 MBOX0 - PA: 0x4238B000 */
+    this.mailboxBaseAddr[10] = 0x6238C000;  /*          1 - PA: 0x4238C000 */
+    this.mailboxBaseAddr[11] = 0x6238D000;  /*          2 - PA: N/A        */
+    this.mailboxBaseAddr[12] = 0x68840000;  /* System Mailbox 5 */
+    this.mailboxBaseAddr[13] = 0x68842000;  /* System Mailbox 6 */
+    this.mailboxBaseAddr[14] = 0x68844000;  /* System Mailbox 7 */
+    this.mailboxBaseAddr[15] = 0x68846000;  /* System Mailbox 8 */
 
     /*
      * In case of a spec change, follow the process shown below:
