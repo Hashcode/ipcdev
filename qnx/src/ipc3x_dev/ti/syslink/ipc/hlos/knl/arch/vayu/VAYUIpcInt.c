@@ -75,6 +75,30 @@
 extern "C" {
 #endif
 
+/* From TableInit.xs in packages/ti/sdo/ipc/family/vayu: */
+/*
+ * src     dst     mbox userid  subidx
+ * IPU1_0  DSP1    5    0       3
+ * HOST    DSP1    5    0       5
+ * IPU1_1  DSP1    5    0       8
+ * DSP1    IPU1_0  5    1       0
+ * HOST    IPU1_0  5    1       6
+ * DSP1    HOST    5    2       1
+ * IPU1_0  HOST    5    2       4
+ * IPU1_1  HOST    5    2       9
+ * DSP1    IPU1_1  5    3       2
+ * HOST    IPU1_1  5    3       7
+ * IPU2_0  DSP2    6    0       3
+ * HOST    DSP2    6    0       5
+ * IPU2_1  DSP2    6    0       8
+ * DSP2    IPU2_0  6    1       0
+ * HOST    IPU2_0  6    1       6
+ * DSP2    HOST    6    2       1
+ * IPU2_0  HOST    6    2       4
+ * IPU2_1  HOST    6    2       9
+ * DSP2    IPU2_1  6    3       2
+ * HOST    IPU2_1  6    3       7
+ */
 
 /* =============================================================================
  *  Macros and types
@@ -108,16 +132,40 @@ extern "C" {
 #define VAYU_INDEX_HOST 0
 
 /*!
- *  @def    VAYU_HOST_IPU1_2_MBOX
- *  @brief  Mailbox used for HOST<->IPU1/2 communication.
+ *  @def    VAYU_HOST_IPU2_MBOX
+ *  @brief  Mailbox used for HOST<->IPU2 communication.
  */
-#define VAYU_HOST_IPU1_2_MBOX 5
+#define VAYU_HOST_IPU2_MBOX 6
+
+/*!
+ *  @def    IPU2_HOST_SUB_MBOX
+ *  @brief  Sub-Mailbox used for HOST->IPU2 communication.
+ */
+#define IPU2_HOST_SUB_MBOX  4
+
+/*!
+ *  @def    HOST_IPU2_SUB_MBOX
+ *  @brief  Sub-Mailbox used for IPU2->HOST communication.
+ */
+#define HOST_IPU2_SUB_MBOX  6
 
 /*!
  *  @def    VAYU_HOST_DSP1_2_MBOX
- *  @brief  Mailbox used for HOST<->DSP1/2 communication.
+ *  @brief  Mailbox used for HOST<->DSP1 communication.
  */
-#define VAYU_HOST_DSP1_2_MBOX 6
+#define VAYU_HOST_DSP1_MBOX 5
+
+/*!
+ *  @def    DSP1_HOST_SUB_MBOX
+ *  @brief  Mailbox used for DSP1->HOST communication.
+ */
+#define DSP1_HOST_SUB_MBOX  1
+
+/*!
+ *  @def    HOST_DSP1_SUB_MBOX
+ *  @brief  Mailbox used for HOST->DSP1 communication.
+ */
+#define HOST_DSP1_SUB_MBOX  5
 
 /*!
  *  @def    VAYU_HOST_USER_ID
@@ -263,167 +311,11 @@ extern "C" {
 #define MAILBOX_MESSAGE_m_OFFSET(m)        (0x40 + (m<<2))
 
 /*!
- *  @def    MAILBOX_MESSAGE_0_OFFSET
- *  @brief  Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_0_OFFSET         0x40
-
-/*!
- *  @def    MAILBOX_MESSAGE_1_OFFSET
- *  @brief  Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_1_OFFSET        0x44
-
-/*!
- *  @def    MAILBOX_MESSAGE_2_OFFSET
- *  @brief  Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_2_OFFSET         0x48
-
-/*!
- *  @def    MAILBOX_MESSAGE_3_OFFSET
- *  @brief  Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_3_OFFSET         0x4C
-
-/*!
- *  @def    MAILBOX_MESSAGE_4_OFFSET
- *  @brief  mailbox message 4 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_4_OFFSET        0x50
-
-/*!
- *  @def    MAILBOX_MESSAGE_5_OFFSET
- *  @brief  mailbox message 5 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_5_OFFSET        0x54
-
-/*!
- *  @def    MAILBOX_MESSAGE_6_OFFSET
- *  @brief  mailbox message 6 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_6_OFFSET        0x58
-
-/*!
- *  @def    MAILBOX_MESSAGE_7_OFFSET
- *  @brief  mailbox message 7 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_7_OFFSET        0x5C
-
-/*!
- *  @def    MAILBOX_MESSAGE_8_OFFSET
- *  @brief  mailbox message 8 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_8_OFFSET        0x60
-
-/*!
- *  @def    MAILBOX_MESSAGE_9_OFFSET
- *  @brief  mailbox message 9 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_9_OFFSET        0x64
-
-/*!
- *  @def    MAILBOX_MESSAGE_10_OFFSET
- *  @brief  mailbox message 10 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_10_OFFSET       0x68
-
-/*!
- *  @def    MAILBOX_MESSAGE_11_OFFSET
- *  @brief  mailbox message 11 address Offset from the Mailbox base address.
- */
-#define MAILBOX_MESSAGE_11_OFFSET       0x6C
-
-/*!
  *  @def    MAILBOX_MSGSTATUS_m_OFFSET
  *  @brief  mailbox message status address Offset from the Mailbox base
  *          address. m = 0 to 7 => offset = 0x40 + 0x4*m
  */
 #define MAILBOX_MSGSTATUS_m_OFFSET(m)        (0xC0 + (m<<2))
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_0_OFFSET
- *  @brief  mailbox message 0 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_0_OFFSET      0xC0
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_1_OFFSET
- *  @brief  mailbox message 1 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_1_OFFSET      0xC4
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_2_OFFSET
- *  @brief  mailbox message 2 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_2_OFFSET      0xC8
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_3_OFFSET
- *  @brief  mailbox message 3 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_3_OFFSET      0xCC
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_4_OFFSET
- *  @brief  mailbox message 4 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_4_OFFSET      0xD0
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_5_OFFSET
- *  @brief  mailbox message 5 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_5_OFFSET      0xD4
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_6_OFFSET
- *  @brief  mailbox message 6 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_6_OFFSET      0xD8
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_7_OFFSET
- *  @brief  mailbox message 7 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_7_OFFSET      0xDC
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_8_OFFSET
- *  @brief  mailbox message 8 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_8_OFFSET      0xE0
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_9_OFFSET
- *  @brief  mailbox message 9 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_9_OFFSET      0xE4
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_10_OFFSET
- *  @brief  mailbox message 10 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_10_OFFSET     0xE8
-
-/*!
- *  @def    MAILBOX_MSGSTATUS_11_OFFSET
- *  @brief  mailbox message 11 status address Offset from the Mailbox base
- *          address.
- */
-#define MAILBOX_MSGSTATUS_11_OFFSET     0xEC
 
 /*!
  *  @def    MAILBOX_IRQSTATUS_CLEAR_OFFSET
@@ -445,37 +337,6 @@ extern "C" {
  */
 #define MAILBOX_IRQENABLE_CLR_OFFSET    0x10C
 
-
-/*!
- *  @def    MAILBOX_NUMBER_0
- *  @brief  mailbox number 0 used for inter-core communication.
- */
-#define MAILBOX_NUMBER_0                 0
-/*!
- *  @def    MAILBOX_NUMBER_1
- *  @brief  mailbox number 1 used by HOST to receive interrupts from DSP1 (mbox 6).
- */
-#define MAILBOX_NUMBER_1                 1
-/*!
- *  @def    MAILBOX_NUMBER_2
- *  @brief  mailbox number 2 used for inter-core communication.
- */
-#define MAILBOX_NUMBER_2                 2
-/*!
- *  @def    MAILBOX_NUMBER_3
- *  @brief  mailbox number 3 used by HOST to receive interrupts from IPU2 (mbox 5).
- */
-#define MAILBOX_NUMBER_3                 3
-/*!
- *  @def    MAILBOX_NUMBER_4
- *  @brief  mailbox number 4 used by DSP1 to receive interrupts from HOST (mbox 6).
- */
-#define MAILBOX_NUMBER_4                 4
-/*!
- *  @def    MAILBOX_NUMBER_5
- *  @brief  mailbox number 5 used by IPU2 to receive interrupts from HOST (mbox 5).
- */
-#define MAILBOX_NUMBER_5                 5
 
 /* Macro used when saving the mailbox context */
 #define VAYU_MAILBOX_IRQENABLE(u)    (0x108 + 0x10 * (u))
@@ -1003,46 +864,46 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
         VAYUIpcInt_state.isrObjects [procId].isrHandle = elem;
 
         /* Clear the messages in the IPU2->HOST mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_3))) {
+        while (REG32(VAYUIpcInt_state.mailbox6Base + \
+                     MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX))) {
             VAYUIpcInt_clearInterrupt(
                              VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                             MAILBOX_NUMBER_3);
+                             IPU2_HOST_SUB_MBOX);
         }
         /* Clear the messages in the HOST->IPU2 mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_5))) {
+        while (REG32(VAYUIpcInt_state.mailbox6Base + \
+                     MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX))) {
             VAYUIpcInt_clearInterrupt(
                              VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                             MAILBOX_NUMBER_5);
+                             HOST_IPU2_SUB_MBOX);
         }
         /* Clear the messages in the DSP1->HOST mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_1))) {
+        while (REG32(VAYUIpcInt_state.mailbox5Base + \
+                     MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX))) {
             VAYUIpcInt_clearInterrupt(
                              VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                             MAILBOX_NUMBER_1);
+                             DSP1_HOST_SUB_MBOX);
         }
         /* Clear the messages in the HOST->DSP1 mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_4))) {
+        while (REG32(VAYUIpcInt_state.mailbox5Base + \
+                     MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX))) {
             VAYUIpcInt_clearInterrupt(
                              VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                             MAILBOX_NUMBER_4);
+                             HOST_DSP1_SUB_MBOX);
         }
         /* The below seems to be needed for OMAP5 Virtio for
          * slaying/restarting syslink properly
          */
         /* Disables interrupts from HOST->IPU2 */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + \
-                    (0x10 * VAYU_IPU2_USER_ID)),
-                ((MAILBOX_NUMBER_5) << 1));
-        /* Disables interrupts from HOST->DSP1 */
         SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
                     MAILBOX_IRQENABLE_CLR_OFFSET + \
+                    (0x10 * VAYU_IPU2_USER_ID)),
+                ((HOST_IPU2_SUB_MBOX) << 1));
+        /* Disables interrupts from HOST->DSP1 */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
+                    MAILBOX_IRQENABLE_CLR_OFFSET + \
                     (0x10 * VAYU_DSP1_USER_ID)),
-                ((MAILBOX_NUMBER_4) << 1));
+                ((HOST_DSP1_SUB_MBOX) << 1));
 
         /* Set mailbox to smart-idle */
         REG(VAYUIpcInt_state.mailbox5Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
@@ -1235,46 +1096,46 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
             }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
             /* Clear the messages in the IPU2->HOST mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_3))) {
+            while (REG32(VAYUIpcInt_state.mailbox6Base + \
+                         MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX))) {
                 VAYUIpcInt_clearInterrupt(
                                      VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                                     MAILBOX_NUMBER_3);
+                                     IPU2_HOST_SUB_MBOX);
             }
             /* Clear the messages in the HOST->IPU2 mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_5))) {
+            while (REG32(VAYUIpcInt_state.mailbox6Base + \
+                         MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX))) {
                 VAYUIpcInt_clearInterrupt(
                                      VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                                     MAILBOX_NUMBER_5);
+                                     HOST_IPU2_SUB_MBOX);
             }
             /* Clear the messages in the DSP1->HOST mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_1))) {
+            while (REG32(VAYUIpcInt_state.mailbox5Base + \
+                         MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX))) {
                 VAYUIpcInt_clearInterrupt(
                                      VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                                     MAILBOX_NUMBER_1);
+                                     DSP1_HOST_SUB_MBOX);
             }
             /* Clear the messages in the HOST->DSP1 mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(MAILBOX_NUMBER_4))) {
+            while (REG32(VAYUIpcInt_state.mailbox5Base + \
+                         MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX))) {
                 VAYUIpcInt_clearInterrupt(
                                      VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                                     MAILBOX_NUMBER_4);
+                                     HOST_DSP1_SUB_MBOX);
             }
             /* The below seems to be needed for OMAP5 Virtio for
              * slaying/restarting syslink properly
              */
             /* Disables interrupts from HOST->IPU2 */
-            SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                        MAILBOX_IRQENABLE_CLR_OFFSET + \
-                        (0x10 * VAYU_IPU2_USER_ID)),
-                    ((MAILBOX_NUMBER_5) << 1));
-            /* Disables interrupts from HOST->DSP1 */
             SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
                         MAILBOX_IRQENABLE_CLR_OFFSET + \
+                        (0x10 * VAYU_IPU2_USER_ID)),
+                    ((HOST_IPU2_SUB_MBOX) << 1));
+            /* Disables interrupts from HOST->DSP1 */
+            SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
+                        MAILBOX_IRQENABLE_CLR_OFFSET + \
                         (0x10 * VAYU_DSP1_USER_ID)),
-                    ((MAILBOX_NUMBER_4) << 1));
+                    ((HOST_DSP1_SUB_MBOX) << 1));
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             tmpStatus =
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -1322,23 +1183,19 @@ VAYUIpcInt_interruptEnable (UInt16 procId, UInt32 intId)
 
     if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
         /*
-         * Mailbox 6, id 1 is used by HOST for receiving interrupts from DSP1
-         * Mailbox 6, id 4 is used by DSP1 for receiving interrupts from HOST
-         *
-         */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                    VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
-                ( (MAILBOX_NUMBER_1) << 1));
-    }
-    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
-        /*
-         * Mailbox 5, id 3 is used by HOST  for receiving interrupts from IPU2
-         * Mailbox 5, id 5 is used by IPU2 for receiving interrupts from HOST
-         *
+         * Mailbox 5 is used for HOST<->DSP1 communication
          */
         SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
                     VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
-                ( (MAILBOX_NUMBER_3) << 1));
+                ( (DSP1_HOST_SUB_MBOX) << 1));
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
+        /*
+         * Mailbox 6 is used for HOST<->IPU2 communication
+         */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
+                    VAYU_MAILBOX_IRQENABLE(VAYU_HOST_USER_ID)),
+                ( (IPU2_HOST_SUB_MBOX) << 1));
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {
@@ -1373,23 +1230,19 @@ VAYUIpcInt_interruptDisable (UInt16 procId, UInt32 intId)
 
     if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
         /*
-         * Mailbox 6, id 1 is used by HOST for receiving interrupts from DSP1
-         * Mailbox 6, id 4 is used by DSP1 for receiving interrupts from HOST
-         *
-         */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (MAILBOX_NUMBER_1) << 1));
-    }
-    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
-        /*
-         * Mailbox 5, id 3 is used by HOST  for receiving interrupts from IPU2
-         * Mailbox 5, id 5 is used by IPU2 for receiving interrupts from HOST
-         *
+         * Mailbox 5 is used for HOST<->DSP1 communication
          */
         SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
                     MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
-                ( (MAILBOX_NUMBER_3) << 1));
+                ( (DSP1_HOST_SUB_MBOX) << 1));
+    }
+    else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
+        /*
+         * Mailbox 6 is used for HOST<->IPU2 communication
+         */
+        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
+                    MAILBOX_IRQENABLE_CLR_OFFSET + (0x10 * VAYU_HOST_USER_ID)),
+                ( (IPU2_HOST_SUB_MBOX) << 1));
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {
@@ -1426,14 +1279,14 @@ VAYUIpcInt_waitClearInterrupt (UInt16 procId, UInt32 intId)
 
     if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
         /* Wait for DSP to clear the previous interrupt */
-        while( (  REG32((  VAYUIpcInt_state.mailbox6Base
-                        + MAILBOX_MSGSTATUS_4_OFFSET))
+        while( (  REG32((  VAYUIpcInt_state.mailbox5Base
+                        + MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX)))
                 & 0x3F ));
     }
     else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /* Wait for VIDEOM4 to clear the previous interrupt */
-        while( (  REG32((VAYUIpcInt_state.mailbox5Base
-                      + MAILBOX_MSGSTATUS_5_OFFSET))
+        while( (  REG32((VAYUIpcInt_state.mailbox6Base
+                      + MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX)))
                 & 0x3F ));
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -1478,22 +1331,20 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
 
     if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
         /*
-         * Mailbox 6, id 1 is used by HOST for receiving interrupts from DSP1
-         * Mailbox 6, id 4 is used by DSP1 for receiving interrupts from HOST
-         *
+         * Mailbox 5 is used for HOST<->DSP1 communication
          */
-        if (REG32(VAYUIpcInt_state.mailbox6Base + MAILBOX_MSGSTATUS_m_OFFSET(4)) == 0)
-            REG32(VAYUIpcInt_state.mailbox6Base + MAILBOX_MESSAGE_4_OFFSET) = value;
+        if (REG32(VAYUIpcInt_state.mailbox5Base + \
+                  MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX)) == 0)
+            REG32(VAYUIpcInt_state.mailbox5Base + \
+                  MAILBOX_MESSAGE_m_OFFSET(HOST_DSP1_SUB_MBOX)) = value;
         else
             GT_0trace (curTrace, GT_4CLASS, "Dropping HOST->DSP1 Mbox Msg");
-    } else if (/*procId == VAYUIpcInt_state.procIds [VAYU_INDEX_VIDEOM4]||*/
-        procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
+    } else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
-         * Mailbox 5, id 3 is used by HOST  for receiving interrupts from IPU2
-         * Mailbox 5, id 5 is used by IPU2 for receiving interrupts from HOST
-         *
+         * Mailbox 6 is used for HOST<->DSP1 communication
          */
-        REG32(VAYUIpcInt_state.mailbox5Base + MAILBOX_MESSAGE_5_OFFSET) = value;
+        REG32(VAYUIpcInt_state.mailbox6Base + \
+              MAILBOX_MESSAGE_m_OFFSET(HOST_IPU2_SUB_MBOX)) = value;
     }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     else {
@@ -1534,9 +1385,9 @@ VAYUIpcInt_clearInterrupt (UInt16 procId, UInt16 mboxNum)
     GT_assert (curTrace,(ArchIpcInt_object.isSetup == TRUE));
 
     if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2])
-        mailboxBase = VAYUIpcInt_state.mailbox5Base;
-    else
         mailboxBase = VAYUIpcInt_state.mailbox6Base;
+    else
+        mailboxBase = VAYUIpcInt_state.mailbox5Base;
 
     if (mboxNum < MAILBOX_MAXNUM) {
         /* Read the register to get the entry from the mailbox FIFO */
@@ -1626,10 +1477,10 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
 
     GT_1trace (curTrace, GT_ENTER, "_VAYUIpcInt_checkAndClearFunc", arg);
 
-    if( REG32(  VAYUIpcInt_state.mailbox5Base
-              + MAILBOX_MSGSTATUS_3_OFFSET) != 0 ){
+    if( REG32(  VAYUIpcInt_state.mailbox6Base
+              + MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX)) != 0 ){
         procId = VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2];
-        msg = VAYUIpcInt_clearInterrupt (procId, MAILBOX_NUMBER_3);
+        msg = VAYUIpcInt_clearInterrupt (procId, IPU2_HOST_SUB_MBOX);
 
         GT_1trace (curTrace, GT_1CLASS, "Got msg [0x%08x] from IPU2", msg);
 
@@ -1640,10 +1491,10 @@ _VAYUIpcInt_checkAndClearFunc (Ptr arg)
             List_put(VAYUIpcInt_state.isrLists[procId], (List_Elem *)elem);
         }
     }
-    if( REG32(  VAYUIpcInt_state.mailbox6Base
-              + MAILBOX_MSGSTATUS_1_OFFSET) != 0 ){
+    if( REG32(  VAYUIpcInt_state.mailbox5Base
+              + MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX)) != 0 ){
         procId = VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1];
-        msg = VAYUIpcInt_clearInterrupt (procId, MAILBOX_NUMBER_1);
+        msg = VAYUIpcInt_clearInterrupt (procId, DSP1_HOST_SUB_MBOX);
 
         GT_1trace (curTrace, GT_1CLASS, "Got msg [0x%08x] from DSP1", msg);
 
