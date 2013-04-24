@@ -1482,7 +1482,10 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
          * Mailbox 6, id 4 is used by DSP1 for receiving interrupts from HOST
          *
          */
-         REG32(VAYUIpcInt_state.mailbox6Base + MAILBOX_MESSAGE_4_OFFSET) = value;
+        if (REG32(VAYUIpcInt_state.mailbox6Base + MAILBOX_MSGSTATUS_m_OFFSET(4)) == 0)
+            REG32(VAYUIpcInt_state.mailbox6Base + MAILBOX_MESSAGE_4_OFFSET) = value;
+        else
+            GT_0trace (curTrace, GT_4CLASS, "Dropping HOST->DSP1 Mbox Msg");
     } else if (/*procId == VAYUIpcInt_state.procIds [VAYU_INDEX_VIDEOM4]||*/
         procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
