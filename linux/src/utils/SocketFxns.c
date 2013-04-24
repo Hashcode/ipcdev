@@ -31,8 +31,8 @@
  */
 /*
  *  @file       SocketFxns.c
- *  @brief      Shared socket functions.
  *
+ *  @brief      Shared socket functions.
  */
 
 /* Standard headers */
@@ -46,7 +46,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* SysLink Socket Protocol Family */
+/* Socket Protocol Family */
 #include <net/rpmsg.h>
 
 /* For PRINTVERBOSE* */

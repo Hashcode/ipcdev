@@ -29,14 +29,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- *  @file       MessageQ.c
- *  @brief      Prototype Mapping of SysLink MessageQ to Socket ABI
- *              (SysLink 3).
- *
- *  @ver        02.00.00.51_alpha2 (kernel code is basis for this module)
- *
- */
 /*============================================================================
  *  @file   MessageQ.c
  *
@@ -46,92 +38,13 @@
  *  system-wide data is maintained here as needed and process-specific data
  *  is handled at the "client" level.  At the moment, LAD is the only "user"
  *  of this implementation.
- *
- *  The MessageQ module supports the structured sending and receiving of
- *  variable length messages. This module can be used for homogeneous or
- *  heterogeneous multi-processor messaging.
- *
- *  MessageQ provides more sophisticated messaging than other modules. It is
- *  typically used for complex situations such as multi-processor messaging.
- *
- *  The following are key features of the MessageQ module:
- *  -Writers and readers can be relocated to another processor with no
- *   runtime code changes.
- *  -Timeouts are allowed when receiving messages.
- *  -Readers can determine the writer and reply back.
- *  -Receiving a message is deterministic when the timeout is zero.
- *  -Messages can reside on any message queue.
- *  -Supports zero-copy transfers.
- *  -Can send and receive from any type of thread.
- *  -Notification mechanism is specified by application.
- *  -Allows QoS (quality of service) on message buffer pools. For example,
- *   using specific buffer pools for specific message queues.
- *
- *  Messages are sent and received via a message queue. A reader is a thread
- *  that gets (reads) messages from a message queue. A writer is a thread that
- *  puts (writes) a message to a message queue. Each message queue has one
- *  reader and can have many writers. A thread may read from or write to multiple
- *  message queues.
- *
- *  Conceptually, the reader thread owns a message queue. The reader thread
- *  creates a message queue. Writer threads  a created message queues to
- *  get access to them.
- *
- *  Message queues are identified by a system-wide unique name. Internally,
- *  MessageQ uses the NameServermodule for managing
- *  these names. The names are used for opening a message queue. Using
- *  names is not required.
- *
- *  Messages must be allocated from the MessageQ module. Once a message is
- *  allocated, it can be sent on any message queue. Once a message is sent, the
- *  writer loses ownership of the message and should not attempt to modify the
- *  message. Once the reader receives the message, it owns the message. It
- *  may either free the message or re-use the message.
- *
- *  Messages in a message queue can be of variable length. The only
- *  requirement is that the first field in the definition of a message must be a
- *  MsgHeader structure. For example:
- *  typedef struct MyMsg {
- *      MessageQ_MsgHeader header;
- *      ...
- *  } MyMsg;
- *
- *  The MessageQ API uses the MessageQ_MsgHeader internally. Your application
- *  should not modify or directly access the fields in the MessageQ_MsgHeader.
- *
- *  All messages sent via the MessageQ module must be allocated from a
- *  Heap implementation. The heap can be used for
- *  other memory allocation not related to MessageQ.
- *
- *  An application can use multiple heaps. The purpose of having multiple
- *  heaps is to allow an application to regulate its message usage. For
- *  example, an application can allocate critical messages from one heap of fast
- *  on-chip memory and non-critical messages from another heap of slower
- *  external memory
- *
- *  MessageQ does support the usage of messages that allocated via the
- *  alloc function. Please refer to the staticMsgInit
- *  function description for more details.
- *
- *  In a multiple processor system, MessageQ communications to other
- *  processors via MessageQTransport instances. There must be one and
- *  only one MessageQTransport instance for each processor where communication
- *  is desired.
- *  So on a four processor system, each processor must have three
- *  MessageQTransport instance.
- *
- *  The user only needs to create the MessageQTransport instances. The instances
- *  are responsible for registering themselves with MessageQ.
- *  This is accomplished via the registerTransport function.
- *
- *  ============================================================================
  */
 
 
 /* Standard headers */
 #include <Std.h>
 
-/* Linux specific header files, replacing OSAL: */
+/* POSIX thread support */
 #include <pthread.h>
 
 /* Socket Headers */
@@ -147,7 +60,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-/* SysLink Socket Protocol Family */
+/* Socket Protocol Family */
 #include <net/rpmsg.h>
 
 /* Module level headers */

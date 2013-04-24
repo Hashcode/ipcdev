@@ -33,14 +33,13 @@
  *  @file       NameServer.c
  *
  *  @brief      NameServer Manager
- *
  */
 
 
 /* Standard headers */
 #include <Std.h>
 
-/* Linux specific header files, replacing OSAL: */
+/* POSIX thread support */
 #include <pthread.h>
 
 /* Socket Headers */
@@ -58,7 +57,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-/* SysLink Socket Protocol        Family */
+/* Socket Protocol Family */
 #include <net/rpmsg.h>
 
 /* Module level headers */
