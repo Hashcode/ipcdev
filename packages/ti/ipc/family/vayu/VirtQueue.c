@@ -85,10 +85,17 @@
 #define NUM_QUEUES              4
 
 /* Predefined device addresses */
+#ifdef DSP
 #define IPC_MEM_VRING0          0xA0000000
 #define IPC_MEM_VRING1          0xA0004000
 #define IPC_MEM_VRING2          0xA0008000
 #define IPC_MEM_VRING3          0xA000c000
+#else
+#define IPC_MEM_VRING0          0x60000000
+#define IPC_MEM_VRING1          0x60004000
+#define IPC_MEM_VRING2          0x60008000
+#define IPC_MEM_VRING3          0x6000c000
+#endif
 
 /*
  * Sizes of the virtqueues (expressed in number of buffers supported,
