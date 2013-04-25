@@ -42,9 +42,9 @@
 
 /* This must match BIOS side MultiProc configuration for given platform!: */
 MultiProc_Config _MultiProc_cfg =  {
-   .numProcessors = 2,
+   .numProcessors = 3,
    .nameList[0] = "HOST",
-   .nameList[1] = "CORE0",
-/*   .nameList[2] = "DSP",  TODO: Commented out for now til DSP validated */
+   .nameList[1] = "IPU",
+   .nameList[2] = "DSP",
    .id = 0,                 /* The host is always zero */
 };
