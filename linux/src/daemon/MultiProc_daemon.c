@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,37 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*
- * ========SystemCfg.c ========
- * System-wide configuration
+/*!
+ *  @file	MultiProc_daemon.c
+ *
+ *  @brief	Handles processor id management in multi processor systems. Used
+ *		to set/get processor ids for their oprations.
+ *
  */
+
 
 /* Standard headers */
 #include <Std.h>
 
-/* For Backplane IPC startup/shutdown stuff: */
+/* Linux specific header files */
+#include <assert.h>
+#include <string.h>
+
+/* Module level headers */
+#include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
 
-/* This must match BIOS side MultiProc configuration for given platform!: */
-MultiProc_Config _MultiProc_cfg =  {
-   .numProcessors = 5,
-   .nameList[0] = "HOST",
-   .nameList[1] = "CORE0",
-   .nameList[2] = "CORE1",
-   .nameList[3] = "CORE2",
-   .nameList[4] = "CORE3",
-   .id = 0,                 /* The host is always zero */
-};
+
+/* =============================================================================
+ *  APIs
+ * =============================================================================
+ */
+/* Get the default configuration for the MultiProc module. */
+Void MultiProc_getConfig (MultiProc_Config * cfg)
+{
+
+    assert (cfg != NULL);
+
+    /* Setup MultiProc config */
+    memcpy (cfg, &_MultiProc_cfg, sizeof(MultiProc_Config));
+}

@@ -57,8 +57,8 @@ libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libtiipc_la_LIBADD =
 am__objects_1 =
-am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo NameServer.lo \
-	Ipc.lo
+am_libtiipc_la_OBJECTS = $(am__objects_1) MessageQ.lo MultiProc.lo \
+	NameServer.lo Ipc.lo
 libtiipc_la_OBJECTS = $(am_libtiipc_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
@@ -224,6 +224,7 @@ libtiipc_la_SOURCES = \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         $(top_srcdir)/packages/ti/ipc/MessageQ.h \
                         MessageQ.c \
+                        MultiProc.c \
                         NameServer.c \
                         Ipc.c
 
@@ -301,6 +302,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Ipc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServer.Plo@am__quote@
 
 .c.o:

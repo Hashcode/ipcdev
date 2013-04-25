@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -451,6 +451,17 @@ opencommandFIFO:
 
             break;
 
+          case LAD_MULTIPROC_GETCONFIG:
+            LOG0("LAD_MULTIPROC_GETCONFIG: calling MultiProc_getConfig()...\n")
+
+            MultiProc_getConfig(&rsp.multiprocGetConfig.cfg);
+            rsp.multiprocGetConfig.status = 0;
+
+            LOG1("    status = %d\n", rsp.multiprocGetConfig.status)
+            LOG0("DONE\n")
+
+            break;
+
           case LAD_EXIT:
             goto exitNow;
 
@@ -482,6 +493,7 @@ opencommandFIFO:
           case LAD_MESSAGEQ_CREATE:
           case LAD_MESSAGEQ_DELETE:
           case LAD_MESSAGEQ_MSGINIT:
+          case LAD_MULTIPROC_GETCONFIG:
             LOG0("Sending response...\n");
 
             fwrite(&rsp, LAD_RESPONSELENGTH, 1, responseFIFOFilePtr[clientId]);

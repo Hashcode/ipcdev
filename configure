@@ -16902,8 +16902,6 @@ fi
 
           ac_config_files="$ac_config_files linux/src/api/Makefile"
 
-          ac_config_files="$ac_config_files linux/src/family/Makefile"
-
           ac_config_files="$ac_config_files linux/src/mm/Makefile"
 
           ac_config_files="$ac_config_files linux/src/daemon/Makefile"
@@ -17552,7 +17550,6 @@ do
   "linux/etc/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/etc/Makefile" ;;
   "linux/src/utils/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/utils/Makefile" ;;
   "linux/src/api/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/api/Makefile" ;;
-  "linux/src/family/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/family/Makefile" ;;
   "linux/src/mm/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/mm/Makefile" ;;
   "linux/src/daemon/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/daemon/Makefile" ;;
   "linux/src/tests/Makefile" ) CONFIG_FILES="$CONFIG_FILES linux/src/tests/Makefile" ;;

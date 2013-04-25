@@ -137,63 +137,46 @@ mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 MessageQApp_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
                 $(AM_LDFLAGS)
 MessageQApp_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
                 $(AM_LDFLAGS)
 MessageQApp_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQBench
-MessageQBench_omap54xx_smp_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la -lrt \
+MessageQBench_omap54xx_smp_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
-MessageQBench_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la -lrt \
+MessageQBench_omapl138_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
-MessageQBench_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la -lrt \
+MessageQBench_tci6614_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
-MessageQBench_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la -lrt \
+MessageQBench_tci6638_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQMulti
 MessageQMulti_omap54xx_smp_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 MessageQMulti_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
                 $(AM_LDFLAGS)
 MessageQMulti_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
                 $(AM_LDFLAGS)
 MessageQMulti_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link NameServerApp
 NameServerApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 NameServerApp_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
                 $(AM_LDFLAGS)
 NameServerApp_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
                 $(AM_LDFLAGS)
 NameServerApp_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link nano_test
 nano_test_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
                 $(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
                 $(AM_LDFLAGS)
 

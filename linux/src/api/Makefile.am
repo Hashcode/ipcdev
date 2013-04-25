@@ -63,6 +63,7 @@ libtiipc_la_SOURCES =    \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         $(top_srcdir)/packages/ti/ipc/MessageQ.h \
                         MessageQ.c \
+                        MultiProc.c \
                         NameServer.c \
                         Ipc.c
 

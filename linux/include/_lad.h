@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,11 @@
 extern "C" {
 #endif
 
-#include "_MultiProc.h"
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
 #include <ti/ipc/NameServer.h>
+#include <ti/ipc/MultiProc.h>
+#include <_MultiProc.h>
 
 
 extern Bool logFile;
@@ -112,6 +113,7 @@ typedef enum {
     LAD_MESSAGEQ_CREATE,
     LAD_MESSAGEQ_DELETE,
     LAD_MESSAGEQ_MSGINIT,
+    LAD_MULTIPROC_GETCONFIG,
     LAD_EXIT
 } _LAD_Command;
 
@@ -195,6 +197,10 @@ union LAD_ResponseObj {
        Int status;
        MessageQ_Config cfg;
     } messageQGetConfig;
+    struct {
+       Int status;
+       MultiProc_Config cfg;
+    } multiprocGetConfig;
     NameServer_Params params;
     NameServer_Handle handle;
     Ptr entryPtr;

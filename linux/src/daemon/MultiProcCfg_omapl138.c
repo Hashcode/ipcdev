@@ -30,8 +30,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * ========SystemCfg.c ========
- * System-wide configuration for Kepler
+ * ======== MultiProcCfg.c ========
+ * System-wide MultiProc configuration
  */
 
 /* Standard headers */
@@ -42,15 +42,8 @@
 
 /* This must match BIOS side MultiProc configuration for given platform!: */
 MultiProc_Config _MultiProc_cfg =  {
-   .numProcessors = 9,
+   .numProcessors = 2,
    .nameList[0] = "HOST",
-   .nameList[1] = "CORE0",
-   .nameList[2] = "CORE1",
-   .nameList[3] = "CORE2",
-   .nameList[4] = "CORE3",
-   .nameList[5] = "CORE4",
-   .nameList[6] = "CORE5",
-   .nameList[7] = "CORE6",
-   .nameList[8] = "CORE7",
+   .nameList[1] = "DSP",
    .id = 0,                 /* The host is always zero */
 };

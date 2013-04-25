@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- * ========SystemCfg.c ========
- * System-wide configuration
+ * ======== MultiProcCfg.c ========
+ * System-wide MultiProc configuration
  */
 
 /* Standard headers */
@@ -42,8 +42,11 @@
 
 /* This must match BIOS side MultiProc configuration for given platform!: */
 MultiProc_Config _MultiProc_cfg =  {
-   .numProcessors = 2,
+   .numProcessors = 5,
    .nameList[0] = "HOST",
    .nameList[1] = "CORE0",
+   .nameList[2] = "CORE1",
+   .nameList[3] = "CORE2",
+   .nameList[4] = "CORE3",
    .id = 0,                 /* The host is always zero */
 };

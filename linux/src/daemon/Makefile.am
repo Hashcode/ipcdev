@@ -63,6 +63,7 @@ endif
 common_sources = \
                 lad.c \
                 MessageQ_daemon.c \
+                MultiProc_daemon.c \
                 NameServer_daemon.c \
                 $(top_srcdir)/linux/include/Std.h \
                 $(top_srcdir)/linux/include/_NameServerRemoteRpmsg.h \
@@ -78,26 +79,22 @@ common_sources = \
                 $(top_srcdir)/packages/ti/ipc/MultiProc.h
 
 # list of sources for the 'lad' binary and to add to the source distribution
-lad_omap54xx_smp_SOURCES = $(common_sources)
-lad_omapl138_SOURCES = $(common_sources)
-lad_tci6614_SOURCES = $(common_sources)
-lad_tci6638_SOURCES = $(common_sources)
+lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
+lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
+lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
+lad_tci6638_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
 # the additional libraries needed to link program
 lad_omap54xx_smp_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omap54xx_smp.la \
                 $(AM_LDFLAGS)
 lad_omapl138_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_omapl138.la \
                 $(AM_LDFLAGS)
 lad_tci6614_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6614.la \
                 $(AM_LDFLAGS)
 lad_tci6638_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/family/libtiipccfg_tci6638.la \
                 $(AM_LDFLAGS)
 
 ###############################################################################

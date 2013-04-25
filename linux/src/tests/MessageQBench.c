@@ -216,14 +216,16 @@ int main (int argc, char * argv[])
                    NUM_LOOPS_DFLT, MINPAYLOADSIZE, PROC_ID_DFLT);
         exit(0);
     }
+
+    status = Ipc_start();
+
     if (procId >= MultiProc_getNumProcessors()) {
         printf("ProcId must be less than %d\n", MultiProc_getNumProcessors());
+        Ipc_stop();
         exit(0);
     }
     printf("Using numLoops: %d; payloadSize: %d, procId : %d\n",
             numLoops, payloadSize, procId);
-
-    status = Ipc_start();
 
     if (status >= 0) {
         MessageQApp_execute(numLoops, payloadSize, procId);

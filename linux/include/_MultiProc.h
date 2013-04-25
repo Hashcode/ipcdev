@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2008-2012, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2013, Texas Instruments Incorporated
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,23 @@ typedef struct MultiProc_Config_tag {
     /*!< Local Proc ID. This needs to be set before calling any other APIs */
 } MultiProc_Config;
 
-/* This exported from family/<PLATFORM_DIR>/SystemCfg.c: */
+/* =============================================================================
+ *  APIs
+ * =============================================================================
+ */
+/*!
+ *  @brief	Get the default configuration for the MultiProc module.
+ *
+ *		This function can be called by the application to setup and get
+ *		configuration parameter for MultiProc with the default parameters.
+ *
+ *  @param	cfg	   Pointer to the MultiProc module configuration
+ *			   structure in which the default config is to be
+ *			   returned.
+ */
+Void MultiProc_getConfig (MultiProc_Config * cfg);
+
+/* This exported from daemon/MultiProcCfg_<PLATFORM>.c: */
 extern MultiProc_Config _MultiProc_cfg;
 
 #if defined (__cplusplus)

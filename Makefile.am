@@ -32,7 +32,7 @@
 ##
 
 # the subdirectories of the project to go into
-SUBDIRS =  linux/etc linux/src/utils linux/src/api linux/src/family \
+SUBDIRS =  linux/etc linux/src/utils linux/src/api \
         linux/src/mm linux/src/daemon linux/src/tests
 
 # hook to remove libtools library extention files (.la)

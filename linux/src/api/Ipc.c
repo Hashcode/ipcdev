@@ -58,6 +58,8 @@
 #include <_MessageQ.h>
 #include <_NameServer.h>
 
+MultiProc_Config _MultiProc_cfg;
+
 static LAD_ClientHandle ladHandle;
 
 static void cleanup(int arg);
@@ -70,6 +72,7 @@ static void cleanup(int arg);
 Int Ipc_start (Void)
 {
     MessageQ_Config   msgqCfg;
+    MultiProc_Config  mpCfg;
     Int32             status = Ipc_S_SUCCESS;
     LAD_Status        ladStatus;
     UInt16            rprocId;
@@ -83,6 +86,10 @@ Int Ipc_start (Void)
         status = Ipc_E_FAIL;
         goto exit;
     }
+
+    /* Setup and get MultiProc configuration from LAD */
+    MultiProc_getConfig(&mpCfg);
+    _MultiProc_cfg = mpCfg;
 
     status = NameServer_setup();
     if (status >= 0) {
