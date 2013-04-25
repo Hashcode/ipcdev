@@ -62,7 +62,7 @@
 
 #include <ti/sysbios/hal/Hwi.h>
 #include <ti/sysbios/knl/Clock.h>
-#include <ti/sysbios/gates/GateAll.h>
+#include <ti/sysbios/gates/GateHwi.h>
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/hal/Cache.h>
 
@@ -200,7 +200,7 @@ typedef struct VirtQueue_Object {
     UInt16                  procId;
 
     /* Gate to protect from multiple threads */
-    GateAll_Handle       gateH;
+    GateHwi_Handle       gateH;
 } VirtQueue_Object;
 
 static struct VirtQueue_Object *queueRegistry[NUM_QUEUES] = {NULL};
@@ -256,9 +256,9 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
     struct vring_used_elem *used;
     IArg key;
 
-    key = GateAll_enter(vq->gateH);
+    key = GateHwi_enter(vq->gateH);
     if ((head > vq->vring.num) || (head < 0)) {
-        GateAll_leave(vq->gateH, key);
+        GateHwi_leave(vq->gateH, key);
         Error_raise(NULL, Error_E_generic, 0, 0);
     }
 
@@ -271,7 +271,7 @@ Int VirtQueue_addUsedBuf(VirtQueue_Handle vq, Int16 head, Int len)
     used->len = len;
 
     vq->vring.used->idx++;
-    GateAll_leave(vq->gateH, key);
+    GateHwi_leave(vq->gateH, key);
 
     return (0);
 }
@@ -291,12 +291,12 @@ Int VirtQueue_addAvailBuf(VirtQueue_Object *vq, Void *buf)
 
     vq->num_free--;
 
-    key = GateAll_enter(vq->gateH);
+    key = GateHwi_enter(vq->gateH);
     avail =  vq->vring.avail->idx++ % vq->vring.num;
 
     vq->vring.desc[avail].addr = mapVAtoPA(buf);
     vq->vring.desc[avail].len = RP_MSG_BUF_SIZE;
-    GateAll_leave(vq->gateH, key);
+    GateHwi_leave(vq->gateH, key);
 
     return (vq->num_free);
 }
@@ -310,7 +310,7 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
     Void *buf;
     IArg key;
 
-    key = GateAll_enter(vq->gateH);
+    key = GateHwi_enter(vq->gateH);
     /* There's nothing available? */
     if (vq->last_used_idx == vq->vring.used->idx) {
         buf = NULL;
@@ -321,7 +321,7 @@ Void *VirtQueue_getUsedBuf(VirtQueue_Object *vq)
 
         buf = mapPAtoVA(vq->vring.desc[head].addr);
     }
-    GateAll_leave(vq->gateH, key);
+    GateHwi_leave(vq->gateH, key);
 
     return (buf);
 }
@@ -334,7 +334,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
     Int16 head;
     IArg key;
 
-    key = GateAll_enter(vq->gateH);
+    key = GateHwi_enter(vq->gateH);
     Log_print6(Diags_USER1, "getAvailBuf vq: 0x%x %d %d %d 0x%x 0x%x\n",
         (IArg)vq, vq->last_avail_idx, vq->vring.avail->idx, vq->vring.num,
         (IArg)&vq->vring.avail, (IArg)vq->vring.avail);
@@ -355,7 +355,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
         *buf = mapPAtoVA(vq->vring.desc[head].addr);
         *len = vq->vring.desc[head].len;
     }
-    GateAll_leave(vq->gateH, key);
+    GateHwi_leave(vq->gateH, key);
 
     return (head);
 }
@@ -504,7 +504,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     }
 
     /* Create the thread protection gate */
-    vq->gateH = GateAll_create(NULL, eb);
+    vq->gateH = GateHwi_create(NULL, eb);
     if (Error_check(eb)) {
         Log_error0("VirtQueue_create: could not create gate object");
         Memory_free(NULL, vq, sizeof(VirtQueue_Object));
@@ -545,7 +545,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
             break;
 #endif
         default:
-            GateAll_delete(&vq->gateH);
+            GateHwi_delete(&vq->gateH);
             Memory_free(NULL, vq, sizeof(VirtQueue_Object));
             return (NULL);
     }

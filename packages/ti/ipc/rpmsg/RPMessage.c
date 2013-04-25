@@ -88,7 +88,7 @@
 #include <ti/sysbios/knl/Swi.h>
 #include <ti/sysbios/knl/Semaphore.h>
 #include <ti/sysbios/heaps/HeapBuf.h>
-#include <ti/sysbios/gates/GateAll.h>
+#include <ti/sysbios/gates/GateHwi.h>
 
 #include <ti/sdo/utils/List.h>
 #include <ti/ipc/MultiProc.h>
@@ -137,7 +137,7 @@ typedef struct RPMessage_Object {
 /* Module_State */
 typedef struct RPMessage_Module {
     /* Instance gate: */
-    GateAll_Handle gateH;
+    GateHwi_Handle gateH;
     /* Array of messageQObjects in the system: */
     struct RPMessage_Object  *msgqObjects[MAXMESSAGEQOBJECTS];
     /* Heap from which to allocate free messages for copying: */
@@ -258,7 +258,7 @@ static Void callback_availBufReady(VirtQueue_Handle vq)
 #define FXNN "RPMessage_init"
 Void RPMessage_init(UInt16 remoteProcId)
 {
-    GateAll_Params gatePrms;
+    GateHwi_Params gatePrms;
     HeapBuf_Params prms;
     int     i;
     Registry_Result result;
@@ -280,8 +280,8 @@ Void RPMessage_init(UInt16 remoteProcId)
                 (IArg)remoteProcId);
 
     /* Gate to protect module object and lists: */
-    GateAll_Params_init(&gatePrms);
-    module.gateH = GateAll_create(&gatePrms, NULL);
+    GateHwi_Params_init(&gatePrms);
+    module.gateH = GateHwi_create(&gatePrms, NULL);
 
     /* Initialize Module State: */
     for (i = 0; i < MAXMESSAGEQOBJECTS; i++) {
@@ -352,7 +352,7 @@ Void RPMessage_finalize()
 
     Swi_delete(&(transport.swiHandle));
 
-    GateAll_delete(&module.gateH);
+    GateHwi_delete(&module.gateH);
 
 exit:
     Log_print0(Diags_EXIT, "<-- "FXNN);
@@ -380,7 +380,7 @@ RPMessage_Handle RPMessage_create(UInt32 reserved,
 
     Assert_isTrue((curInit > 0) , NULL);
 
-    key = GateAll_enter(module.gateH);
+    key = GateHwi_enter(module.gateH);
 
     if (reserved == RPMessage_ASSIGN_ANY)  {
        /* Search the array for a free slot above reserved: */
@@ -430,7 +430,7 @@ RPMessage_Handle RPMessage_create(UInt32 reserved,
        }
     }
 
-    GateAll_leave(module.gateH, key);
+    GateHwi_leave(module.gateH, key);
 
     Log_print1(Diags_EXIT, "<-- "FXNN": 0x%x", (IArg)obj);
     return (obj);
@@ -470,9 +470,9 @@ Int RPMessage_delete(RPMessage_Handle *handlePtr)
        }
 
        /* Null out our slot: */
-       key = GateAll_enter(module.gateH);
+       key = GateHwi_enter(module.gateH);
        module.msgqObjects[obj->queueId] = NULL;
-       GateAll_leave(module.gateH, key);
+       GateHwi_leave(module.gateH, key);
 
        Log_print1(Diags_LIFECYCLE, FXNN": endPt deleted: %d",
                         (IArg)obj->queueId);
@@ -595,9 +595,9 @@ Int RPMessage_send(UInt16 dstProc,
         /* Put on a Message queue on this processor: */
 
         /* Protect from RPMessage_delete */
-        key = GateAll_enter(module.gateH);
+        key = GateHwi_enter(module.gateH);
         obj = module.msgqObjects[dstEndpt];
-        GateAll_leave(module.gateH, key);
+        GateHwi_leave(module.gateH, key);
 
         if (obj == NULL) {
             Log_print1(Diags_STATUS, FXNN": no object for endpoint: %d",
@@ -618,9 +618,9 @@ Int RPMessage_send(UInt16 dstProc,
             size = len + sizeof(Queue_elem);
 
             /* HeapBuf_alloc() is non-blocking, so needs protection: */
-            key = GateAll_enter(module.gateH);
+            key = GateHwi_enter(module.gateH);
             payload = (Queue_elem *)HeapBuf_alloc(module.heap, size, 0, NULL);
-            GateAll_leave(module.gateH, key);
+            GateHwi_leave(module.gateH, key);
 
             if (payload != NULL)  {
                 memcpy(payload->data, data, len);
