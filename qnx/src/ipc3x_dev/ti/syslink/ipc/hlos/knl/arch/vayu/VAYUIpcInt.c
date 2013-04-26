@@ -264,13 +264,13 @@ extern "C" {
  *  @def    IRQ_XBAR_DSP1
  *  @brief  irq xbar num for dsp1.
  */
-#define IRQ_XBAR_DSP1                    IRQ_XBAR_MBOX_6_USR_2
+#define IRQ_XBAR_DSP1                    IRQ_XBAR_MBOX_5_USR_2
 
 /*!
  *  @def    IRQ_XBAR_IPU2
  *  @brief  irq xbar num for ipu2.
  */
-#define IRQ_XBAR_IPU2                    IRQ_XBAR_MBOX_5_USR_2
+#define IRQ_XBAR_IPU2                    IRQ_XBAR_MBOX_6_USR_2
 
 /* Mailbox management values */
 /*!
