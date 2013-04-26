@@ -64,40 +64,20 @@ for (var i = 0; i < Build.targets.length; i++) {
     /* Build for all profiles */
     for (var profile in targ.profiles) {
 
+        /* For all targets, build a rpmsg-upstream-compatible lib */
         Pkg.addLibrary("lib/" + profile + "/" + Pkg.name, targ, {
             profile: profile,
             copts: myCopts
         }).addObjects(SRCS);
 
-        if (targ.isa.match(/^v7M(|4)$/)) {
-            /* for now, build 'special' lib compatible with OMAP5 HLOS */
-            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_omap5", targ, {
-                profile: profile,
-                copts: myCopts + " -DRPMSG_NS_2_0"
-            }).addObjects(SRCS);
-
-            /* for now, build 'special' lib compatible with VAYU HLOS */
-            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_vayu", targ, {
+        if (targ.isa.match(/^v7M(|4)$/) || targ.isa.match(/^64T$/) ||
+                targ.isa.match(/^66$/)) {
+            /* And for select targets, build a rpmsg2-compatible lib */
+            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_rpmsg2",
+                    targ, {
                 profile: profile,
                 copts: myCopts + " -DRPMSG_NS_2_0"
             }).addObjects(SRCS);
         }
-
-        if (targ.isa == "C64T") {
-            /* for now, build 'special' lib compatible with OMAP5 HLOS */
-            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_omap5", targ, {
-                profile: profile,
-                copts: myCopts + " -DRPMSG_NS_2_0"
-            }).addObjects(SRCS);
-        }
-
-        if (targ.isa == "66") {
-            /* for now, build 'special' lib compatible with VAYU HLOS */
-            Pkg.addLibrary("lib/" + profile + "/" + Pkg.name + "_vayu", targ, {
-                profile: profile,
-                copts: myCopts + " -DRPMSG_NS_2_0"
-            }).addObjects(SRCS);
-        }
-
     }
 }

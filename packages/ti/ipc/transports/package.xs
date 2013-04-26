@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@
  */
 function getLibs(prog)
 {
+    var device = prog.cpu.deviceName;
+    var special = "";   /* used if there is a 'special' lib for a platform */
     var suffix = prog.build.target.findSuffix(this);
     if (suffix == null) {
         /* no matching lib found in this package, return "" */
@@ -46,10 +48,21 @@ function getLibs(prog)
         return ("");
     }
 
-    /* the location of the libraries are in lib/<profile>/* */
-    var name = this.$name + ".a" + suffix;
-    var lib = "lib/" + this.profile + "/" + name;
+    switch (device) {
+        case "OMAP4430":
+        case "OMAP5430":
+        case "Vayu":
+            special = "_rpmsg2";
+            break;
 
+        default:
+            special = "";
+            break;
+    }
+
+    /* the location of the libraries are in lib/<profile>/* */
+    var name = this.$name + special + ".a" + suffix;
+    var lib = "lib/" + this.profile + "/" + name;
 
     /*
      * If the requested profile doesn't exist, we return the 'release' library.

@@ -137,15 +137,51 @@ for (var i = 0; i < Build.targets.length; i++) {
             }).addObjects(["dual_transports.c"]);
         }
 
-        Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
-            cfgScript: "rpmsg_transport",
-            defs: "-D BENCHMARK "
-        }).addObjects(["messageq_multi.c"]);
+        if (targ.isa.match(/^v7M(|4)$/)) {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_multi.c"]);
+        } else if (targ.isa == "64T") {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_multi.c"]);
+        } else if (targ.isa == "66" &&
+                   platform.match(/^ti\.platform\.vayu/)) {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_multi.c"]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_multi", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK"
+            }).addObjects(["messageq_multi.c"]);
+        }
 
-        Pkg.addExecutable(name + "/messageq_single", targ, platform, {
-            cfgScript: "rpmsg_transport",
-            defs: "-D BENCHMARK "
-        }).addObjects(["messageq_single.c"]);
+        if (targ.isa.match(/^v7M(|4)$/)) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_single.c"]);
+        } else if (targ.isa == "64T") {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_single.c"]);
+        } else if (targ.isa == "66" &&
+                   platform.match(/^ti\.platform\.vayu/)) {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK -DRPMSG_NS_2_0"
+            }).addObjects(["messageq_single.c"]);
+        } else {
+            Pkg.addExecutable(name + "/messageq_single", targ, platform, {
+                cfgScript: "rpmsg_transport",
+                defs: "-D BENCHMARK "
+            }).addObjects(["messageq_single.c"]);
+        }
 
         if (platform.match(/^ti\.platforms\.evmOMAPL138\:DSP/)) {
                 Pkg.addExecutable(name + "/nano_test", targ, platform, {
