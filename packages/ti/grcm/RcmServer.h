@@ -42,12 +42,13 @@
  *  @brief Remote Command Message Server Module. An RcmServer processes
  *  inbound messages received from an RcmClient.
  *
+ *  @note With the exception of RcmServer_Params, the RcmServer API is
+ *  an internal implementation detail of MmServiceMgr and may be changed at
+ *  will.
+ *
  *  The RcmServer processes inbound messages received from an RcmClient.
  *  After processing a message, the server will return the message to
  *  the client.
- *
- *  @sa RcmClient.h <br>
- *  @ref ti_grcm "RCM Overview"
  */
 
 /*!
@@ -56,18 +57,9 @@
  *  @brief Remote Command Message Server Module. An RcmServer processes
  *  inbound messages received from an RcmClient.
  *
- *  The RcmServer module is used to create an server instance. RcmClients
- *  send their messages to only one RcmServer instance for processing. The
- *  server instance can be created with a function dispatch table and
- *  additional tables can be added as requested by the clients.
- *
- *  Diagnostics
- *
- *  Diags_INFO - full detail log events
- *  Diags_USER1 - message processing
- *
- *  @sa ti_grcm_RcmClient <br>
- *  @ref ti_grcm "RCM Overview"
+ *  @note With the exception of RcmServer_Params, the RcmServer API is
+ *  an internal implementation detail of MmServiceMgr and may be changed at
+ *  will.
  */
 
 #ifndef ti_grcm_RcmServer__include
@@ -87,9 +79,7 @@
 extern "C" {
 #endif
 
-
-// -------- success and failure codes --------
-
+/** @cond INTERNAL */
 /*!
  *  @brief Success return code
  */
@@ -160,6 +150,7 @@ typedef Int32 (*RcmServer_MsgFxn)(UInt32, UInt32 *);
 typedef Int32 (*RcmServer_MsgCreateFxn)(Void *, UInt32, UInt32 *);
 #endif
 
+/** @endcond INTERNAL */
 
 
 /*!
@@ -275,10 +266,14 @@ typedef struct {
 } RcmServer_ThreadPoolDescAry;
 
 
+/** @cond INTERNAL */
+
 /*!
  *  @brief RcmServer instance object handle
  */
 typedef struct RcmServer_Object_tag *RcmServer_Handle;
+
+/** @endcond INTERNAL */
 
 /*!
  *  @brief RcmServer Instance create parameters
@@ -369,6 +364,8 @@ typedef struct {
     RcmServer_FxnDescAry fxns;
 
 } RcmServer_Params;
+
+/** @cond INTERNAL */
 
 /*!
  *  @brief Opaque client structure large enough to hold an instance object
@@ -641,6 +638,8 @@ UInt16  RcmServer_getRemoteProc(
 
 
 #endif
+
+/** @endcond INTERNAL */
 
 
 #if defined (__cplusplus)

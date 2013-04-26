@@ -35,6 +35,11 @@
  *  ======== RcmTypes.h ========
  *
  */
+/*!
+ *  @file ti/grcm/RcmTypes.h
+ *
+ *  @brief Remote Command Message Types.
+ */
 
 #ifndef ti_grcm_RcmTypes_h
 #define ti_grcm_RcmTypes_h

@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file       HeapMemMP.h
+/**
+ *  @file       ti/ipc/HeapMemMP.h
  *
  *  @brief      Multi-processor variable size buffer heap implementation
+ *
+ *  @note       HeapMemMP is currently only available for SYS/BIOS.
  *
  *  HeapMemMP is a heap implementation that manages variable size buffers that
  *  can be used in a multiprocessor system with shared memory. HeapMemMP
@@ -43,8 +45,8 @@
  *  store instance information when an instance is created.  The name supplied
  *  must be unique for all HeapMemMP instances.
  *
- *  The #HeapMemMP_create call initializes the shared memory as needed. Once an
- *  instance is created, an #HeapMemMP_open can be performed. The
+ *  HeapMemMP_create() initializes the shared memory as needed. Once an
+ *  instance is created, HeapMemMP_open() can be called. The
  *  open is used to gain access to the same HeapMemMP instance.
  *  Generally an instance is created on one processor and opened on the
  *  other processor(s).
@@ -62,12 +64,7 @@
  *  @code
  *  #include <ti/ipc/HeapMemMP.h>
  *  @endcode
- *
- *  @version        0.00.01
- *
- *  ============================================================================
  */
-
 
 #ifndef ti_ipc_HeapMemMP__include
 #define ti_ipc_HeapMemMP__include
@@ -84,77 +81,64 @@ extern "C" {
  */
 
 /*!
- *  @def    HeapMemMP_S_BUSY
  *  @brief  The resource is still in use
  */
 #define HeapMemMP_S_BUSY               2
 
 /*!
- *  @def    HeapMemMP_S_ALREADYSETUP
  *  @brief  The module has been already setup
  */
 #define HeapMemMP_S_ALREADYSETUP       1
 
 /*!
- *  @def    HeapMemMP_S_SUCCESS
  *  @brief  Operation is successful.
  */
 #define HeapMemMP_S_SUCCESS            0
 
 /*!
- *  @def    HeapMemMP_E_FAIL
  *  @brief  Generic failure.
  */
 #define HeapMemMP_E_FAIL              -1
 
 /*!
- *  @def    HeapMemMP_E_INVALIDARG
  *  @brief  Argument passed to function is invalid.
  */
 #define HeapMemMP_E_INVALIDARG        -2
 
 /*!
- *  @def    HeapMemMP_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
 #define HeapMemMP_E_MEMORY            -3
 
 /*!
- *  @def    HeapMemMP_E_ALREADYEXISTS
  *  @brief  The specified entity already exists.
  */
 #define HeapMemMP_E_ALREADYEXISTS     -4
 
 /*!
- *  @def    HeapMemMP_E_NOTFOUND
  *  @brief  Unable to find the specified entity.
  */
 #define HeapMemMP_E_NOTFOUND          -5
 
 /*!
- *  @def    HeapMemMP_E_TIMEOUT
  *  @brief  Operation timed out.
  */
 #define HeapMemMP_E_TIMEOUT           -6
 
 /*!
- *  @def    HeapMemMP_E_INVALIDSTATE
  *  @brief  Module is not initialized.
  */
 #define HeapMemMP_E_INVALIDSTATE      -7
 
 /*!
- *  @def    HeapMemMP_E_OSFAILURE
  *  @brief  A failure occurred in an OS-specific call  */
 #define HeapMemMP_E_OSFAILURE         -8
 
 /*!
- *  @def    HeapMemMP_E_RESOURCE
  *  @brief  Specified resource is not available  */
 #define HeapMemMP_E_RESOURCE          -9
 
 /*!
- *  @def    HeapMemMP_E_RESTART
  *  @brief  Operation was interrupted. Please restart the operation  */
 #define HeapMemMP_E_RESTART           -10
 
@@ -170,6 +154,8 @@ typedef struct HeapMemMP_Object *HeapMemMP_Handle;
 
 /*!
  *  @brief  Structure defining parameters for the HeapMemMP module.
+ *
+ *  @sa     HeapMemMP_create()
  */
 typedef struct HeapMemMP_Params {
     String name;
@@ -197,8 +183,7 @@ typedef struct HeapMemMP_Params {
      *  This value can be left as 'null' unless it is required to place the
      *  heap at a specific location in shared memory.  If sharedAddr is null,
      *  then shared memory for a new instance will be allocated from the
-     *  heap belonging to the region identified by
-     *  #HeapMemMP_Params::regionId.
+     *  heap belonging to the region identified by #HeapMemMP_Params.regionId.
      */
     /*! @endcond */
 
@@ -226,7 +211,9 @@ typedef struct HeapMemMP_Params {
 } HeapMemMP_Params;
 
 /*!
- *  @brief  Stats structure for the HeapMemMP_getExtendedStats API.
+ *  @brief  Stats structure for HeapMemMP_getExtendedStats()
+ *
+ *  @sa     HeapMemMP_getExtendedStats()
  */
 typedef struct HeapMemMP_ExtendedStats {
     Ptr   buf;
@@ -248,10 +235,13 @@ typedef struct HeapMemMP_ExtendedStats {
  *  instance. All opened instances should be closed before the instance
  *  is deleted.
  *
- *  @param[in,out]  handlePtr   Pointer to handle returned from #HeapMemMP_open
+ *  @param[in,out]  handlePtr   Pointer to handle returned from
+ *                              HeapMemMP_open()
  *
  *  @return     HeapMemMP status:
  *              - #HeapMemMP_S_SUCCESS: Heap successfully closed
+ *
+ *  @sa         HeapMemMP_open()
  */
 Int HeapMemMP_close(HeapMemMP_Handle *handlePtr);
 
@@ -261,16 +251,20 @@ Int HeapMemMP_close(HeapMemMP_Handle *handlePtr);
  *  @param[in]  params      HeapMemMP parameters
  *
  *  @return     HeapMemMP Handle
+ *
+ *  @sa         HeapMemMP_delete()
  */
 HeapMemMP_Handle HeapMemMP_create(const HeapMemMP_Params *params);
 
 /*!
  *  @brief      Delete a created HeapMemMP instance
  *
- *  @param[in,out]      handlePtr   Pointer to handle to delete.
+ *  @param[in,out]  handlePtr   Pointer to handle to delete.
  *
  *  @return     HeapMemMP status:
  *              - #HeapMemMP_S_SUCCESS: Heap successfully deleted
+ *
+ *  @sa         HeapMemMP_create()
  */
 Int HeapMemMP_delete(HeapMemMP_Handle *handlePtr);
 
@@ -308,8 +302,9 @@ Int HeapMemMP_openByAddr(Ptr sharedAddr, HeapMemMP_Handle *handlePtr);
 /*!
  *  @brief      Initialize a HeapMemMP parameters struct
  *
- *  @param[out] params      Pointer to GateMP parameters
+ *  @param[out] params      Pointer to creation parameters
  *
+ *  @sa         HeapMemMP_create()
  */
 Void HeapMemMP_Params_init(HeapMemMP_Params *params);
 
@@ -345,8 +340,8 @@ SizeT HeapMemMP_sharedMemReq(const HeapMemMP_Params *params);
  *      - If possible, allocate larger blocks first. Previous allocations
  *        of small memory blocks can reduce the size of the blocks
  *        available for larger memory allocations.
- *      - Realize that alloc() can fail even if the heap contains a
- *        sufficient absolute amount of unalloccated space. This is
+ *      - Realize that allocation can fail even if the heap contains a
+ *        sufficient absolute amount of unallocated space. This is
  *        because the largest free memory block may be smaller than
  *        total amount of unallocated memory.
  *
@@ -354,26 +349,26 @@ SizeT HeapMemMP_sharedMemReq(const HeapMemMP_Params *params);
  *  @param[in]  size      Size to be allocated (in MADUs)
  *  @param[in]  align     Alignment for allocation (power of 2)
  *
- *  @sa         HeapMemMP_free
+ *  @sa         HeapMemMP_free()
  */
 Void *HeapMemMP_alloc(HeapMemMP_Handle handle, SizeT size, SizeT align);
 
 /*!
  *  @brief      Frees a block of memory.
  *
- *  free() places the memory block specified by addr and size back into the
- *  free pool of the heap specified. The newly freed block is combined with
- *  any adjacent free blocks. The space is then available for further
- *  allocation by alloc().
+ *  HeapMemMP_free() places the memory block specified by addr and size back
+ *  into the free pool of the heap specified. The newly freed block is combined
+ *  with any adjacent free blocks. The space is then available for future
+ *  allocations.
  *
- *  #HeapMemMP_free will lock the heap using the HeapMemMP gate if one is
+ *  HeapMemMP_free() will lock the heap using the HeapMemMP gate if one is
  *  specified or the system GateMP if not.
  *
  *  @param[in]  handle    Handle to previously created/opened instance.
  *  @param[in]  block     Block of memory to be freed.
  *  @param[in]  size      Size to be freed (in MADUs)
  *
- *  @sa         HeapMemMP_alloc
+ *  @sa         HeapMemMP_alloc()
  */
 Void HeapMemMP_free(HeapMemMP_Handle handle, Ptr block, SizeT size);
 
@@ -398,7 +393,7 @@ Void HeapMemMP_getExtendedStats(HeapMemMP_Handle handle,
  *  @param[in]  handle    Handle to previously created/opened instance.
  *  @param[out] stats     Memory statistics structure
  *
- *  @sa     HeapMemMP_getExtendedStats
+ *  @sa     HeapMemMP_getExtendedStats()
  */
 Void HeapMemMP_getStats(HeapMemMP_Handle handle, Ptr stats);
 

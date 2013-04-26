@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ===========================================================================
- *  @file       ListMP.h
+/**
+ *  @file       ti/ipc/ListMP.h
  *
  *  @brief      Multiple processor shared memory list
+ *
+ *  @note       ListMP is currently only available for SYS/BIOS.
  *
  *  ListMP is a doubly linked-list based module designed to be used
  *  in a multi-processor environment.  It provides a way for
@@ -61,8 +63,6 @@
  *  @code
  *  #include <ti/ipc/ListMP.h>
  *  @endcode
- *
- *  ============================================================================
  */
 
 #ifndef ti_ipc_ListMP__include
@@ -81,79 +81,66 @@ extern "C" {
  */
 
 /*!
- *  @def    ListMP_S_BUSY
  *  @brief  The resource is still in use
  */
 #define ListMP_S_BUSY            2
 
 /*!
- *  @def    ListMP_S_ALREADYSETUP
  *  @brief  The module has been already setup
  */
 #define ListMP_S_ALREADYSETUP    1
 
 /*!
- *  @def    ListMP_S_SUCCESS
  *  @brief  Operation is successful.
  */
 #define ListMP_S_SUCCESS         0
 
 /*!
- *  @def    ListMP_E_FAIL
  *  @brief  Generic failure.
  */
 #define ListMP_E_FAIL           -1
 
 /*!
- *  @def    ListMP_E_INVALIDARG
  *  @brief  Argument passed to function is invalid.
  */
 #define ListMP_E_INVALIDARG     -2
 
 /*!
- *  @def    ListMP_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
 #define ListMP_E_MEMORY         -3
 
 /*!
- *  @def    ListMP_E_ALREADYEXISTS
  *  @brief  The specified entity already exists.
  */
 #define ListMP_E_ALREADYEXISTS  -4
 
 /*!
- *  @def    ListMP_E_NOTFOUND
  *  @brief  Unable to find the specified entity.
  */
 #define ListMP_E_NOTFOUND       -5
 
 /*!
- *  @def    ListMP_E_TIMEOUT
  *  @brief  Operation timed out.
  */
 #define ListMP_E_TIMEOUT        -6
 
 /*!
- *  @def    ListMP_E_INVALIDSTATE
  *  @brief  Module is not initialized.
  */
 #define ListMP_E_INVALIDSTATE   -7
 
 /*!
- *  @def    ListMP_E_OSFAILURE
  *  @brief  A failure occurred in an OS-specific call
  */
 #define ListMP_E_OSFAILURE      -8
 
 /*!
- *  @def    ListMP_E_RESOURCE
  *  @brief  Specified resource is not available
  */
 #define ListMP_E_RESOURCE       -9
 
 /*!
- *  @def    ListMP_E_RESTART
  *  @brief  Operation was interrupted. Please restart the operation
  */
 #define ListMP_E_RESTART        -10
@@ -242,7 +229,7 @@ Void ListMP_Params_init(ListMP_Params *params);
  *
  *  @return     ListMP instance handle.  NULL if create failed.
  *
- *  @sa         ListMP_delete
+ *  @sa         ListMP_delete()
  */
 ListMP_Handle ListMP_create(const ListMP_Params *params);
 
@@ -260,7 +247,7 @@ ListMP_Handle ListMP_create(const ListMP_Params *params);
  *              - #ListMP_S_SUCCESS:  ListMP successfully closed
  *              - #ListMP_E_FAIL:  A general failure has occurred
  *
- *  @sa         ListMP_open
+ *  @sa         ListMP_open()
  */
 Int ListMP_close(ListMP_Handle *handlePtr);
 
@@ -273,7 +260,7 @@ Int ListMP_close(ListMP_Handle *handlePtr);
  *              - #ListMP_S_SUCCESS:  ListMP successfully deleted
  *                  - #ListMP_E_FAIL:  ListMP delete failed
  *
- *  @sa         ListMP_create
+ *  @sa         ListMP_create()
  */
 Int ListMP_delete(ListMP_Handle *handlePtr);
 
@@ -307,7 +294,8 @@ Int ListMP_delete(ListMP_Handle *handlePtr);
  *              - #ListMP_E_NOTFOUND: ListMP is not yet ready to be opened.
  *              - #ListMP_E_FAIL: A general failure has occurred
  *
- *  @sa         ListMP_create
+ *  @sa         ListMP_close()
+ *  @sa         ListMP_create()
  */
 Int ListMP_open(String name, ListMP_Handle *handlePtr);
 
@@ -387,12 +375,11 @@ GateMP_Handle ListMP_getGate(ListMP_Handle handle);
  *
  *  Atomically removes the element from the front of a
  *  ListMP instance and returns a pointer to it.
- *  Uses #ListMP_Params#gate for critical region management.
+ *  Uses #ListMP_Params.gate for critical region management.
  *
  *  @param  handle  a ListMP handle.
  *
- *  @return     pointer to former first element.
- *              -NULL if the ListMP is empty.
+ *  @return     pointer to former first element. NULL if the ListMP is empty.
  */
 Ptr ListMP_getHead(ListMP_Handle handle);
 
@@ -401,22 +388,21 @@ Ptr ListMP_getHead(ListMP_Handle handle);
  *
  *  Atomically removes the element from the back of a
  *  ListMP instance and returns a pointer to it.
- *  Uses #ListMP_Params#gate for critical region management.
+ *  Uses #ListMP_Params.gate for critical region management.
  *
  *  @param      handle  a ListMP handle.
  *
- *  @return     pointer to former last element
- *              -NULL if the ListMP is empty.
+ *  @return     pointer to former last element.  NULL if the ListMP is empty.
  */
 Ptr ListMP_getTail(ListMP_Handle handle);
 
 /*!
  *  @brief      Insert an element into a ListMP instance
  *
- *  Atomically inserts `newElem` in the instance in front of `curElem`.
+ *  Atomically inserts @c newElem in the instance in front of @c curElem.
  *  To place an element at the back of a ListMP instance, use
- *  #ListMP_putTail.  To place an element at the front of a
- *  ListMP instance, use #ListMP_putHead.
+ *  ListMP_putTail().  To place an element at the front of a
+ *  ListMP instance, use ListMP_putHead().
  *
  *  The following code shows an example.
  *
@@ -523,7 +509,7 @@ Ptr ListMP_prev(ListMP_Handle handle, ListMP_Elem *elem);
  *  @brief      Put an element at head of a ListMP instance
  *
  *  Atomically places the element at the front of a ListMP instance.
- *  Uses #ListMP_Params#gate for critical region management.
+ *  Uses #ListMP_Params.gate for critical region management.
  *
  *  @param      handle  a ListMP handle
  *  @param      elem    pointer to new ListMP element
@@ -538,7 +524,7 @@ Int ListMP_putHead(ListMP_Handle handle, ListMP_Elem *elem);
  *  @brief      Put an element at back of a ListMP instance
  *
  *  Atomically places the element at the back of a ListMP instance.
- *  Uses #ListMP_Params#gate for critical region management.
+ *  Uses #ListMP_Params.gate for critical region management.
  *
  *  @param      handle  a ListMP handle
  *  @param      elem    pointer to new ListMP element
@@ -554,7 +540,7 @@ Int ListMP_putTail(ListMP_Handle handle, ListMP_Elem *elem);
  *
  *  Atomically removes an element from a ListMP.
  *
- *  The `elem` parameter is a pointer to an existing element to be removed
+ *  The @c elem parameter is a pointer to an existing element to be removed
  *  from a ListMP instance.
  *
  *  @param      handle  a ListMP handle

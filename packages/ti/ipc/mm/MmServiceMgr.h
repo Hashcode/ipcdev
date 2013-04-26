@@ -30,12 +30,14 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** ============================================================================
- *  @file       MmServiceMgr.h
+/**
+ *  @file       ti/ipc/mm/MmServiceMgr.h
  *
  *  @brief      Multi-Media Service Manager
  *
- *  ============================================================================
+ *  @note       MmServiceMgr is currently only available for SYS/BIOS, when
+ *              providing services for an MmRpc client on Linux or QNX.
+ *
  */
 
 #ifndef ti_ipc_mm_MmServiceMgr__include

@@ -30,14 +30,15 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** ============================================================================
- *  @file       MessageQ.h
+/**
+ *  @file       ti/ipc/MessageQ.h
  *
  *  @brief      MessageQ Manager
  *
  *  The MessageQ module supports the structured sending and receiving of
  *  variable length messages. This module can be used for homogeneous
- *  (DSP to DSP)  or heterogeneous (Arm to DSP) multi-processor messaging.
+ *  (e.g. DSP to DSP) or heterogeneous (e.g. ARM to DSP) multi-processor
+ *  messaging.
  *
  *  MessageQ provides more sophisticated messaging than other modules. It is
  *  typically used for complex situations such as multi-processor messaging.
@@ -111,26 +112,22 @@
  *
  *  MessageQ supports reads/writes of different thread models. This is
  *  accomplished by having the creator of the message queue specify a
- *  synchronizer via the #MessageQ_Params::synchronizer
+ *  synchronizer via the #MessageQ_Params.synchronizer
  *  configuration parameter. The synchronizer is signaled whenever the
  *  MessageQ_put() is called. The synchronizer waits if MessageQ_get() is called
  *  and there are no messages.
  *
  *  Since ISyncs are binary, the reader must drain the message queue of all
  *  messages before waiting for another signal. For example, if the reader
- *  was a SYSBIOS Swi, the synchronizer instance could be a SyncSwi.
- *  If a #MessageQ_put was called, the Swi_post() would
- *  be called. The Swi would run and it must call #MessageQ_get until no
+ *  was a SYS/BIOS Swi, the synchronizer instance could be a SyncSwi.
+ *  If a MessageQ_put() was called, the Swi_post() would
+ *  be called. The Swi would run and it must call MessageQ_get() until no
  *  messages are returned.
  *
  *  The MessageQ header should be included in an application as follows:
  *  @code
  *  #include <ti/ipc/MessageQ.h>
  *  @endcode
- *
- *  @version        0.00.01
- *
- *  ============================================================================
  */
 
 #ifndef ti_ipc_MessageQ__include
@@ -356,7 +353,7 @@ extern "C" {
  *  into the message with the MessageQ_setReplyQueue() function. The receiver of
  *  the message can extract the message queue ID with this function.
  *
- *  This method is particularing useful in a client/server relationship where
+ *  This method is particularly useful in a client/server relationship where
  *  the server does not want to know who the clients are. The clients can embed
  *  their message queue into the message to the server and the server extracts
  *  it and uses it to reply.
@@ -457,7 +454,7 @@ typedef MessageQ_MsgHeader *MessageQ_Msg;
 typedef enum {
     MessageQ_NORMALPRI      = 0,    /*!< Normal Priority                  */
     MessageQ_HIGHPRI        = 1,    /*!< High Priority                    */
-    MessageQ_RESERVEDPRI    = 2,    /*!< Reserved Priorit                 */
+    MessageQ_RESERVEDPRI    = 2,    /*!< Reserved Priority                 */
     MessageQ_URGENTPRI      = 3     /*!< Urgent Priority                  */
 } MessageQ_Priority;
 
@@ -710,7 +707,7 @@ Int MessageQ_get(MessageQ_Handle handle, MessageQ_Msg *msg, UInt timeout);
  *  - MessageQ_getDstQueue()
  *
  *  After the message is placed onto the final destination, the queue's
- *  #MessageQ_Params::synchronizer signal function is called.
+ *  #MessageQ_Params.synchronizer signal function is called.
  *
  *  The application loses ownership of the message once MessageQ_put() is called.
  *

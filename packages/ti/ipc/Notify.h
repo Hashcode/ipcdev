@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file       Notify.h
+/**
+ *  @file       ti/ipc/Notify.h
  *
  *  @brief      Notification manager for IPC
+ *
+ *  @note       Notify is currently only available for SYS/BIOS.
  *
  *  The Notify module manages the multiplexing/demultiplexing of software
  *  interrupts over hardware interrupts.  In order to receive notifications,
@@ -41,7 +43,7 @@
  *  call (like most other Notify APIs) uses a MultiProc id and
  *  line id to target a specific interrupt line to/from a specific processor
  *  on a device.  The Notify_eventAvailable() API may be used to query whether
- *  an event id is availble for use before registration.
+ *  an event id is available for use before registration.
  *
  *  Once an event has been registered, a remote processor may send an event
  *  using the Notify_sendEvent() call.  If the event and the interrupt line
@@ -64,28 +66,24 @@
  *  to Notify APIs. Line id #0 is always used for local notifications.  It is
  *  important to be aware of some subtle (but important) differences between
  *  remote and local notifications:
- *
  *      - Loopback callback functions will execute in the same thread in which
  *        Notify_sendEvent() is called.  This is in contrast to callback
  *        functions that are called due to another processor's sent
  *        notification- these 'remote' callback functions will execute in an
  *        ISR context.
- *
  *      - Loopback callback functions will execute with interrupts disabled
- *
  *      - Disabling the local interrupt line will cause all notifications that
  *        are sent to the local processor to be lost.  By contrast, a
  *        notification sent to an enabled event on a remote processor that has
  *        called Notify_disable() results in a pending notifications until the
  *        disabled processor has called Notify_restore().
- *
  *      - Local notifications do not support events of different priorities.
  *        By contrast, Notify driver implementations may correlate event ids
  *        with varying priorities.
  *
- *  In order to use any Notify APIs on DSP/BIOS, IPC/SysLink must first be
- *  started.  This will internally call Notify_attach() which sets up
- *  all necessary Notify drivers, shared memory and interprocessor interrupts.
+ *  In order to use any Notify APIs all necessary Notify drivers, shared memory
+ *  and interprocessor interrupts must be initialized.  This is typically done
+ *  by Ipc_start(), which internally call Notify_attach().
  *  It is possible for a user application to call Notify_attach() directly
  *  (before Ipc_attach() or Ipc_start()) if notifications must be set up prior
  *  to runtime SharedRegion initialization. Refer to the documentation for
@@ -95,10 +93,6 @@
  *  @code
  *  #include <ti/ipc/Notify.h>
  *  @endcode
- *
- *  @version  0.00.01
- *
- *  ============================================================================
  */
 
 #ifndef ti_ipc_Notify__include
@@ -525,10 +519,10 @@ Void Notify_restore(UInt16 procId, UInt16 lineId, UInt key);
  *  with Notify with the associated eventId and source
  *  processor id are called.
  *
- *  For example, when using 'NotifyDriverShm', a 'waitClear' value of 'TRUE'
+ *  For example, when using 'NotifyDriverShm', a @c waitClear value of 'TRUE'
  *  indicates that, if an event was previously sent to the same eventId,
  *  sendEvent should spin until the previous event has been acknowledged by the
- *  remote processor. If 'waitClear' is FALSE, a pending event with the same
+ *  remote processor. If @c waitClear is FALSE, a pending event with the same
  *  eventId will be overwritten by the event currently being sent. When in
  *  doubt, a value of TRUE should be used because notifications may be
  *  potentially dropped when FALSE is used.  When using NotifyDriverShm, a
@@ -557,7 +551,7 @@ Void Notify_restore(UInt16 procId, UInt16 lineId, UInt key);
  *              - #Notify_E_NOTINITIALIZED: remote driver has not yet been
  *                initialized
  *              - #Notify_E_EVTDISABLED: remote event is disabled
- *              - #Notify_E_TIMEOUT: timeout occured (when waitClear is TRUE)
+ *              - #Notify_E_TIMEOUT: timeout occurred (when waitClear is TRUE)
  *              - #Notify_S_SUCCESS: event successfully sent
  */
 Int Notify_sendEvent(UInt16 procId, UInt16 lineId, UInt32 eventId,

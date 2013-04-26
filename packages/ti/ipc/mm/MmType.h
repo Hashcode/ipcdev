@@ -30,12 +30,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** ============================================================================
- *  @file       MmType.h
+/**
+ *  @file       ti/ipc/mm/MmType.h
  *
  *  @brief      Specific types to support the MmRpc and MmServiceMgr modules
  *
- *  ============================================================================
+ *
  */
 
 #ifndef ti_ipc_mm_MmType__include

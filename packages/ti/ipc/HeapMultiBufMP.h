@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file       HeapMultiBufMP.h
+/**
+ *  @file       ti/ipc/HeapMultiBufMP.h
  *
  *  @brief      Multiple fixed size buffer heap implementation.
+ *
+ *  @note       HeapBufMP is currently only available for SYS/BIOS.
  *
  *  The HeapMultiBufMP manager provides functions to allocate and free storage
  *  from a shared memory heap of type HeapMultiBufMP which inherits from IHeap.
@@ -49,14 +51,11 @@
  *  Allocating from HeapMultiBufMP will try to return a block from the first
  *  buffer which has:
  *
- *    1. A block size that is >= to the requested size
- *
- *    AND
- *
+ *    1. A block size that is >= to the requested size, and
  *    2. An alignment that is >= to the requested alignment
  *
  *  Buffer configuration for a new instance is primarily supplied via the
- *  #HeapMultiBufMP_Params::bucketEntries instance configuration parameter.
+ *  #HeapMultiBufMP_Params.bucketEntries instance configuration parameter.
  *  Once buckets are adjusted for size and alignment, buffers with equal sizes
  *  and alignments are combined.
  *
@@ -77,8 +76,8 @@
  *        will be merged. If this is a problem, consider managing these buffers
  *        directly with HeapBufMP objects.
  *
- *  In addition to the buffer configuration, a #HeapMultiBufMP_Params::name
- *  and a #HeapMultiBufMP_Params::regionId (from which shared memory is
+ *  In addition to the buffer configuration, a #HeapMultiBufMP_Params.name
+ *  and a #HeapMultiBufMP_Params.regionId (from which shared memory is
  *  allocated) must be supplied when creating an instance.
  *
  *  Once an instance is created, HeapMultiBufMP_open() can be performed using the
@@ -95,12 +94,7 @@
  *  @code
  *  #include <ti/ipc/HeapMultiBufMP.h>
  *  @endcode
- *
- *  @version        0.00.01
- *
- *  ============================================================================
  */
-
 
 #ifndef ti_ipc_HeapMultiBufMP__include
 #define ti_ipc_HeapMultiBufMP__include
@@ -205,7 +199,7 @@ typedef struct HeapMultiBufMP_Object *HeapMultiBufMP_Handle;
  *  HeapMultiBufMP instance.  The fields of each bucket correspond
  *  to the attributes of each buffer in the HeapMultiBufMP.  The actual
  *  block sizes and alignments may be adjusted per the process described
- *  at #HeapMultiBufMP_Params::bucketEntries.
+ *  at #HeapMultiBufMP_Params.bucketEntries.
  */
 typedef struct HeapMultiBufMP_Bucket {
     SizeT blockSize;    /*!< Size of each block in this bucket (in MADUs)   */
@@ -218,21 +212,21 @@ typedef struct HeapMultiBufMP_Bucket {
  */
 typedef struct HeapMultiBufMP_Params {
     GateMP_Handle gate;
-    /*!< GateMP used for critical region management of the shared memory
+    /*!< @brief GateMP used for critical region management of the shared memory
      *
      *  Using the default value of NULL will result in use of the GateMP
      *  system gate for context protection.
      */
 
     Bool exact;
-    /*!< Use exact matching
+    /*!< @brief Use exact matching
      *
      *  Setting this flag will allow allocation only if the requested size
      *  is equal to (rather than less than or equal to) a buffer's block size.
      */
 
     String name;
-    /*!< Name of this instance.
+    /*!< @brief Name of this instance.
      *
      *  The name (if not NULL) must be unique among all HeapMultiBufMP
      *  instances in the entire system.  When creating a new
@@ -243,13 +237,13 @@ typedef struct HeapMultiBufMP_Params {
      */
 
     Int numBuckets;
-    /*!< Number of buckets in #HeapMultiBufMP_Params::bucketEntries
+    /*!< @brief Number of buckets in #HeapMultiBufMP_Params.bucketEntries
      *
      *  This parameter is required to create any instance.
      */
 
     HeapMultiBufMP_Bucket *bucketEntries;
-    /*!< Bucket Entries
+    /*!< @brief Bucket Entries
      *
      *  The bucket entries are an array of #HeapMultiBufMP_Bucket whose values
      *  correspond to the desired alignment, block size and length for each
@@ -267,7 +261,7 @@ typedef struct HeapMultiBufMP_Params {
      */
 
     UInt16 regionId;
-    /*!<Shared region ID
+    /*!< @brief Shared region ID
      *
      *  The index corresponding to the shared region from which shared memory
      *  will be allocated.
@@ -281,7 +275,7 @@ typedef struct HeapMultiBufMP_Params {
      *  heap at a specific location in shared memory.  If sharedAddr is null,
      *  then shared memory for a new instance will be allocated from the
      *  heap belonging to the region identified by
-     *  #HeapMultiBufMP_Params::regionId.
+     *  #HeapMultiBufMP_Params.regionId.
      */
     /*! @endcond */
 
@@ -330,7 +324,7 @@ typedef struct HeapMultiBufMP_ExtendedStats {
  *  @param[in,out]  handlePtr   Pointer to handle returned from
  *                              #HeapMultiBufMP_open
  *
- *  @sa         HeapMultiBufMP_open
+ *  @sa         HeapMultiBufMP_open()
  */
 Int HeapMultiBufMP_close(HeapMultiBufMP_Handle *handlePtr);
 
@@ -340,6 +334,8 @@ Int HeapMultiBufMP_close(HeapMultiBufMP_Handle *handlePtr);
  *  @param[in]  params      HeapMultiBufMP parameters
  *
  *  @return     HeapMultiBufMP Handle
+ *
+ *  @sa         HeapMultiBufMP_delete()
  */
 HeapMultiBufMP_Handle HeapMultiBufMP_create(const HeapMultiBufMP_Params *params);
 
@@ -375,7 +371,7 @@ Int HeapMultiBufMP_delete(HeapMultiBufMP_Handle *handlePtr);
  *              - #HeapMultiBufMP_E_NOTFOUND: Heap is not yet ready to be opened.
  *              - #HeapMultiBufMP_E_FAIL: A general failure has occurred
  *
- *  @sa         HeapMultiBufMP_close
+ *  @sa         HeapMultiBufMP_close()
  */
 Int HeapMultiBufMP_open(String name, HeapMultiBufMP_Handle *handlePtr);
 
@@ -419,7 +415,7 @@ SizeT HeapMultiBufMP_sharedMemReq(const HeapMultiBufMP_Params *params);
  *  @param[in] size      Size to be allocated (in MADUs)
  *  @param[in] align     Alignment for allocation (power of 2)
  *
- *  @sa         HeapMultiBufMP_free
+ *  @sa         HeapMultiBufMP_free()
  */
 Void *HeapMultiBufMP_alloc(HeapMultiBufMP_Handle handle, SizeT size,
                            SizeT align);
@@ -431,7 +427,7 @@ Void *HeapMultiBufMP_alloc(HeapMultiBufMP_Handle handle, SizeT size,
  *  @param[in]  block     Block of memory to be freed.
  *  @param[in]  size      Size to be freed (in MADUs)
  *
- *  @sa         HeapMultiBufMP_alloc
+ *  @sa         HeapMultiBufMP_alloc()
  */
 Void HeapMultiBufMP_free(HeapMultiBufMP_Handle handle, Ptr block, SizeT size);
 

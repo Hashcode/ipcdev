@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ===========================================================================
- *  @file       SharedRegion.h
+/**
+ *  @file       ti/ipc/SharedRegion.h
  *
- *  @brief      Shared memory manager and address translator.
+ *  @brief      Shared memory manager and address translator
+ *
+ *  @note       SharedRegion is currently only available for SYS/BIOS.
  *
  *  The SharedRegion module is designed to be used in a multi-processor
  *  environment in which memory regions are shared and accessed
@@ -49,14 +51,14 @@
  *  Note:  The number of entries must be the same on all processors.
  *
  *  Each shared region contains the following:
- *  @li @b base - The base address
- *  @li @b len - The length
- *  @li @b name - The name of the region
- *  @li @b isValid - Whether the region is valid
- *  @li @b ownerProcId - The id of the processor which owns the region
- *  @li @b cacheEnable - Whether the region is cacheable
- *  @li @b cacheLineSize - The cache line size
- *  @li @b createHeap - Whether a heap is created for the region.
+ *    - @b base - The base address
+ *    - @b len - The length
+ *    - @b name - The name of the region
+ *    - @b isValid - Whether the region is valid
+ *    - @b ownerProcId - The id of the processor which owns the region
+ *    - @b cacheEnable - Whether the region is cacheable
+ *    - @b cacheLineSize - The cache line size
+ *    - @b createHeap - Whether a heap is created for the region.
  *
  *  A region is added using the SharedRegion_setEntry() API.
  *  The length of a region must be the same across all processors.
@@ -94,8 +96,6 @@
  *  @code
  *  #include <ti/ipc/SharedRegion.h>
  *  @endcode
- *
- *  ============================================================================
  */
 
 #ifndef ti_ipc_SharedRegion__include
@@ -201,27 +201,27 @@ typedef Bits32 SharedRegion_SRPtr;
  */
 typedef struct SharedRegion_Entry {
     Ptr base;
-    /*!< The base address of the region */
+    /*!< @brief The base address of the region */
 
     SizeT len;
-    /*!< The length of the region
+    /*!< @brief The length of the region
      *
-     *  Ths length of a region must be the same across all
+     *  The length of a region must be the same across all
      *  processors in the system.
      */
 
     UInt16 ownerProcId;
-    /*!< The MultiProc id of the owner of the region
+    /*!< @brief The MultiProc id of the owner of the region
      *
      *  The owner id for a shared region must be the same across
      *  all processors in the system.
      */
 
     Bool isValid;
-    /*!< Whether the region is valid */
+    /*!< @brief Whether the region is valid */
 
     Bool cacheEnable;
-    /*!< Whether to perform cache operations for the region
+    /*!< @brief Whether to perform cache operations for the region
      *
      *  If 'TRUE', a cache invalidate is performed before any read
      *  and a cache write back invalidate is performed after any
@@ -230,7 +230,7 @@ typedef struct SharedRegion_Entry {
      */
 
     SizeT cacheLineSize;
-    /*!< The cache line size of the region
+    /*!< @brief The cache line size of the region
      *
      *  The cache line size for a region must be the same across
      *  all processors in the system.  It is used for structure
@@ -238,7 +238,7 @@ typedef struct SharedRegion_Entry {
      */
 
     Bool createHeap;
-    /*!< Whether a heap is created for the region
+    /*!< @brief Whether a heap is created for the region
      *
      *  If 'TRUE', a HeapMemMP instance is created with the size
      *  spanning the length of the shared region minus any memory
@@ -247,7 +247,7 @@ typedef struct SharedRegion_Entry {
      */
 
     String name;
-    /*!< The name of the region.
+    /*!< @brief The name of the region.
      *
      *  The name must be in persistent memory.  It is used for
      *  displaying in ROV.
@@ -261,7 +261,7 @@ typedef struct SharedRegion_Entry {
  */
 
 /*!
- *  @brief      Clears the entry at the specified region id
+ *  @brief      Clears the @c regionid entry
  *
  *  SharedRegion_clearEntry() is used to render invalid a shared region that is
  *  currently valid.  If the region has a heap, it will either be closed or
@@ -270,7 +270,7 @@ typedef struct SharedRegion_Entry {
  *  Calling SharedRegion_clearEntry() upon a region that is already invalid
  *  simply resets the region attributes to their defaults.
  *
- *  NOTE: Region #0 is special and can neither be cleared nor set.
+ *  @note Region #0 is special and can neither be cleared nor set.
  *
  *  @param      regionId  the region id
  *
@@ -320,24 +320,14 @@ Int SharedRegion_getEntry(UInt16 regionId, SharedRegion_Entry *entry);
 /*!
  *  @brief      Gets the heap associated with the specified region id
  *
- *  If running on BIOS, the heap handle returned is of type xdc.runtime.IHeap.
- *  This handle type can be used with xdc.runtime.Memory. However, if running
- *  on Linux, the heap handle is of type ti.syslink.utils.IHeap.  This handle
- *  type cannot be used with xdc.runtime.Memory, but can be used with
- *  ti.syslink.utils.Memory. The handle type is determined at compile time
- *  and cannot be deferred until runtime. The correct header file must be
- *  included to get the right type.
+ *  The heap handle returned is of type xdc.runtime.IHeap.
+ *  This handle type can be used with xdc.runtime.Memory.
  *
  *  The following code shows an example.
  *
  *  @code
- *  #if defined(ti_sdo_ipc)
  *  #include <xdc/runtime/IHeap.h>
  *  #include <xdc/runtime/Memory.h>
- *  #elif defined(ti_syslink)
- *  #include <ti/syslink/utils/IHeap.h>
- *  #include <ti/syslink/utils/Memory.h>
- *  #endif
  *  #include <ti/ipc/SharedRegion.h>
  *
  *  IHeap_Handle heap;

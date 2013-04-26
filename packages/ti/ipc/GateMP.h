@@ -29,11 +29,13 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file       GateMP.h
+/**
+ *  @file       ti/ipc/GateMP.h
  *
  *  @brief      Multiple processor gate that provides local and remote context
  *              protection.
+ *
+ *  @note       GateMP is currently only available for SYS/BIOS.
  *
  *  A GateMP instance can be used to enforce both local and remote context
  *  context protection.  That is, entering a GateMP can prevent preemption by
@@ -42,18 +44,19 @@
  *  to protect reads/writes to a shared resource, such as shared memory.
  *
  *  Creating a GateMP requires supplying the following configuration
- *      - Instance name (see #GateMP_Params::name)
- *      - Region id (see #GateMP_Params::regionId)
+ *      - Instance name (see #GateMP_Params.name)
+ *      - Region id (see #GateMP_Params.regionId)
+ *
  *  In addition, the following parameters should be configured as necessary:
  *      - The level of local protection (interrupt, thread, tasklet, process
- *        or none) can be configured using the #GateMP_Params::localProtect
+ *        or none) can be configured using the #GateMP_Params.localProtect
  *        config parameter.
  *      - The type of remote system gate that can be used.  Most devices will
  *        typically have a single type of system gate so this configuration
- *        should typically be left alone.  See #GateMP_Params::remoteProtect for
+ *        should typically be left alone.  See #GateMP_Params.remoteProtect for
  *        more information.
 
- *  Once created GateMP allows the gate to be opened on another processor
+ *  Once created, GateMP allows the gate to be opened on another processor
  *  using GateMP_open() and the name that was used in GateMP_create().
  *
  *  A GateMP can be entered and left using GateMP_enter() and GateMP_leave()
@@ -73,11 +76,6 @@
  *  @code
  *  #include <ti/ipc/GateMP.h>
  *  @endcode
- *
- *
- *  @version        0.00.01
- *
- *  ============================================================================
  */
 
 #ifndef ti_ipc_GateMP__include
@@ -165,18 +163,6 @@ extern "C" {
  *  Each member corresponds to a specific local processor gates used for
  *  local protection.
  *
- *  In Linux user mode, the following are the mapping for the constants
- *      - INTERRUPT -> [N/A]
- *      - TASKLET   -> [N/A]
- *      - THREAD    -> GateMutex
- *      - PROCESS   -> GateMutex
- *
- *  In Linux kernel mode, the following are the mapping for the constants
- *      - INTERRUPT -> [Interrupts disabled]
- *      - TASKLET   -> GateMutex
- *      - THREAD    -> GateMutex
- *      - PROCESS   -> GateMutex
- *
  *  For SYS/BIOS users, the following are the mappings for the constants
  *      - INTERRUPT -> GateAll: disables interrupts, Swis and Tasks
  *      - TASKLET   -> GateSwi: disables Swis and Tasks
@@ -209,7 +195,7 @@ typedef enum GateMP_LocalProtect {
  *  Each enum value corresponds to the following remote protection levels:
  *      - NONE      -> No remote protection (the GateMP instance will
  *                     exclusively offer local protection configured in
- *                     #GateMP_Params::localProtect
+ *                     #GateMP_Params.localProtect
  *      - SYSTEM    -> Use the SYSTEM remote protection level (default for
  *                     remote protection
  *      - CUSTOM1   -> Use the CUSTOM1 remote protection level
@@ -218,7 +204,7 @@ typedef enum GateMP_LocalProtect {
 typedef enum GateMP_RemoteProtect {
     GateMP_RemoteProtect_NONE     = 0,
     /*!< No remote protection (the GateMP instance will exclusively
-     *  offer local protection configured in #GateMP_Params::localProtect)
+     *  offer local protection configured in #GateMP_Params.localProtect)
      */
 
     GateMP_RemoteProtect_SYSTEM   = 1,
@@ -271,7 +257,7 @@ typedef struct GateMP_Params {
      *  it must be from a valid SharedRegion and the regionId is ignored.
      *  If sharedAddr is null, then shared memory for a new instance is
      *  allocated from the heap belonging to the region identified by
-     *  #GateMP_Params::regionId.  The amount of shared memory allocated
+     *  #GateMP_Params.regionId.  The amount of shared memory allocated
      *  can be determined by calling GateMP_sharedMemReq().
      */
     /*! @endcond */

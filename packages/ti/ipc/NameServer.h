@@ -29,17 +29,17 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ===========================================================================
- *  @file       NameServer.h
+/**
+ *  @file       ti/ipc/NameServer.h
  *
  *  @brief      NameServer Manager
  *
  *  The NameServer module manages local name/value pairs that
  *  enables an application and other modules to store and
  *  retrieve values based on a name. The module supports different
- *  lengths of values. The #NameServer_add and #NameServer_get
- *  functions are for variable length values. The #NameServer_addUInt32 and
- *  #NameServer_getUInt32 functions are optimized for UInt32 variables
+ *  lengths of values. The NameServer_add() and NameServer_get()
+ *  functions are for variable length values. The NameServer_addUInt32() and
+ *  NameServer_getUInt32() functions are optimized for UInt32 variables
  *  and constants.
  *
  *  The NameServer module maintains thread-safety for the APIs. However,
@@ -68,7 +68,7 @@
  *  The NameServer module uses the MultiProc module for
  *  identifying the different processors. Which remote processors and
  *  the order they are queried is determined by the procId array in the
- *  #NameServer_get function.
+ *  NameServer_get() function.
  *
  *  Currently there is no endian or wordsize conversion performed by the
  *  NameServer module. Also there is no asynchronous support at this time.
@@ -92,79 +92,66 @@ extern "C" {
  */
 
 /*!
- *  @def    NameServer_S_BUSY
  *  @brief  The resource is still in use
  */
 #define NameServer_S_BUSY                2
 
 /*!
- *  @def    NameServer_S_ALREADYSETUP
  *  @brief  The module has been already setup
  */
 #define NameServer_S_ALREADYSETUP        1
 
 /*!
- *  @def    NameServer_S_SUCCESS
  *  @brief  Operation is successful.
  */
 #define NameServer_S_SUCCESS             0
 
 /*!
- *  @def    NameServer_E_FAIL
  *  @brief  Generic failure.
  */
 #define NameServer_E_FAIL               -1
 
 /*!
- *  @def    NameServer_E_INVALIDARG
  *  @brief  Argument passed to function is invalid.
  */
 #define NameServer_E_INVALIDARG         -2
 
 /*!
- *  @def    NameServer_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
 #define NameServer_E_MEMORY             -3
 
 /*!
- *  @def    NameServer_E_ALREADYEXISTS
  *  @brief  The specified entity already exists.
  */
 #define NameServer_E_ALREADYEXISTS      -4
 
 /*!
- *  @def    NameServer_E_NOTFOUND
  *  @brief  Unable to find the specified entity.
  */
 #define NameServer_E_NOTFOUND           -5
 
 /*!
- *  @def    NameServer_E_TIMEOUT
  *  @brief  Operation timed out.
  */
 #define NameServer_E_TIMEOUT            -6
 
 /*!
- *  @def    NameServer_E_INVALIDSTATE
  *  @brief  Module is not initialized.
  */
 #define NameServer_E_INVALIDSTATE       -7
 
 /*!
- *  @def    NameServer_E_OSFAILURE
  *  @brief  A failure occurred in an OS-specific call
  */
 #define NameServer_E_OSFAILURE          -8
 
 /*!
- *  @def    NameServer_E_RESOURCE
  *  @brief  Specified resource is not available
  */
 #define NameServer_E_RESOURCE           -9
 
 /*!
- *  @def    NameServer_E_RESTART
  *  @brief  Operation was interrupted. Please restart the operation
  */
 #define NameServer_E_RESTART            -10
@@ -175,13 +162,11 @@ extern "C" {
  */
 
 /*!
- *  @def    NameServer_ALLOWGROWTH
  *  @brief  Allow dynamic growth of the NameServer instance table
  */
 #define NameServer_ALLOWGROWTH          (~0)
 
 /*!
- *  @def    NameServer_Params_MAXNAMELEN
  *  @brief  The default maximum length of the name for the name/value pair
  */
 #define NameServer_Params_MAXNAMELEN    16
@@ -201,7 +186,7 @@ typedef struct NameServer_Object *NameServer_Handle;
  */
 typedef struct NameServer_Params {
     UInt maxRuntimeEntries;
-    /*!< Maximum number of name/value pairs that can be dynamically created.
+    /*!< @brief Maximum name/value pairs that can be dynamically created.
      *
      *  This parameter allows NameServer to pre-allocate memory.
      *  When NameServer_add() or NameServer_addUInt32() is
@@ -210,18 +195,18 @@ typedef struct NameServer_Params {
      *  If the number of pairs is not known at configuration time, set this
      *  value to #NameServer_ALLOWGROWTH. This instructs NameServer
      *  to grow the table as needed. NameServer will allocate memory from the
-     *  #NameServer_Params#tableHeap when a name/value pair is added.
+     *  #NameServer_Params.tableHeap when a name/value pair is added.
      *
      *  The default is #NameServer_ALLOWGROWTH.
      */
 
     Ptr  tableHeap;
-    /*!< Name/value table is allocated from this heap.
+    /*!< @brief Name/value table is allocated from this heap.
      *
      *  The instance table and related buffers are allocated out of this heap
      *  during the dynamic create. This heap is also used to allocate new
      *  name/value pairs when #NameServer_ALLOWGROWTH for
-     *  #NameServer_Params#maxRuntimeEntries
+     *  #NameServer_Params.maxRuntimeEntries
      *
      *  The default is to use the same heap that instances are allocated
      *  from which can be configured via the
@@ -229,7 +214,7 @@ typedef struct NameServer_Params {
      */
 
     Bool checkExisting;
-    /*!< Check if a name already exists in the name/value table.
+    /*!< @brief Check if a name already exists in the name/value table.
      *
      *  When a name/value pair is added during runtime, if this boolean is
      *  true, the table is searched to see if the name already exists. If
@@ -246,13 +231,13 @@ typedef struct NameServer_Params {
      */
 
     UInt maxValueLen;
-    /*!< Length, in MAUs, of the value field in the table.
+    /*!< @brief Length, in MAUs, of the value field in the table.
      *
      *  Any value less than sizeof(UInt32) will be rounded up to sizeof(UInt32)
      */
 
     UInt maxNameLen;
-    /*!< Length, in MAUs, of the name field in the table.
+    /*!< @brief Length, in MAUs, of the name field in the table.
      *
      *  The maximum length of the name portion of the name/value
      *  pair.  The length includes the null terminator ('\\0').
@@ -271,7 +256,7 @@ typedef struct NameServer_Params {
  *
  *  @param      params  Instance param structure
  *
- *  @sa         NameServer_create
+ *  @sa         NameServer_create()
  */
 Void NameServer_Params_init(NameServer_Params *params);
 
@@ -283,7 +268,7 @@ Void NameServer_Params_init(NameServer_Params *params);
  *
  *  @return     NameServer handle
  *
- *  @sa         NameServer_delete
+ *  @sa         NameServer_delete()
  */
 NameServer_Handle NameServer_create(String name,
                                     const NameServer_Params *params);
@@ -300,7 +285,7 @@ NameServer_Handle NameServer_create(String name,
  *              - #NameServer_S_SUCCESS:  Instance successfully deleted
  *              - #NameServer_E_FAIL:  Instance delete failed
  *
- *  @sa         NameServer_create
+ *  @sa         NameServer_create()
  */
 Int NameServer_delete(NameServer_Handle *handlePtr);
 
@@ -335,13 +320,13 @@ NameServer_Handle NameServer_getHandle(String name);
  *  @brief  Adds a variable length value into the local NameServer table
  *
  *  This function adds a variable length value into the local table.
- *  If the #NameServer_Params#checkExisting flag was true on
+ *  If the #NameServer_Params.checkExisting flag was true on
  *  creation, this function searches the table to make sure the name
  *  does not already exist.  If it does, the name/value pair is not
  *  added and the #NameServer_E_ALREADYEXISTS error is returned.
  *
  *  There is memory allocation during this function if
- *  #NameServer_Params#maxRuntimeEntries is set to
+ *  #NameServer_Params.maxRuntimeEntries is set to
  *  #NameServer_ALLOWGROWTH.
  *
  *  This function copies the name and buffer into the name/value table,
@@ -357,8 +342,8 @@ NameServer_Handle NameServer_getHandle(String name);
  *
  *  @return     Unique entry identifier
  *
- *  @sa         NameServer_addUInt32,
- *              NameServer_get,
+ *  @sa         NameServer_addUInt32()
+ *  @sa         NameServer_get()
  */
 Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt32 len);
 
@@ -370,7 +355,7 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt32 len);
  *  that allows a convenient way to add UInt32 bit values without needing
  *  to specify the address of a UInt32 local variable.
  *
- *  If the #NameServer_Params#checkExisting flag was true on
+ *  If the #NameServer_Params.checkExisting flag was true on
  *  creation, this function searches the table to make sure the name does
  *  not already exist.  If it does, the name/value pair is not added and the
  *  #NameServer_E_ALREADYEXISTS error is returned.
@@ -378,7 +363,7 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt32 len);
  *  This function copies the name into the name/value table.
  *
  *  There is memory allocation during this function if
- *  #NameServer_Params#maxRuntimeEntries is set to
+ *  #NameServer_Params.maxRuntimeEntries is set to
  *  #NameServer_ALLOWGROWTH.
  *
  *  The function does not query remote processors to make sure the
@@ -390,8 +375,8 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt32 len);
  *
  *  @return     Unique entry identifier
  *
- *  @sa         NameServer_add,
- *              NameServer_getUInt32
+ *  @sa         NameServer_add()
+ *  @sa         NameServer_getUInt32()
  */
 Ptr NameServer_addUInt32(NameServer_Handle handle, String name, UInt32 value);
 
@@ -412,7 +397,7 @@ Ptr NameServer_addUInt32(NameServer_Handle handle, String name, UInt32 value);
  *  sleep/wait between successive NameServer_get[UInt32] operations if polling
  *  on the success of this call.  This helps ensure that remote cores
  *  are not inundated by a flood of incoming notifications and helps
- *  reduce the possiblity of deadlocks.
+ *  reduce the possibility of deadlocks.
  *
  *  The processors to query is determined by the procId array.
  *  The array is used to specify which processors to query and the order.
@@ -443,8 +428,8 @@ Ptr NameServer_addUInt32(NameServer_Handle handle, String name, UInt32 value);
  *              - #NameServer_E_NOTFOUND: Entry was not found, len unchanged
  *              - #NameServer_E_FAIL: Error searching for entry
  *
- *  @sa         NameServer_add,
- *              NameServer_getLocal
+ *  @sa         NameServer_add()
+ *  @sa         NameServer_getLocal()
  */
 Int NameServer_get(NameServer_Handle handle,
                    String name,
@@ -467,7 +452,7 @@ Int NameServer_get(NameServer_Handle handle,
  *  sleep/wait between successive NameServer_get[UInt32] operations if polling
  *  on the success of this call.  This helps ensure that remote cores
  *  are not inundated by a flood of incoming notifications and helps
- *  reduce the possiblity of deadlocks.
+ *  reduce the possibility of deadlocks.
  *
  *  The processors to query is determined by the procId array.
  *  The array is used to specify which processors to query and the order.
@@ -496,8 +481,8 @@ Int NameServer_get(NameServer_Handle handle,
  *              - #NameServer_E_NOTFOUND: Entry was not found
  *              - #NameServer_E_FAIL: Error searching for entry
  *
- *  @sa         NameServer_addUInt32,
- *              NameServer_getLocalUInt32
+ *  @sa         NameServer_addUInt32()
+ *  @sa         NameServer_getLocalUInt32()
  */
 Int NameServer_getUInt32(NameServer_Handle handle,
                          String name,
@@ -528,8 +513,8 @@ Int NameServer_getUInt32(NameServer_Handle handle,
  *              - #NameServer_E_NOTFOUND:  Entry was not found, len remains
  *                                     unchanged.
  *
- *  @sa         NameServer_add,
- *              NameServer_get
+ *  @sa         NameServer_add()
+ *  @sa         NameServer_get()
  */
 Int NameServer_getLocal(NameServer_Handle handle,
                         String name,
@@ -555,8 +540,8 @@ Int NameServer_getLocal(NameServer_Handle handle,
  *              - #NameServer_S_SUCCESS:  Successfully found entry
  *              - #NameServer_E_NOTFOUND:  Entry was not found
  *
- *  @sa         NameServer_addUInt32,
- *              NameServer_getUInt32
+ *  @sa         NameServer_addUInt32()
+ *  @sa         NameServer_getUInt32()
  */
 Int NameServer_getLocalUInt32(NameServer_Handle handle,
                               String name,
@@ -587,7 +572,7 @@ Int NameServer_match(NameServer_Handle handle, String name, UInt32 *value);
  *
  *  This function removes a name/value pair from the table.
  *
- *  If #NameServer_Params#maxRuntimeEntries is set to
+ *  If #NameServer_Params.maxRuntimeEntries is set to
  *  #NameServer_ALLOWGROWTH,
  *  memory will be freed which was allocated in NameServer_add().
  *  Otherwise, no memory is freed during this call.
@@ -622,7 +607,7 @@ Int NameServer_remove(NameServer_Handle handle, String name);
  *  When another NameServer_add() occurs, it will reuse the
  *  empty entry.
  *
- *  Once an Entry is removed from the NameServer table, it cannot be
+ *  Once an entry is removed from the NameServer table, it cannot be
  *  removed again (just like you cannot free the same block of memory
  *  twice).
  *
@@ -634,7 +619,7 @@ Int NameServer_remove(NameServer_Handle handle, String name);
  *                                        entry does not exists
  *              - #NameServer_E_FAIL:  Operation failed
  *
- *  @sa         NameServer_add
+ *  @sa         NameServer_add()
  */
 Int NameServer_removeEntry(NameServer_Handle handle, Ptr entry);
 

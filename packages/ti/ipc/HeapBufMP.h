@@ -29,10 +29,12 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file       HeapBufMP.h
+/**
+ *  @file       ti/ipc/HeapBufMP.h
  *
  *  @brief      Multi-processor fixed-size buffer heap implementation
+ *
+ *  @note       HeapBufMP is currently only available for SYS/BIOS.
  *
  *  Heap implementation that manages fixed size buffers that can be used
  *  in a multiprocessor system with shared memory.
@@ -50,8 +52,8 @@
  *  store instance information when an instance is created.  The name supplied
  *  must be unique for all HeapBufMP instances.
  *
- *  The #HeapBufMP_create call initializes the shared memory as needed. Once an
- *  instance is created, a #HeapBufMP_open can be performed. The
+ *  HeapBufMP_create() initializes the shared memory as needed. Once an
+ *  instance is created, HeapBufMP_open() can be performed. The
  *  open is used to gain access to the same HeapBufMP instance.
  *  Generally an instance is created on one processor and opened on the
  *  other processor(s).
@@ -63,10 +65,7 @@
  *  @code
  *  #include <ti/ipc/HeapBufMP.h>
  *  @endcode
- *
- *  @version        0.00.01
  */
-
 
 #ifndef ti_ipc_HeapBufMP__include
 #define ti_ipc_HeapBufMP__include
@@ -83,78 +82,68 @@ extern "C" {
  */
 
 /*!
- *  @def    HeapBufMP_S_BUSY
  *  @brief  The resource is still in use
  */
 #define HeapBufMP_S_BUSY               2
 
 /*!
- *  @def    HeapBufMP_S_ALREADYSETUP
  *  @brief  The module has been already setup
  */
 #define HeapBufMP_S_ALREADYSETUP       1
 
 /*!
- *  @def    HeapBufMP_S_SUCCESS
  *  @brief  Operation is successful.
  */
 #define HeapBufMP_S_SUCCESS            0
 
 /*!
- *  @def    HeapBufMP_E_FAIL
  *  @brief  Generic failure.
  */
 #define HeapBufMP_E_FAIL              -1
 
 /*!
- *  @def    HeapBufMP_E_INVALIDARG
  *  @brief  Argument passed to function is invalid.
  */
 #define HeapBufMP_E_INVALIDARG        -2
 
 /*!
- *  @def    HeapBufMP_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
 #define HeapBufMP_E_MEMORY            -3
 
 /*!
- *  @def    HeapBufMP_E_ALREADYEXISTS
  *  @brief  The specified entity already exists.
  */
 #define HeapBufMP_E_ALREADYEXISTS     -4
 
 /*!
- *  @def    HeapBufMP_E_NOTFOUND
  *  @brief  Unable to find the specified entity.
  */
 #define HeapBufMP_E_NOTFOUND          -5
 
 /*!
- *  @def    HeapBufMP_E_TIMEOUT
  *  @brief  Operation timed out.
  */
 #define HeapBufMP_E_TIMEOUT           -6
 
 /*!
- *  @def    HeapBufMP_E_INVALIDSTATE
  *  @brief  Module is not initialized.
  */
 #define HeapBufMP_E_INVALIDSTATE      -7
 
 /*!
- *  @def    HeapBufMP_E_OSFAILURE
- *  @brief  A failure occurred in an OS-specific call  */
+ *  @brief  A failure occurred in an OS-specific call
+ */
 #define HeapBufMP_E_OSFAILURE         -8
 
 /*!
- *  @def    HeapBufMP_E_RESOURCE
- *  @brief  Specified resource is not available  */
+ *  @brief  Specified resource is not available
+ */
 #define HeapBufMP_E_RESOURCE          -9
 
 /*!
- *  @def    HeapBufMP_E_RESTART
- *  @brief  Operation was interrupted. Please restart the operation  */
+ *  @brief  Operation was interrupted. Please restart the operation
+ */
 #define HeapBufMP_E_RESTART           -10
 
 /* =============================================================================
@@ -168,11 +157,13 @@ extern "C" {
 typedef struct HeapBufMP_Object *HeapBufMP_Handle;
 
 /*!
- *  @brief  Structure defining parameters for the HeapBufMP module.
+ *  @brief  Structure defining parameters for the HeapBufMP module
+ *
+ *  @sa     HeapBufMP_create()
  */
 typedef struct HeapBufMP_Params {
     String name;
-    /*!< Name of this instance.
+    /*!< @brief Name of this instance.
      *
      *  The name (if not NULL) must be unique among all HeapBufMP
      *  instances in the entire system.  When creating a new
@@ -183,7 +174,7 @@ typedef struct HeapBufMP_Params {
      */
 
     UInt16 regionId;
-    /*!< Shared region ID
+    /*!< @brief Shared region ID
      *
      *  The index corresponding to the shared region from which shared memory
      *  will be allocated.
@@ -191,17 +182,17 @@ typedef struct HeapBufMP_Params {
 
     /*! @cond */
     Ptr sharedAddr;
-    /*!< Physical address of the shared memory
+    /*!< @brief Physical address of the shared memory
      *
      *  This value can be left as 'null' unless it is required to place the
      *  heap at a specific location in shared memory.  If sharedAddr is null,
      *  then shared memory for a new instance will be allocated from the
-     *  heap belonging to the region identified by #HeapBufMP_Params::regionId.
+     *  heap belonging to the region identified by #HeapBufMP_Params.regionId.
      */
     /*! @endcond */
 
     SizeT blockSize;
-    /*!< Size (in MAUs) of each block.
+    /*!< @brief Size (in MAUs) of each block.
      *
      *  HeapBufMP will round the blockSize up to the nearest multiple of the
      *  alignment, so the actual blockSize may be larger. When creating a
@@ -214,13 +205,13 @@ typedef struct HeapBufMP_Params {
      */
 
     UInt numBlocks;
-    /*!<Number of fixed-size blocks.
+    /*!< @brief Number of fixed-size blocks.
      *
      *  This is a required parameter for all new HeapBufMP instances.
      */
 
     SizeT align;
-    /*!< Alignment (in MAUs) of each block.
+    /*!< @brief Alignment (in MAUs) of each block.
      *
      *  The alignment must be a power of 2. If the value 0 is specified,
      *  the value will be changed to meet minimum structure alignment
@@ -231,7 +222,7 @@ typedef struct HeapBufMP_Params {
      */
 
     Bool exact;
-    /*!< Use exact matching
+    /*!< @brief Use exact matching
      *
      *  Setting this flag will allow allocation only if the requested size
      *  is equal to (rather than less than or equal to) the buffer's block
@@ -239,7 +230,7 @@ typedef struct HeapBufMP_Params {
      */
 
     GateMP_Handle gate;
-    /*!< GateMP used for critical region management of the shared memory
+    /*!< @brief GateMP used for critical region management of the shared memory
      *
      *  Using the default value of NULL will result in use of the GateMP
      *  system gate for context protection.
@@ -248,7 +239,9 @@ typedef struct HeapBufMP_Params {
 } HeapBufMP_Params;
 
 /*!
- *  @brief  Stats structure for the HeapBufMP_getExtendedStats API.
+ *  @brief  Stats structure for HeapBufMP_getExtendedStats()
+ *
+ *  @sa     HeapBufMP_getExtendedStats()
  */
 typedef struct HeapBufMP_ExtendedStats {
     UInt maxAllocatedBlocks;
@@ -274,13 +267,13 @@ typedef struct HeapBufMP_ExtendedStats {
  *  instance. All opened instances should be closed before the instance
  *  is deleted.
  *
- *  @param[in,out]  handlePtr   Pointer to HeapBufMP handle typically returned
- *                              from #HeapBufMP_open
+ *  @param[in,out]  handlePtr   Pointer to handle returned from
+ *                              HeapBufMP_open()
  *
  *  @return     HeapBufMP status:
  *              - #HeapBufMP_S_SUCCESS: Heap successfully closed
  *
- *  @sa         HeapBufMP_open
+ *  @sa         HeapBufMP_open()
  */
 Int HeapBufMP_close(HeapBufMP_Handle *handlePtr);
 
@@ -290,6 +283,8 @@ Int HeapBufMP_close(HeapBufMP_Handle *handlePtr);
  *  @param[in]  params      HeapBufMP parameters
  *
  *  @return     HeapBufMP Handle
+ *
+ *  @sa         HeapBufMP_delete()
  */
 HeapBufMP_Handle HeapBufMP_create(const HeapBufMP_Params *params);
 
@@ -300,6 +295,8 @@ HeapBufMP_Handle HeapBufMP_create(const HeapBufMP_Params *params);
  *
  *  @return     HeapBufMP status:
  *              - #HeapBufMP_S_SUCCESS: Heap successfully deleted
+ *
+ *  @sa         HeapBufMP_create()
  */
 Int HeapBufMP_delete(HeapBufMP_Handle *handlePtr);
 
@@ -325,7 +322,7 @@ Int HeapBufMP_delete(HeapBufMP_Handle *handlePtr);
  *              - #HeapBufMP_E_NOTFOUND: Heap is not yet ready to be opened.
  *              - #HeapBufMP_E_FAIL: A general failure has occurred
  *
- *  @sa         HeapBufMP_close
+ *  @sa         HeapBufMP_close()
  */
 Int HeapBufMP_open(String name, HeapBufMP_Handle *handlePtr);
 
@@ -337,8 +334,9 @@ Int HeapBufMP_openByAddr(Ptr sharedAddr, HeapBufMP_Handle *handlePtr);
 /*!
  *  @brief      Initialize a HeapBufMP parameters struct
  *
- *  @param[out] params      Pointer to GateMP parameters
+ *  @param[out] params      Pointer to creation parameters
  *
+ *  @sa         HeapBufMP_create()
  */
 Void HeapBufMP_Params_init(HeapBufMP_Params *params);
 
@@ -364,9 +362,9 @@ SizeT HeapBufMP_sharedMemReq(const HeapBufMP_Params *params);
  *  @brief      Allocate a block of memory of specified size and alignment
  *
  *  The actual block returned may be larger than requested to satisfy
- *  alignment requirements. NULL is returned if alloc fails.
+ *  alignment requirements. NULL is returned if the allocation fails.
  *
- *  HeapBufMP_alloc will lock the heap using the HeapBufMP gate
+ *  HeapBufMP_alloc() will lock the heap using the HeapBufMP gate
  *  while it traverses the list of free blocks to find a large enough block
  *  for the request.
  *
@@ -374,8 +372,8 @@ SizeT HeapBufMP_sharedMemReq(const HeapBufMP_Params *params);
  *      - If possible, allocate larger blocks first. Previous allocations
  *        of small memory blocks can reduce the size of the blocks
  *        available for larger memory allocations.
- *      - Realize that alloc() can fail even if the heap contains a
- *        sufficient absolute amount of unalloccated space. This is
+ *      - Realize that allocation can fail even if the heap contains a
+ *        sufficient absolute amount of unallocated space. This is
  *        because the largest free memory block may be smaller than
  *        total amount of unallocated memory.
  *
@@ -383,44 +381,43 @@ SizeT HeapBufMP_sharedMemReq(const HeapBufMP_Params *params);
  *  @param[in]  size      Size to be allocated (in MADUs)
  *  @param[in]  align     Alignment for allocation (power of 2)
  *
- *  @sa         HeapBufMP_free
+ *  @sa         HeapBufMP_free()
  */
 Void *HeapBufMP_alloc(HeapBufMP_Handle handle, SizeT size, SizeT align);
 
 /*!
  *  @brief      Frees a block of memory.
  *
- *  free() places the memory block specified by addr and size back into the
- *  free pool of the heap specified. The newly freed block is combined with
- *  any adjacent free blocks. The space is then available for further
- *  allocation by alloc().
+ *  HeapBufMP_free() places the memory block specified by addr and size back
+ *  into the free pool of the heap specified. The newly freed block is combined
+ *  with any adjacent free blocks. The space is then available for future
+ *  allocations.
  *
- *  #HeapBufMP_free will lock the heap using the HeapBufMP gate if one is
+ *  HeapBufMP_free() will lock the heap using the HeapBufMP gate if one is
  *  specified or the system GateMP if not.
  *
  *  @param[in]  handle    Handle to previously created/opened instance.
  *  @param[in]  block     Block of memory to be freed.
  *  @param[in]  size      Size to be freed (in MADUs)
  *
- *  @sa         HeapBufMP_alloc
+ *  @sa         HeapBufMP_alloc()
  */
 Void HeapBufMP_free(HeapBufMP_Handle handle, Ptr block, SizeT size);
 
 /*!
  *  @brief      Get extended memory statistics
  *
- *  This function retrieves the extended statistics for a HeapBufMP
- *  instance.  It does not retrieve the standard Memory_Stats
- *  information.  Refer to #HeapBufMP_ExtendedStats for more information
+ *  This function retrieves extended statistics for a HeapBufMP
+ *  instance. Refer to #HeapBufMP_ExtendedStats for more information
  *  regarding what information is returned.
  *
- *  In BIOS, HeapBufMP.trackAllocs needs to be set to 'true' in the
+ *  In SYS/BIOS, HeapBufMP.trackAllocs needs to be set to 'true' in the
  *  configuration to get meaningful extended stats.
  *
  *  @param[in]  handle    Handle to previously created/opened instance.
  *  @param[out] stats     ExtendedStats structure
  *
- *  @sa     HeapBufMP_getStats
+ *  @sa     HeapBufMP_getStats()
  */
 Void HeapBufMP_getExtendedStats(HeapBufMP_Handle handle,
                                 HeapBufMP_ExtendedStats *stats);
@@ -431,7 +428,7 @@ Void HeapBufMP_getExtendedStats(HeapBufMP_Handle handle,
  *  @param[in]  handle    Handle to previously created/opened instance.
  *  @param[out] stats     Memory statistics structure
  *
- *  @sa     HeapBufMP_getExtendedStats
+ *  @sa     HeapBufMP_getExtendedStats()
  */
 Void HeapBufMP_getStats(HeapBufMP_Handle handle, Ptr stats);
 

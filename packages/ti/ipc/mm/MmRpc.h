@@ -30,12 +30,14 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** ============================================================================
- *  @file       MmRpc.h
+/**
+ *  @file       ti/ipc/mm/MmRpc.h
  *
  *  @brief      Multi-Media derived Remote Procedure Call
  *
- *  ============================================================================
+ *  @note       MmRpc is currently only available for Linux and QNX.
+ *
+ *
  */
 
 #ifndef ti_ipc_mm_MmRpc__include
@@ -77,15 +79,17 @@ extern "C" {
 /*!
  *  @brief  Macro for computing offset to a field of a structure.
  *
- *          struct foobar {
- *              int a;
- *              int *p;
- *          };
+ *  @code
+ *  struct foobar {
+ *      int a;
+ *      int *p;
+ *  };
  *
- *          struct foobar *sp = ...;
- *          offset = MmRpc_OFFSET(sp, &sp->p);
- *          struct foobar st = ...;
- *          offset = MmRpc_OFFSET(&st, &st.p);
+ *  struct foobar *sp = ...;
+ *  offset = MmRpc_OFFSET(sp, &sp->p);
+ *  struct foobar st = ...;
+ *  offset = MmRpc_OFFSET(&st, &st.p);
+ *  @endcode
  */
 #define MmRpc_OFFSET(base, field) ((unsigned int)(field)-(unsigned int)(base))
 

@@ -29,21 +29,21 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ===========================================================================
- *  @file       MultiProc.h
+/**
+ *  @file       ti/ipc/MultiProc.h
  *
  *  @brief      Processor ID Manager
  *
  *  Many IPC modules require the ability to uniquely specify and identify
  *  processors in a multi-processor environment. The MultiProc module
- *  centeralizes processor id management into one module.  Since this
+ *  centralizes processor id management into one module.  Since this
  *  configuration is almost always universally required, most IPC applications
  *  require supplying configuration of this module.
  *
  *  Each processor in the MultiProc module may be uniquely identified by
  *  either a name string or an integer ranging from 0 to NUMPROCESSORS - 1.
  *
- *  At runtime, the #MultiProc_getId call returns the MultiProc id for any
+ *  At runtime, the MultiProc_getId() call returns the MultiProc id for any
  *  processor given its name.
  *
  *  The MultiProc header should be included in an application as follows:
@@ -65,79 +65,66 @@ extern "C" {
  */
 
 /*!
- *  @def    MultiProc_S_BUSY
  *  @brief  The resource is still in use
  */
 #define MultiProc_S_BUSY                 2
 
 /*!
- *  @def    MultiProc_S_ALREADYSETUP
  *  @brief  The module has been already setup
  */
 #define MultiProc_S_ALREADYSETUP         1
 
 /*!
- *  @def    MultiProc_S_SUCCESS
  *  @brief  Operation is successful.
  */
 #define MultiProc_S_SUCCESS              0
 
 /*!
- *  @def    MultiProc_E_FAIL
  *  @brief  Generic failure.
  */
 #define MultiProc_E_FAIL                -1
 
 /*!
- *  @def    MultiProc_E_INVALIDARG
  *  @brief  Argument passed to function is invalid.
  */
 #define MultiProc_E_INVALIDARG          -2
 
 /*!
- *  @def    MultiProc_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
 #define MultiProc_E_MEMORY              -3
 
 /*!
- *  @def    MultiProc_E_ALREADYEXISTS
  *  @brief  The specified entity already exists.
  */
 #define MultiProc_E_ALREADYEXISTS       -4
 
 /*!
- *  @def    MultiProc_E_NOTFOUND
  *  @brief  Unable to find the specified entity.
  */
 #define MultiProc_E_NOTFOUND            -5
 
 /*!
- *  @def    MultiProc_E_TIMEOUT
  *  @brief  Operation timed out.
  */
 #define MultiProc_E_TIMEOUT             -6
 
 /*!
- *  @def    MultiProc_E_INVALIDSTATE
  *  @brief  Module is not initialized.
  */
 #define MultiProc_E_INVALIDSTATE        -7
 
 /*!
- *  @def    MultiProc_E_OSFAILURE
  *  @brief  A failure occurred in an OS-specific call
  */
 #define MultiProc_E_OSFAILURE           -8
 
 /*!
- *  @def    MultiProc_E_RESOURCE
  *  @brief  Specified resource is not available
  */
 #define MultiProc_E_RESOURCE            -9
 
 /*!
- *  @def    MultiProc_E_RESTART
  *  @brief  Operation was interrupted. Please restart the operation
  */
 #define MultiProc_E_RESTART             -10
@@ -148,7 +135,6 @@ extern "C" {
  */
 
 /*!
- *  @def    MultiProc_INVALIDID
  *  @brief  Invalid processor id.
  */
 #define MultiProc_INVALIDID             (0xFFFF)
@@ -225,7 +211,7 @@ UInt16 MultiProc_self(Void);
  *  @param      baseId  The MultiProc base id of the cluster
  *
  *  @return     MultiProc status:
- *              - #MultiProc_S_SUCCESS: sucessfully set base id of cluster
+ *              - #MultiProc_S_SUCCESS: successfully set base id of cluster
  *              - #MultiProc_E_FAIL:    failed to set base id of cluster
  */
 Int MultiProc_setBaseIdOfCluster(UInt16 baseId);
