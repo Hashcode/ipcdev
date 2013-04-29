@@ -554,7 +554,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
      *  available
      */
     if (vq->procId == hostProcId) {
-        vq->vring.used->flags |= VRING_USED_F_NO_NOTIFY;
+        vq->vring.used->flags &= ~VRING_USED_F_NO_NOTIFY;
     }
 
     queueRegistry[vq->id] = vq;
