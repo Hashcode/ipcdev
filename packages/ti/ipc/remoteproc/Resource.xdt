@@ -40,20 +40,29 @@
 %if (prog.platformName.match(/OMAPL138/)) {
 #include <ti/ipc/remoteproc/rsc_table_omapl138.h>
 %}
-%if (prog.platformName.match(/evm6614/)) {
+%else if (prog.platformName.match(/evm6614/)) {
 #include <ti/ipc/remoteproc/rsc_table_tci6614.h>
 //#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h> // Test with v3.3 Linux.
 %}
-%if (prog.platformName.match(/Kepler/) ||
+%else if (prog.platformName.match(/Kepler/) ||
 %         prog.platformName.match(/TCI6638/)) {
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
-%if (prog.platformName.match(/omap54xx\.ipu/)) {
+%else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {
+%    if (prog.cpu.attrs.cpuCore.match(/^CM4$/)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
-%}
-%if (prog.platformName.match(/omap54xx\.dsp/)) {
+%    } else if (prog.cpu.attrs.cpuCore.match(/^64T$/)) {
 #include <ti/ipc/remoteproc/rsc_table_omap5_dsp.h>
+%    }
+%    else {
+%        print("ti.ipc.remoteproc.Resource.xdt - unable to provide OMAP5 " +
+%                "resource table (" + prog.cpu.attrs.cpuCore + ")");
+%    }
+%}
+%else {
+%    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
+%            "(" + prog.cpu.deviceName + ", " + prog.cpu.attrs.cpuCore + ")");
 %}
 
 Void ti_ipc_remoteproc_Resource_init__I()

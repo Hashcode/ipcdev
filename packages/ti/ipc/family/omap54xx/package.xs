@@ -71,7 +71,8 @@ function getLibs(prog)
         return ("");
     }
 
-    if (prog.platformName.match(/ipu/)) {
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    if (BIOS.smpEnabled) {
         smp = "_smp";
     }
 

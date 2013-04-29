@@ -34,7 +34,7 @@
  */
 
 var SysMin = this;
-var Core = null;
+var Core = undefined;
 
 /*
  *  ======== module$static$init ========
@@ -42,7 +42,15 @@ var Core = null;
 function module$static$init(obj, params)
 {
     var segname = Program.sectMap[".tracebuf"];
+    if (segname == undefined) {
+        this.$logError(".tracebuf section not found in Program.sectMap", this);
+    }
+
     var segment = Program.cpu.memoryMap[segname];
+    if (segment == undefined) {
+        this.$logError(".tracebuf section found, but not in " +
+                "Program.cpu.memoryMap", this);
+    }
 
     if (params.bufSize > segment.len) {
         this.$logError("bufSize 0x" + Number(params.bufSize).toString(16) +
@@ -56,7 +64,7 @@ function module$static$init(obj, params)
                        + " = 0x" + Number(this.LINEBUFSIZE).toString(16), this);
     }
 
-    if (Program.platformName.match(/ipu/)) {
+    if (Core != undefined) {
         obj.lineBuffers.length = Core.numCores;
     }
     else {
@@ -89,9 +97,7 @@ function module$static$init(obj, params)
  */
 function module$use(obj, params)
 {
-    if (Program.platformName.match(/ipu/)) {
-        Core = xdc.module("ti.sysbios.hal.Core");
-    }
+    Core = xdc.useModule("ti.sysbios.hal.Core");
 }
 
 /*
