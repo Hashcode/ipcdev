@@ -35,7 +35,6 @@
 #include <xdc/runtime/System.h>
 
 %var prog = xdc.om['xdc.cfg.Program'];
-%var MultiProc = xdc.module('ti.sdo.utils.MultiProc');
 
 %if (prog.platformName.match(/OMAPL138/)) {
 #include <ti/ipc/remoteproc/rsc_table_omapl138.h>
@@ -46,6 +45,9 @@
 %}
 %else if (prog.platformName.match(/Kepler/) ||
 %         prog.platformName.match(/TCI6638/)) {
+%if (this.traceOnly) {
+#define TRACE_RESOURCE_ONLY
+%}
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
 %else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {

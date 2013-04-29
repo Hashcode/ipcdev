@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,14 @@ module Resource {
      *          address of the loadSegment
      */
     metaonly config String loadSegment;
+
+    /*!
+     *  @def    Resource_traceOnly
+     *  @brief  Set traceOnly to true in order to get an image with trace
+     *          resources only, and without VRINGs.
+     *          Implemented only for the Keystone II (TCI6638) platform.
+     */
+    metaonly config Bool traceOnly = false;
 
     /*!
      *  @def    Resource_S_SUCCESS
