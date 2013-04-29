@@ -48,7 +48,8 @@ Pkg.attrs.profile = "debug";
 /* bin/ is a generated directory that 'xdc clean' should remove */
 Pkg.generatedFiles.$add("bin/");
 
-/* define the platform instances we support - currently only OMAPL138 */
+/* define the platform instances we support */
+/* OMAPL138 */
 var evmOMAPL138_ExtMemMap = {
     DDR: {
         name: "DDR",
@@ -66,6 +67,77 @@ Build.platformTable["ti.platforms.evmOMAPL138:DSP"] = {
     dataMemory: "DDR",
     stackMemory: "DDR",
     l2Mode: "32k"
+};
+
+/*  Memory Map for ti.platforms.sdp5430:IPU
+ *
+ *  --- External Memory ---
+ *  Virtual     Physical        Size            Comment
+ *  ------------------------------------------------------------------------
+ *  0000_4000   ????_????    5F_C000  (  ~6 MB) EXT_CODE
+ *  8000_0000   ????_????    60_0000  (   6 MB) EXT_DATA
+ *  8060_0000   ????_????   960_0000  (  86 MB) EXT_HEAP
+ *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ */
+var sdp5430_ExtMemMap = {
+    EXT_CODE: {
+        name: "EXT_CODE",
+        base: 0x00004000,
+        len:  0x005FC000,
+        space: "code",
+        access: "RWX"
+    },
+    EXT_DATA: {
+        name: "EXT_DATA",
+        base: 0x80000000,
+        len:  0x00600000,
+        space: "data",
+        access: "RW"
+    },
+    EXT_HEAP: {
+        name: "EXT_HEAP",
+        base: 0x80600000,
+        len:  0x09600000,
+        space: "data",
+        access: "RW"
+    },
+    TRACE_BUF: {
+        name: "TRACE_BUF",
+        base: 0x9F000000,
+        len:  0x00060000,
+        space: "data",
+        access: "RW"
+    },
+    EXC_DATA: {
+        name: "EXC_DATA",
+        base: 0x9F060000,
+        len:  0x00010000,
+        space: "data",
+        access: "RW"
+    },
+    PM_DATA: {
+        name: "PM_DATA",
+        base: 0x9F070000,
+        len:  0x00020000,
+        space: "data",
+        access: "RWX"  /* should this have execute perm? */
+    }
+};
+
+Build.platformTable["ti.platforms.sdp5430:IPU"] = {
+    externalMemoryMap: [
+        [ "EXT_CODE", sdp5430_ExtMemMap.EXT_CODE ],
+        [ "EXT_DATA", sdp5430_ExtMemMap.EXT_DATA ],
+        [ "EXT_HEAP", sdp5430_ExtMemMap.EXT_HEAP ],
+        [ "TRACE_BUF", sdp5430_ExtMemMap.TRACE_BUF ],
+        [ "EXC_DATA", sdp5430_ExtMemMap.EXC_DATA ],
+        [ "PM_DATA", sdp5430_ExtMemMap.PM_DATA ]
+    ],
+    codeMemory: "EXT_CODE",
+    dataMemory: "EXT_DATA",
+    stackMemory: "EXT_DATA",
 };
 
 for (var i = 0; i < Build.targets.length; i++) {
@@ -88,6 +160,7 @@ for (var i = 0; i < Build.targets.length; i++) {
               (platform.match(/^ti\.platforms\.simKepler/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
               (platform.match(/^ti\.platform\.omap54xx/)) ||
+              (platform.match(/^ti\.platforms\.sdp5430/)) ||
               (platform.match(/^ti\.platform\.vayu/)) ||
               (platform.match(/\.platforms\.evmOMAPL138/)))) {
              continue;
@@ -189,7 +262,8 @@ for (var i = 0; i < Build.targets.length; i++) {
                 }).addObjects(["nano_test.c"]);
         }
 
-        if (platform.match(/^ti\.platform\.omap54xx\.ipu/)) {
+        if (platform.match(/^ti\.platform\.omap54xx\.ipu/) ||
+                (platform.match(/^ti\.platforms\.sdp5430/))) {
             Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
                 cfgScript: "test_omx_ipu_omap5",
                 defs: "-D IPU -D OMAP5xxx -DRPMSG_NS_2_0"

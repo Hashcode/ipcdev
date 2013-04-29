@@ -165,7 +165,7 @@ for (arg = 0; arg < arguments.length; arg++) {
         target.lnkOpts.prefix += " --cinit_compression=off";
 
         target.platforms =  [
-            "ti.platform.omap54xx.ipu",
+            "ti.platforms.sdp5430:IPU",
             "ti.platform.vayu.ipu2",
         ];
     }
