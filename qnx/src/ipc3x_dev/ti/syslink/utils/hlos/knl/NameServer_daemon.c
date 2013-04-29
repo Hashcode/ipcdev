@@ -803,7 +803,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
         TRUE);
     if (mqcStatus < 0) {
         LOG0("NameServer_getRemote: Can't send to remote endpoint\n")
-        status = NameServer_E_FAIL;
+        status = NameServer_E_NOTFOUND;
         goto exit;
     }
 
