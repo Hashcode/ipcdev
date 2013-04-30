@@ -36,8 +36,8 @@
  *		(IPC 3).
  */
 
-/* Standard headers */
-#include <Std.h>
+/* Standard IPC header */
+#include <ti/ipc/Std.h>
 
 /* Module level headers */
 #include <ti/ipc/MultiProc.h>

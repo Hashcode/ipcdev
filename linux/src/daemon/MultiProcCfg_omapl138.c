@@ -34,8 +34,8 @@
  * System-wide MultiProc configuration
  */
 
-/* Standard headers */
-#include <Std.h>
+/* Standard IPC headers */
+#include <ti/ipc/Std.h>
 
 /* For Backplane IPC startup/shutdown stuff: */
 #include <_MultiProc.h>

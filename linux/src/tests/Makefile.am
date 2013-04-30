@@ -82,7 +82,7 @@ endif
 endif
 
 common_sources = \
-                $(top_srcdir)/linux/include/Std.h \
+                $(top_srcdir)/linux/include/ti/ipc/Std.h \
                 $(top_srcdir)/packages/ti/ipc/Ipc.h \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h
 

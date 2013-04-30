@@ -37,9 +37,8 @@
  *
  */
 
-
-/* Standard headers */
-#include <Std.h>
+/* Standard IPC headers */
+#include <ti/ipc/Std.h>
 
 /* Linux specific header files */
 #include <assert.h>

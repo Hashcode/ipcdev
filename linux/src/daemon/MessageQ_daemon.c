@@ -41,8 +41,8 @@
  */
 
 
-/* Standard headers */
-#include <Std.h>
+/* Standard IPC headers */
+#include <ti/ipc/Std.h>
 
 /* POSIX thread support */
 #include <pthread.h>

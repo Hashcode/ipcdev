@@ -43,10 +43,10 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages \
 lib_LTLIBRARIES = libtiipc.la
 
 # where to install the headers on the system
-libtiipc_ladir = $(includedir)
+libtiipc_ladir = $(includedir)/ti/ipc
 
 # the list of header files that belong to the library (to be installed later)
-libtiipc_la_HEADERS = $(top_srcdir)/linux/include/Std.h
+libtiipc_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
 
 # the sources to add to the library and to add to the source distribution
 libtiipc_la_SOURCES =    \
@@ -62,6 +62,7 @@ libtiipc_la_SOURCES =    \
                         $(top_srcdir)/packages/ti/ipc/NameServer.h \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         $(top_srcdir)/packages/ti/ipc/MessageQ.h \
+                        $(top_srcdir)/linux/include/ti/ipc/Std.h \
                         MessageQ.c \
                         MultiProc.c \
                         NameServer.c \

@@ -36,7 +36,7 @@
  */
 
 /* Standard headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 /* Socket Headers */
 #include <sys/types.h>

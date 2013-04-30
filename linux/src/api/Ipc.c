@@ -44,9 +44,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <Std.h>
 
 /* Common IPC headers: */
+#include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/NameServer.h>
 

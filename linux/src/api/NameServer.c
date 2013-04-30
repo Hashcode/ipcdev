@@ -32,7 +32,7 @@
 /*
  *  ======== NameServer_client.c ========
  */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -46,8 +46,7 @@ lib_LTLIBRARIES = libtiipcutils.la
 libtiipcutils_ladir = $(includedir)
 
 # the list of header files that belong to the library (to be installed later)
-libtiipcutils_la_HEADERS =    \
-                        $(top_srcdir)/linux/include/Std.h
+libtiipcutils_la_HEADERS =
 
 # the sources to add to the library and to add to the source distribution
 libtiipcutils_la_SOURCES =    \
@@ -56,6 +55,7 @@ libtiipcutils_la_SOURCES =    \
                         $(top_srcdir)/linux/include/_lad.h \
                         $(top_srcdir)/linux/include/_MultiProc.h \
                         $(top_srcdir)/linux/include/net/rpmsg.h \
+                        $(top_srcdir)/linux/include/ti/ipc/Std.h \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         LAD_client.c \
                         MultiProc.c \

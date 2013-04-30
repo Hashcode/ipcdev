@@ -41,8 +41,8 @@
  */
 
 
-/* Standard headers */
-#include <Std.h>
+/* Standard IPC header */
+#include <ti/ipc/Std.h>
 
 /* Linux specific header files, replacing OSAL: */
 #include <pthread.h>

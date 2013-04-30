@@ -42,8 +42,8 @@
 /* Standard headers */
 #include <stdio.h>
 
-/* Ipc Standard header */
-#include <Std.h>
+/* IPC Standard header */
+#include <ti/ipc/Std.h>
 
 #include <_NameServer.h>
 #ifdef USE_NSD

@@ -65,7 +65,7 @@ common_sources = \
                 MessageQ_daemon.c \
                 MultiProc_daemon.c \
                 NameServer_daemon.c \
-                $(top_srcdir)/linux/include/Std.h \
+                $(top_srcdir)/linux/include/ti/ipc/Std.h \
                 $(top_srcdir)/linux/include/_NameServerRemoteRpmsg.h \
                 $(top_srcdir)/linux/include/_MessageQ.h \
                 $(top_srcdir)/linux/include/_NameServer.h \

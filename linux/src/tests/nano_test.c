@@ -49,7 +49,7 @@
 #include <stdio.h>
 
 /* IPC headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
