@@ -45,9 +45,9 @@
 %}
 %else if (prog.platformName.match(/Kepler/) ||
 %         prog.platformName.match(/TCI6638/)) {
-%if (this.traceOnly) {
+%    if (this.traceOnly) {
 #define TRACE_RESOURCE_ONLY
-%}
+%    }
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
 %}
 %else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {
@@ -63,17 +63,17 @@
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
 %}
-%else {
-%    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
-%            "(" + prog.cpu.deviceName + ", " + prog.cpu.attrs.cpuCore + ")");
-%}
-%if (prog.platformName.match(/vayu\.ipu2/)) {
+%else if (prog.platformName.match(/vayu\.ipu2/)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_vayu_ipu.h>
 %}
-%if (prog.platformName.match(/vayu\.dsp1/)) {
+%else if (prog.platformName.match(/vayu\.dsp1/)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_vayu_dsp.h>
+%}
+%else {
+%    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
+%            "(" + prog.cpu.deviceName + ", " + prog.cpu.attrs.cpuCore + ")");
 %}
 
 Void ti_ipc_remoteproc_Resource_init__I()
