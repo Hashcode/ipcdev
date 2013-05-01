@@ -135,7 +135,7 @@ for (arg = 0; arg < arguments.length; arg++) {
         target.platforms = [ "ti.platforms.evmOMAPL138:DSP" ];
     }
 
-    if (targetName.match(/elf\.C66/)) {
+    if (targetName.match(/elf\.C66$/)) {
         target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
         target.lnkOpts.suffix += " -cr";
         target.platforms = [
