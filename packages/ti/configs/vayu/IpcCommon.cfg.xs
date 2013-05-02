@@ -116,13 +116,13 @@ var StackDbg = xdc.useModule('ti.trace.StackDbg');
 
 var dmTimer = xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
 /* dmTimer 0 mapped to GPT3 */
-dmTimer.timerSettings[0].baseAddr = 0xA8034000;
+dmTimer.timerSettings[0].baseAddr = 0x68034000;
 /* dmTimer 1 mapped to GPT4 */
-dmTimer.timerSettings[1].baseAddr = 0xA8036000;
+dmTimer.timerSettings[1].baseAddr = 0x68036000;
 /* dmTimer 2 mapped to GPT9 */
-dmTimer.timerSettings[2].baseAddr = 0xA803E000;
+dmTimer.timerSettings[2].baseAddr = 0x6803E000;
 /* dmTimer 3 mapped to GPT11 */
-dmTimer.timerSettings[3].baseAddr = 0xA8088000;
+dmTimer.timerSettings[3].baseAddr = 0x68088000;
 
 /* Skip the Timer frequency verification check. Need to remove this later */
 dmTimer.checkFrequency = false;
