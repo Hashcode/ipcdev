@@ -71,11 +71,11 @@
 #define L3_TILER_MODE_3         0x78000000
 #define DSP_TILER_MODE_3        0x78000000
 
-#define DSP_MEM_TEXT            0x20000000
+#define DSP_MEM_TEXT            0x95000000
 /* Co-locate alongside TILER region for easier flushing */
 #define DSP_MEM_IOBUFS          0x80000000
-#define DSP_MEM_DATA            0x90000000
-#define DSP_MEM_HEAP            0x90100000
+#define DSP_MEM_DATA            0x95100000
+#define DSP_MEM_HEAP            0x95200000
 
 #define DSP_MEM_IPC_DATA        0x9F000000
 #define DSP_MEM_IPC_VRING       0xA0000000

@@ -42,9 +42,9 @@ metaonly module Platform inherits xdc.platform.IPlatform {
             catalogName:    "ti.catalog.c6000",
             deviceName:     "Vayu",
             externalMemoryMap: [
-                ["EXT_CODE",  {name: "EXT_CODE",  base: 0x20000000, len: 0x00100000, space: "code", access: "RWX"}],
-                ["EXT_DATA",  {name: "EXT_DATA",  base: 0x90000000, len: 0x00100000, space: "data", access: "RW"}],
-                ["EXT_HEAP",  {name: "EXT_HEAP",  base: 0x90100000, len: 0x00300000, space: "data", access: "RW"}],
+                ["EXT_CODE",  {name: "EXT_CODE",  base: 0x95000000, len: 0x00100000, space: "code", access: "RWX"}],
+                ["EXT_DATA",  {name: "EXT_DATA",  base: 0x95100000, len: 0x00100000, space: "data", access: "RW"}],
+                ["EXT_HEAP",  {name: "EXT_HEAP",  base: 0x95200000, len: 0x00300000, space: "data", access: "RW"}],
                 ["TRACE_BUF", {name: "TRACE_BUF", base: 0x9F000000, len: 0x00060000, space: "data", access: "RW"}],
                 ["EXC_DATA",  {name: "EXC_DATA",  base: 0x9F060000, len: 0x00010000, space: "data", access: "RW"}],
                 ["PM_DATA",   {name: "PM_DATA",   base: 0x9F070000, len: 0x00020000, space: "data", access: "RWX"}],
