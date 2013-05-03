@@ -301,8 +301,8 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
                     "DSP1");
 
         /* Override the MESSAGEQCOPY default config */
-        config->MQCopyConfig.intId[1] = 116; // 84 + 32
-        config->MQCopyConfig.intId[4] = 115; // 83 + 32
+        config->MQCopyConfig.intId[1] = 173; // 141 + 32
+        config->MQCopyConfig.intId[4] = 168; // 136 + 32
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }

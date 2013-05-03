@@ -246,7 +246,8 @@ extern "C" {
  *  @brief  interrupt num at offset.
  */
 #define CTRL_MODULE_INT_m_OFFSET(m)      CTRL_MODULE_MPU_OFFSET + \
-                                         ((((m) - CTRL_MODULE_INT_BASE) / 2) * 4)
+                                         ((((m) - CTRL_MODULE_INT_BASE) / 2) * 4) - \
+                                         (((m) > 131) ? 4 : 0)
 
 /*!
  *  @def    IRQ_XBAR_MBOX_6_USR_2
@@ -791,12 +792,13 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
         }
     }
     if (elem == &((List_Object *)VAYUIpcInt_state.isrHandles)->elem) {
-        if (procId == MultiProc_getId("DSP1")) {
+        if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1]) {
             mboxId = IRQ_XBAR_DSP1;
         }
-        else if (procId == MultiProc_getId("IPU2")){
+        else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]){
             mboxId = IRQ_XBAR_IPU2;
         }
+
         /* Program the IntXbar */
         reg = REG32(VAYUIpcInt_state.controlModuleBase + CTRL_MODULE_INT_m_OFFSET((intId - 32)));
         if (((intId - 32) - CTRL_MODULE_INT_BASE) % 2) {
