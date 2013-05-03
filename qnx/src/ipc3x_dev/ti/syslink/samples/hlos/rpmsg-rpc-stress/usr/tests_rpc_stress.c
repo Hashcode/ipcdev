@@ -235,54 +235,46 @@ void * test_exec_call(void * arg)
                 function->num_translations = 0;
                 break;
             case FXN_IDX_FXNADD3:
-                if (init_sharedmem_funcs() < 0)
+                if ((*sharedmem_alloc)(sizeof(fxn_add3_args), &buf) < 0) {
                     test_status = -1;
+                }
                 else {
-                    if ((*sharedmem_alloc)(sizeof(fxn_add3_args), &buf) < 0) {
-                        test_status = -1;
-                    }
-                    else {
-                        ptr = (fxn_add3_args *)(buf.vir_addr);
-                        ((fxn_add3_args *)ptr)->a = i;
-                        ((fxn_add3_args *)ptr)->b = i+1;
-                        ((fxn_add3_args *)ptr)->c = i+2;
-                        function->num_params = 1;
-                        function->params[0].type = RPPC_PARAM_TYPE_PTR;
-                        function->params[0].size = sizeof(fxn_add3_args);
-                        function->params[0].data = (size_t)ptr;
-                        function->params[0].base = (size_t)ptr;
-                        function->num_translations = 0;
-                    }
+                    ptr = (fxn_add3_args *)(buf.vir_addr);
+                    ((fxn_add3_args *)ptr)->a = i;
+                    ((fxn_add3_args *)ptr)->b = i+1;
+                    ((fxn_add3_args *)ptr)->c = i+2;
+                    function->num_params = 1;
+                    function->params[0].type = RPPC_PARAM_TYPE_PTR;
+                    function->params[0].size = sizeof(fxn_add3_args);
+                    function->params[0].data = (size_t)ptr;
+                    function->params[0].base = (size_t)ptr;
+                    function->num_translations = 0;
                 }
                 break;
             case FXN_IDX_FXNADDX:
-                if (init_sharedmem_funcs() < 0)
+                if ((*sharedmem_alloc)(sizeof(fxn_addx_args), &buf) < 0) {
                     test_status = -1;
+                }
+                else if ((*sharedmem_alloc)(sizeof(int) * 3, &buf2) < 0) {
+                    test_status = -1;
+                }
                 else {
-                    if ((*sharedmem_alloc)(sizeof(fxn_addx_args), &buf) < 0) {
-                        test_status = -1;
-                    }
-                    else if ((*sharedmem_alloc)(sizeof(int) * 3, &buf2) < 0) {
-                        test_status = -1;
-                    }
-                    else {
-                        ptr = (fxn_addx_args *)(buf.vir_addr);
-                        ptr2 = (int *)(buf2.vir_addr);
-                        ((fxn_addx_args *)ptr)->num = 3;
-                        ((fxn_addx_args *)ptr)->array = ptr2;
-                        ((int *)ptr2)[0] = i;
-                        ((int *)ptr2)[1] = i+1;
-                        ((int *)ptr2)[2] = i+2;
-                        function->num_params = 1;
-                        function->params[0].type = RPPC_PARAM_TYPE_PTR;
-                        function->params[0].size = sizeof(fxn_addx_args);
-                        function->params[0].data = (size_t)ptr;
-                        function->params[0].base = (size_t)ptr;
-                        function->num_translations = 1;
-                        function->translations[0].index = 0;
-                        function->translations[0].offset = (int)&(((fxn_addx_args *)ptr)->array) - (int)ptr;
-                        function->translations[0].base = ((fxn_addx_args *)ptr)->array;
-                    }
+                    ptr = (fxn_addx_args *)(buf.vir_addr);
+                    ptr2 = (int *)(buf2.vir_addr);
+                    ((fxn_addx_args *)ptr)->num = 3;
+                    ((fxn_addx_args *)ptr)->array = ptr2;
+                    ((int *)ptr2)[0] = i;
+                    ((int *)ptr2)[1] = i+1;
+                    ((int *)ptr2)[2] = i+2;
+                    function->num_params = 1;
+                    function->params[0].type = RPPC_PARAM_TYPE_PTR;
+                    function->params[0].size = sizeof(fxn_addx_args);
+                    function->params[0].data = (size_t)ptr;
+                    function->params[0].base = (size_t)ptr;
+                    function->num_translations = 1;
+                    function->translations[0].index = 0;
+                    function->translations[0].offset = (int)&(((fxn_addx_args *)ptr)->array) - (int)ptr;
+                    function->translations[0].base = ((fxn_addx_args *)ptr)->array;
                 }
                 break;
         }
@@ -1021,6 +1013,13 @@ int main(int argc, char *argv[])
         return 1;
     }
     testFunc = func_idx;
+
+    if (func_idx == FXN_IDX_FXNADD3 || func_idx == FXN_IDX_FXNADDX) {
+        if (init_sharedmem_funcs() < 0) {
+            printf("failure: shmemallocator library must be present for this test function\n");
+            return 1;
+        }
+    }
 
     switch (test_id) {
         case 1:
