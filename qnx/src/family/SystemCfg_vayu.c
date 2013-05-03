@@ -42,15 +42,11 @@
 
 /* This must match BIOS side MultiProc configuration for given platform!: */
 MultiProc_Config _MultiProc_cfg =  {
-   .numProcessors = 9,
+   .numProcessors = 5,
    .nameList[0] = "HOST",
    .nameList[1] = "IPU2",
    .nameList[2] = "IPU1",
    .nameList[3] = "DSP2",
    .nameList[4] = "DSP1",
-   .nameList[5] = "EVE4",
-   .nameList[6] = "EVE3",
-   .nameList[7] = "EVE2",
-   .nameList[8] = "EVE1",
    .id = 0,                 /* The host is always zero */
 };

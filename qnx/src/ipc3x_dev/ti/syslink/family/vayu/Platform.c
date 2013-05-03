@@ -286,8 +286,8 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 
         _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
 
-        /* Override the gatepeterson default config */
-        config->multiProcConfig.numProcessors = 9;
+        /* Override the MultiProc default config */
+        config->multiProcConfig.numProcessors = 5;
         config->multiProcConfig.id            = 0;
         String_cpy (config->multiProcConfig.nameList [0],
                     "HOST");
@@ -299,14 +299,6 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
                     "DSP2");
         String_cpy (config->multiProcConfig.nameList [4],
                     "DSP1");
-        String_cpy (config->multiProcConfig.nameList [5],
-                    "EVE4");
-        String_cpy (config->multiProcConfig.nameList [6],
-                    "EVE3");
-        String_cpy (config->multiProcConfig.nameList [7],
-                    "EVE2");
-        String_cpy (config->multiProcConfig.nameList [8],
-                    "EVE1");
 
         /* Override the MESSAGEQCOPY default config */
         config->MQCopyConfig.intId[1] = 116; // 84 + 32
