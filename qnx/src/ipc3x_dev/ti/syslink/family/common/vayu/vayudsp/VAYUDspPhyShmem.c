@@ -206,6 +206,22 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->mmuBase = mapInfo.dst;
     }
 
+    mapInfo.src      = DSP_SYS_MMU_CONFIG_BASE;
+    mapInfo.size     = DSP_SYS_MMU_CONFIG_SIZE;
+    mapInfo.isCached = FALSE;
+    status = Memory_map (&mapInfo);
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "VAYUDSP_phyShmemInit",
+                             status,
+                             "Failure in Memory_map for SYS MMU base registers");
+        halObject->mmuSysBase = 0;
+    }
+    else {
+        halObject->mmuSysBase = mapInfo.dst;
+    }
+
     GT_1trace(curTrace, GT_LEAVE, "<-- VAYUDSP_phyShmemInit: 0x%x", status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -247,6 +263,21 @@ VAYUDSP_phyShmemExit (Ptr halObj)
                               "Failure in Memory_Unmap for MMU base registers");
         }
         halObject->mmuBase = 0 ;
+    }
+
+    unmapInfo.addr = halObject->mmuSysBase;
+    unmapInfo.size = DSP_SYS_MMU_CONFIG_SIZE;
+    unmapInfo.isCached = FALSE;
+    if (unmapInfo.addr != 0) {
+        status = Memory_unmap (&unmapInfo);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                              GT_4CLASS,
+                              "VAYUDSP_phyShmemExit",
+                              status,
+                              "Failure in Memory_Unmap for SYS MMU base registers");
+        }
+        halObject->mmuSysBase = 0 ;
     }
 
     unmapInfo.addr = halObject->cmBase;

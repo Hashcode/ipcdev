@@ -88,6 +88,8 @@ typedef struct VAYUDSP_HalObject_tag {
     /*!< Virtual base address of the General Control module. */
     UInt32                mmuBase;
     /*!< Base address of the MMU module. */
+    UInt32                mmuSysBase;
+    /*!< Base address of the MMU module. */
     UInt32                procId;
     /*!< Processor ID. */
     VAYUDSP_HalMmuObject mmuObj;

@@ -94,6 +94,8 @@ extern "C" {
 #define RM_DSP_RSTCTRL        0x410
 #define RM_DSP_RSTST          0x414
 
+#define DSP_SYS_MMU_CONFIG_OFFSET 0x18
+
 /* =============================================================================
  * APIs called by VAYUDSPPROC module
  * =============================================================================
@@ -114,6 +116,7 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
     VAYUDSP_HalObject *     halObject = NULL;
     UInt32                  cmBase;
     UInt32                  prmBase;
+    UInt32                  mmuSysBase;
     UInt32                  addr;
     UInt32                  val;
     Int32                   counter = 10;
@@ -126,6 +129,7 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
     halObject = (VAYUDSP_HalObject *)halObj;
     cmBase = halObject->cmBase;
     prmBase = halObject->prmBase;
+    mmuSysBase = halObject->mmuSysBase;
 
     switch (cmd) {
         case Processor_ResetCtrlCmd_Reset:
@@ -208,6 +212,11 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
 #endif
             Osal_printf("DSP:RST2 released!\n");
             OUTREG32(addr, 0x2);
+
+            /* enable MMU0 through global system register */
+            val = INREG32(mmuSysBase + DSP_SYS_MMU_CONFIG_OFFSET);
+            OUTREG32(mmuSysBase + DSP_SYS_MMU_CONFIG_OFFSET, (val & ~0x1) | 0x1);
+            Osal_printf("DSP:SYS_MMU_CONFIG MMU0 enabled!\n");
         }
         break;
 
