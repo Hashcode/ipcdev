@@ -1335,12 +1335,8 @@ VAYUIpcInt_sendInterrupt (UInt16 procId, UInt32 intId,  UInt32 value)
         /*
          * Mailbox 5 is used for HOST<->DSP1 communication
          */
-        if (REG32(VAYUIpcInt_state.mailbox5Base + \
-                  MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX)) == 0)
-            REG32(VAYUIpcInt_state.mailbox5Base + \
+        REG32(VAYUIpcInt_state.mailbox5Base + \
                   MAILBOX_MESSAGE_m_OFFSET(HOST_DSP1_SUB_MBOX)) = value;
-        else
-            GT_0trace (curTrace, GT_4CLASS, "Dropping HOST->DSP1 Mbox Msg");
     } else if (procId == VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2]) {
         /*
          * Mailbox 6 is used for HOST<->DSP1 communication
