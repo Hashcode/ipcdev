@@ -109,7 +109,7 @@ Int InterruptHost_Module_startup(Int phase)
         if ((MultiProc_getId("DSP2") != MultiProc_INVALIDID) ||
             (MultiProc_getId("IPU2") != MultiProc_INVALIDID) ||
             (MultiProc_getId("IPU2-0") != MultiProc_INVALIDID)) {
-            IntXbar_connect(132, 255);  // system mailbox 6 user 2
+            IntXbar_connect(134, 255);  // system mailbox 6 user 2
         }
 
         return (Startup_DONE);

@@ -82,12 +82,12 @@ function module$use()
     this.hostInterruptTable[2] = 137 + 32;        /* EVE3 */
     this.hostInterruptTable[3] = 138 + 32;        /* EVE4 */
     this.hostInterruptTable[4] = 136 + 32;        /* DSP1 */
-    this.hostInterruptTable[5] = 139 + 32;        /* DSP2 */
+    this.hostInterruptTable[5] = 141 + 32;        /* DSP2 */
     this.hostInterruptTable[6] = 136 + 32;        /* IPU1-0 */
-    this.hostInterruptTable[7] = 139 + 32;        /* IPU2-0 */
+    this.hostInterruptTable[7] = 141 + 32;        /* IPU2-0 */
     this.hostInterruptTable[8] = 0;               /* HOST */
     this.hostInterruptTable[9] = 136 + 32;        /* IPU1-1 */
-    this.hostInterruptTable[10] = 139 + 32;       /* IPU2-1 */
+    this.hostInterruptTable[10] = 141 + 32;       /* IPU2-1 */
 
     /*
      * In case of a spec change, follow the process shown below:
