@@ -1660,17 +1660,14 @@ _rpmsg_rpc_pa2da(ProcMgr_Handle handle, uint32_t pa)
     Int status = 0;
     uint32_t da;
 
-    if (pa >= TILER_MEM_8BIT && pa < TILER_MEM_END) {
-        return pa;
+    status = ProcMgr_translateAddr(handle, (Ptr *)&da,
+                                   ProcMgr_AddrType_SlaveVirt,
+                                   (Ptr)pa, ProcMgr_AddrType_MasterPhys);
+    if (status >= 0) {
+        return da;
     }
     else {
-        status = ProcMgr_translateAddr(handle, (Ptr *)&da,
-                                       ProcMgr_AddrType_SlaveVirt,
-                                       (Ptr)pa, ProcMgr_AddrType_MasterPhys);
-        if (status >= 0)
-            return da;
-        else
-            return 0;
+        return 0;
     }
 }
 
@@ -1717,7 +1714,8 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
                 vptr[idx] = mmap64(NULL, function->params[idx].size,
                                    PROT_NOCACHE | PROT_READ | PROT_WRITE,
                                    MAP_PHYS, NOFD, paddr[idx]);
-                if (vptr == MAP_FAILED) {
+                if (vptr[idx] == MAP_FAILED) {
+                    vptr[idx] = 0;
                     status = -ENOMEM;
                     break;
                 }
