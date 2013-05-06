@@ -105,10 +105,14 @@ function getLibs(prog)
  */
 function validate()
 {
-    var BIOS = xdc.module('ti.sysbios.BIOS');
-    var suffix = prog.build.target.findSuffix(this);
-
-    if (!BIOS.smpEnabled && (suffix != "e64T")) {
-        throw new Error(Pkg.$name+" must have BIOS.smpEnabled set to true.");
+    if (xdc.om.$name == "cfg") {
+        if (Program.build.target.isa.match(/v7M4/)) {
+            /* On OMAP5's IPU, only SMP BIOS is supported */
+            var BIOS = xdc.module('ti.sysbios.BIOS');
+            if (!BIOS.smpEnabled) {
+                throw new Error(this.$name + " must have BIOS.smpEnabled " +
+                        "set to true.");
+            }
+        }
     }
 }
