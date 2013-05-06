@@ -45,7 +45,7 @@ extern "C" {
 #include <ti/ipc/NameServer.h>
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
-
+#include <stdio.h>
 
 extern Bool logFile;
 extern FILE *logPtr;

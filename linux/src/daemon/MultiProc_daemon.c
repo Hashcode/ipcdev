@@ -48,6 +48,9 @@
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
 
+/* for Logging */
+#include <_lad.h>
+
 
 /* =============================================================================
  *  APIs
@@ -56,9 +59,16 @@
 /* Get the default configuration for the MultiProc module. */
 Void MultiProc_getConfig (MultiProc_Config * cfg)
 {
+    int i;
 
     assert (cfg != NULL);
 
     /* Setup MultiProc config */
     memcpy (cfg, &_MultiProc_cfg, sizeof(MultiProc_Config));
+
+    LOG1("MultiProc_getConfig() - %d procs\n", _MultiProc_cfg.numProcessors);
+
+    for (i = 0; i < _MultiProc_cfg.numProcessors; i++) {
+        LOG2("\tProc %d - \"%s\"\n", i, _MultiProc_cfg.nameList[i]);
+    }
 }
