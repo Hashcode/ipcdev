@@ -119,8 +119,21 @@ module Resource {
     @DirectCall
     Int physToVirt(UInt32 pa, UInt32 *da);
 
+    /*!
+     *  @brief      Get the Trace Buffer address from resource table.
+     *
+     *  @return     Pointer to trace buffer, or NULL if not found.
+     */
     @DirectCall
     Ptr getTraceBufPtr();
+
+    /*!
+     *  @brief      Get the nth (vqId) vring address from the VDEV struct.
+     *
+     *  @return     NULL if no VDEV found, or vqId is not found.
+     */
+    @DirectCall
+    Ptr getVringDA(UInt32 vqId);
 
 internal:   /* not for client use */
 
@@ -132,10 +145,11 @@ internal:   /* not for client use */
     Void init();
 
     /*!
-     *  @brief      Return the i-th entry in the resource table
+     *  @brief      Return the i-th entry in the resource table if the entry
+     *              is of type CARVEOUT or DEVMEM, or NULL otherwise.
      *
      */
-    MemEntry *getEntry(UInt index);
+    MemEntry *getMemEntry(UInt index);
 
     struct Module_State {
         RscTable    *pTable;  /* Resource Resource Table pointer */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,9 +67,42 @@ Ptr Resource_getTraceBufPtr()
 }
 
 /*
- *  ======== Resource_getEntry ========
+ *  ======== Resource_getVringDA ========
  */
-Resource_MemEntry *Resource_getEntry(UInt index)
+Ptr Resource_getVringDA(UInt32 vqId)
+{
+    UInt32 i;
+    UInt32 offset;
+    UInt32 type;
+    Ptr	   da = NULL;
+    struct fw_rsc_vdev *vdev= NULL;
+    Resource_RscTable *table = (Resource_RscTable *)
+                                            (Resource_module->pTable);
+
+    for (i = 0; i < module->pTable->num; i++) {
+        offset = (UInt32)((Char *)table + table->offset[i]);
+        type = *(UInt32 *)offset;
+        if (type == TYPE_VDEV) {
+            vdev = (struct fw_rsc_vdev *)offset;
+            /* Ensure vqID is within expected number of vrings: */
+            if (vqId < vdev->num_of_vrings) {
+                da = (Ptr)(((struct fw_rsc_vdev_vring *)
+                            (offset + sizeof(*vdev) +
+                            vqId * sizeof(struct fw_rsc_vdev_vring)))->da);
+            }
+            else {
+                break;   /* Not found.  da is NULL */
+            }
+        }
+    }
+
+    return (da);
+}
+
+/*
+ *  ======== Resource_getMemEntry ========
+ */
+Resource_MemEntry *Resource_getMemEntry(UInt index)
 {
     UInt32 offset;
     UInt32 *type;
@@ -117,7 +150,7 @@ Int Resource_virtToPhys(UInt32 va, UInt32 *pa)
     *pa = NULL;
 
     for (i = 0; i < module->pTable->num; i++) {
-        entry = Resource_getEntry(i);
+        entry = Resource_getMemEntry(i);
         if (entry && va >= entry->da && va < (entry->da + entry->len)) {
                 offset = va - entry->da;
                 *pa = entry->pa + offset;
@@ -140,7 +173,7 @@ Int Resource_physToVirt(UInt32 pa, UInt32 *va)
     *va = NULL;
 
     for (i = 0; i < module->pTable->num; i++) {
-        entry = Resource_getEntry(i);
+        entry = Resource_getMemEntry(i);
         if (entry && pa >= entry->pa && pa < (entry->pa + entry->len)) {
                 offset = pa - entry->pa;
                 *va = entry->da + offset;
