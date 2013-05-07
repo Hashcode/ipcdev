@@ -151,7 +151,7 @@ for (arg = 0; arg < arguments.length; arg++) {
         target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
 
         target.platforms = [
-            "ti.platform.omap54xx.dsp",
+            "ti.platforms.sdp5430:DSP",
         ];
     }
 

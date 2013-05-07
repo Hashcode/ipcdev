@@ -81,7 +81,7 @@ Build.platformTable["ti.platforms.evmOMAPL138:DSP"] = {
  *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
  *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
  */
-var sdp5430_ExtMemMap = {
+var sdp5430_ExtMemMapIpu = {
     EXT_CODE: {
         name: "EXT_CODE",
         base: 0x00004000,
@@ -128,12 +128,83 @@ var sdp5430_ExtMemMap = {
 
 Build.platformTable["ti.platforms.sdp5430:IPU"] = {
     externalMemoryMap: [
-        [ "EXT_CODE", sdp5430_ExtMemMap.EXT_CODE ],
-        [ "EXT_DATA", sdp5430_ExtMemMap.EXT_DATA ],
-        [ "EXT_HEAP", sdp5430_ExtMemMap.EXT_HEAP ],
-        [ "TRACE_BUF", sdp5430_ExtMemMap.TRACE_BUF ],
-        [ "EXC_DATA", sdp5430_ExtMemMap.EXC_DATA ],
-        [ "PM_DATA", sdp5430_ExtMemMap.PM_DATA ]
+        [ "EXT_CODE", sdp5430_ExtMemMapIpu.EXT_CODE ],
+        [ "EXT_DATA", sdp5430_ExtMemMapIpu.EXT_DATA ],
+        [ "EXT_HEAP", sdp5430_ExtMemMapIpu.EXT_HEAP ],
+        [ "TRACE_BUF", sdp5430_ExtMemMapIpu.TRACE_BUF ],
+        [ "EXC_DATA", sdp5430_ExtMemMapIpu.EXC_DATA ],
+        [ "PM_DATA", sdp5430_ExtMemMapIpu.PM_DATA ]
+    ],
+    codeMemory: "EXT_CODE",
+    dataMemory: "EXT_DATA",
+    stackMemory: "EXT_DATA",
+};
+
+/*  Memory Map for ti.platforms.sdp5430:DSP
+ *
+ *  --- External Memory ---
+ *  Virtual     Physical        Size            Comment
+ *  ------------------------------------------------------------------------
+ *  2000_0000   ????_????    10_0000  (   1 MB) EXT_CODE
+ *  9000_0000   ????_????    10_0000  (   1 MB) EXT_DATA
+ *  9010_0000   ????_????    30_0000  (   3 MB) EXT_HEAP
+ *  9F00_0000   9F00_0000     6_0000  ( 384 kB) TRACE_BUF
+ *  9F06_0000   9F06_0000     1_0000  (  64 kB) EXC_DATA
+ *  9F07_0000   9F07_0000     2_0000  ( 128 kB) PM_DATA (Power mgmt)
+ */
+var sdp5430_ExtMemMapDsp = {
+    EXT_CODE: {
+        name: "EXT_CODE",
+        base: 0x20000000,
+        len:  0x00100000,
+        space: "code",
+        access: "RWX"
+    },
+    EXT_DATA: {
+        name: "EXT_DATA",
+        base: 0x90000000,
+        len:  0x00100000,
+        space: "data",
+        access: "RW"
+    },
+    EXT_HEAP: {
+        name: "EXT_HEAP",
+        base: 0x90100000,
+        len:  0x00300000,
+        space: "data",
+        access: "RW"
+    },
+    TRACE_BUF: {
+        name: "TRACE_BUF",
+        base: 0x9F000000,
+        len:  0x00060000,
+        space: "data",
+        access: "RW"
+    },
+    EXC_DATA: {
+        name: "EXC_DATA",
+        base: 0x9F060000,
+        len:  0x00010000,
+        space: "data",
+        access: "RW"
+    },
+    PM_DATA: {
+        name: "PM_DATA",
+        base: 0x9F070000,
+        len:  0x00020000,
+        space: "data",
+        access: "RWX"  /* should this have execute perm? */
+    }
+};
+
+Build.platformTable["ti.platforms.sdp5430:DSP"] = {
+    externalMemoryMap: [
+        [ "EXT_CODE", sdp5430_ExtMemMapDsp.EXT_CODE ],
+        [ "EXT_DATA", sdp5430_ExtMemMapDsp.EXT_DATA ],
+        [ "EXT_HEAP", sdp5430_ExtMemMapDsp.EXT_HEAP ],
+        [ "TRACE_BUF", sdp5430_ExtMemMapDsp.TRACE_BUF ],
+        [ "EXC_DATA", sdp5430_ExtMemMapDsp.EXC_DATA ],
+        [ "PM_DATA", sdp5430_ExtMemMapDsp.PM_DATA ]
     ],
     codeMemory: "EXT_CODE",
     dataMemory: "EXT_DATA",
@@ -262,8 +333,8 @@ for (var i = 0; i < Build.targets.length; i++) {
                 }).addObjects(["nano_test.c"]);
         }
 
-        if (platform.match(/^ti\.platform\.omap54xx\.ipu/) ||
-                (platform.match(/^ti\.platforms\.sdp5430/))) {
+        if (platform.match(/^ti\.platforms\.sdp5430/) &&
+                (targ.isa == "v7M4")) {
             Pkg.addExecutable(name + "/test_omx_ipu_omap5", targ, platform, {
                 cfgScript: "test_omx_ipu_omap5",
                 defs: "-D IPU -D OMAP5xxx -DRPMSG_NS_2_0"
@@ -271,7 +342,8 @@ for (var i = 0; i < Build.targets.length; i++) {
                     "MxServer.c"]);
         }
 
-        if (platform.match(/^ti\.platform\.omap54xx\.dsp/)) {
+        if (platform.match(/^ti\.platforms\.sdp5430/) &&
+                (targ.isa == "64T")) {
             Pkg.addExecutable(name + "/test_omx_dsp_omap5", targ, platform, {
                 cfgScript: "test_omx_dsp_omap5",
                 defs: "-D DSP -D OMAP5xxx -DRPMSG_NS_2_0"
