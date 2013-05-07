@@ -302,6 +302,102 @@ syslink_ocb_free (IOFUNC_OCB_T * i_ocb)
     }
 }
 
+int init_syslink_trace_device(syslink_dev_t *dev)
+{
+    resmgr_attr_t    resmgr_attr;
+    int              i;
+    syslink_attr_t * trace_attr;
+    char             trace_name[_POSIX_PATH_MAX];
+    int              status = 0;
+    u32              da = 0, pa = 0;
+    u32              len;
+
+    memset(&resmgr_attr, 0, sizeof resmgr_attr);
+    resmgr_attr.nparts_max = 10;
+    resmgr_attr.msg_max_size = 2048;
+
+    for (i = 0; i < syslink_num_cores; i++) {
+        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_trace[i],
+                         _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_trace[i]);
+        trace_attr = &dev->syslink.cattr_trace[i];
+        iofunc_attr_init(&trace_attr->attr,
+                         S_IFCHR | 0777, NULL, NULL);
+        trace_attr->attr.mount = &dev->syslink.mattr;
+        trace_attr->procid = i;
+        iofunc_time_update(&trace_attr->attr);
+        snprintf (dev->syslink.device_name, _POSIX_PATH_MAX,
+                  "/dev/ipc-trace%d", syslink_firmware[i].proc_id);
+        dev->syslink.iofuncs_trace[i].read = syslink_read;
+        snprintf (trace_name, _POSIX_PATH_MAX, "%d", 0);
+        pa = 0;
+        status = RscTable_getInfo(syslink_firmware[i].proc_id, TYPE_TRACE, 0, &da, &pa, &len);
+        if (status == 0) {
+            /* last 8 bytes are for writeIdx/readIdx */
+            proc_traces[i].len = len - (sizeof(uint32_t) * 2);
+            if (da && !pa) {
+                /* need to translate da->pa */
+                status = ProcMgr_translateAddr (procH[syslink_firmware[i].proc_id],
+                                                (Ptr *) &pa,
+                                                ProcMgr_AddrType_MasterPhys,
+                                                (Ptr) da,
+                                                ProcMgr_AddrType_SlaveVirt);
+            }
+            else {
+                GT_setFailureReason(curTrace, GT_4CLASS, "init_syslink_trace_device",
+                                    status, "not performing ProcMgr_translate");
+            }
+            /* map length aligned to page size */
+            proc_traces[i].va =
+                    mmap_device_io (((len + 0x1000 - 1) / 0x1000) * 0x1000, pa);
+            proc_traces[i].widx = (uint32_t *)(proc_traces[i].va + \
+                                               proc_traces[i].len);
+            proc_traces[i].ridx = (uint32_t *)((uint32_t)proc_traces[i].widx + \
+                                               sizeof(uint32_t));
+            if (proc_traces[i].va == MAP_DEVICE_FAILED) {
+                GT_setFailureReason(curTrace, GT_4CLASS, "init_syslink_trace_device",
+                                    status, "mmap_device_io failed");
+                GT_1trace(curTrace, GT_4CLASS, "errno %d", errno);
+                proc_traces[i].va = NULL;
+            }
+            proc_traces[i].firstRead = TRUE;
+        }
+        else {
+            GT_setFailureReason(curTrace, GT_4CLASS, "init_syslink_trace_device",
+                                status, "RscTable_getInfo failed");
+            proc_traces[i].va = NULL;
+        }
+        if (-1 == (dev->syslink.resmgr_id_trace[i] =
+                       resmgr_attach(dev->dpp, &resmgr_attr,
+                                     dev->syslink.device_name, _FTYPE_ANY, 0,
+                                     &dev->syslink.cfuncs_trace[i],
+                                     &dev->syslink.iofuncs_trace[i],
+                                     &trace_attr->attr))) {
+            GT_setFailureReason(curTrace, GT_4CLASS, "init_syslink_trace_device",
+                                status, "resmgr_attach failed");
+            return(-1);
+        }
+    }
+
+}
+
+int deinit_syslink_trace_device(syslink_dev_t *dev)
+{
+    int status = EOK;
+    int i = 0;
+
+    for (i = 0; i < syslink_num_cores; i++) {
+        status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_trace[i], 0);
+        if (status < 0) {
+            Osal_printf("syslink: resmgr_detach failed %d", errno);
+            status = errno;
+        }
+        if (proc_traces[i].va && proc_traces[i].va != MAP_DEVICE_FAILED)
+            munmap((void *)proc_traces[i].va,
+                   ((proc_traces[i].len + 8 + 0x1000 - 1) / 0x1000) * 0x1000);
+        proc_traces[i].va = NULL;
+    }
+}
+
 /* Initialize the syslink device */
 int init_syslink_device(syslink_dev_t *dev)
 {
@@ -351,55 +447,9 @@ int init_syslink_device(syslink_dev_t *dev)
         return(-1);
     }
 
-    for (i = 0; i < syslink_num_cores; i++) {
-        iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &dev->syslink.cfuncs_trace[i],
-                         _RESMGR_IO_NFUNCS, &dev->syslink.iofuncs_trace[i]);
-        trace_attr = &dev->syslink.cattr_trace[i];
-        iofunc_attr_init(&trace_attr->attr,
-                         S_IFCHR | 0777, NULL, NULL);
-        trace_attr->attr.mount = &dev->syslink.mattr;
-        trace_attr->procid = i;
-        iofunc_time_update(&trace_attr->attr);
-        snprintf (dev->syslink.device_name, _POSIX_PATH_MAX,
-                  "/dev/ipc-trace%d", syslink_firmware[i].proc_id);
-        dev->syslink.iofuncs_trace[i].read = syslink_read;
-        snprintf (trace_name, _POSIX_PATH_MAX, "%d", 0);
-        pa = 0;
-        status = RscTable_getInfo(syslink_firmware[i].proc_id, TYPE_TRACE, 0, &da, &pa, &len);
-        if (status == 0) {
-            /* last 8 bytes are for writeIdx/readIdx */
-            proc_traces[i].len = len - (sizeof(uint32_t) * 2);
-            if (da && !pa) {
-                /* need to translate da->pa */
-                status = ProcMgr_translateAddr (procH[syslink_firmware[i].proc_id],
-                                                (Ptr *) &pa,
-                                                ProcMgr_AddrType_MasterPhys,
-                                                (Ptr) da,
-                                                ProcMgr_AddrType_SlaveVirt);
-            }
-            /* map length aligned to page size */
-            proc_traces[i].va =
-                    mmap_device_io (((len + 0x1000 - 1) / 0x1000) * 0x1000, pa);
-            proc_traces[i].widx = (uint32_t *)(proc_traces[i].va + \
-                                               proc_traces[i].len);
-            proc_traces[i].ridx = (uint32_t *)((uint32_t)proc_traces[i].widx + \
-                                               sizeof(uint32_t));
-            if (proc_traces[i].va == MAP_DEVICE_FAILED) {
-                proc_traces[i].va = NULL;
-            }
-            proc_traces[i].firstRead = TRUE;
-        }
-        else {
-            proc_traces[i].va = NULL;
-        }
-        if (-1 == (dev->syslink.resmgr_id_trace[i] =
-                       resmgr_attach(dev->dpp, &resmgr_attr,
-                                     dev->syslink.device_name, _FTYPE_ANY, 0,
-                                     &dev->syslink.cfuncs_trace[i],
-                                     &dev->syslink.iofuncs_trace[i],
-                                     &trace_attr->attr))) {
-            return(-1);
-        }
+    status = init_syslink_trace_device(dev);
+    if (status < 0) {
+        return status;
     }
 
     return(0);
@@ -417,17 +467,7 @@ int deinit_syslink_device(syslink_dev_t *dev)
         status = errno;
     }
 
-    for (i = 0; i < syslink_num_cores; i++) {
-        status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id_trace[i], 0);
-        if (status < 0) {
-            Osal_printf("syslink: resmgr_detach failed %d", errno);
-            status = errno;
-        }
-        if (proc_traces[i].va && proc_traces[i].va != MAP_DEVICE_FAILED)
-            munmap((void *)proc_traces[i].va,
-                   ((proc_traces[i].len + 8 + 0x1000 - 1) / 0x1000) * 0x1000);
-        proc_traces[i].va = NULL;
-    }
+    status = deinit_syslink_trace_device(dev);
 
     return(status);
 }
@@ -464,6 +504,8 @@ static void ipc_recover(Ptr args)
 
     deinit_ipc(dev, TRUE);
     init_ipc(dev, syslink_firmware, TRUE);
+    deinit_syslink_trace_device(dev);
+    init_syslink_trace_device(dev);
 }
 
 Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,

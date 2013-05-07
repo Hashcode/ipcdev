@@ -496,6 +496,7 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
                 else {
                     handle->procId = procId;
                     object = (VAYUIPUCORE0PROC_Object *) handle->object;
+                    object->procHandle = (Processor_Handle)handle;
                     object->halObject = NULL;
                     /* Copy params into instance object. */
                     Memory_copy (&(object->params),
@@ -504,7 +505,7 @@ VAYUIPUCORE0PROC_create (      UInt16                procId,
 
                     /* Set the handle in the state object. */
                     VAYUIPUCORE0PROC_state.procHandles [procId] =
-                                                 (VAYUIPUCORE0PROC_Handle) handle;
+                                                 (VAYUIPUCORE0PROC_Handle) object;
                     /* Initialize the list of listeners */
                     List_Params_init(&listParams);
                     handle->registeredNotifiers = List_create(&listParams);
@@ -838,6 +839,7 @@ VAYUIPUCORE0PROC_attach(
     Char                        configProp[PARAMS_MAX_NAMELENGTH];
     UInt32                      numCarveouts = 0;
     VAYUIPU_HalMmuCtrlArgs_Enable mmuEnableArgs;
+    VAYUIPU_HalParams           halParams;
 
     GT_2trace(curTrace, GT_ENTER,
               "VAYUIPUCORE0PROC_attach", handle, params);
@@ -994,7 +996,8 @@ VAYUIPUCORE0PROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            status = VAYUIPU_halInit(&(object->halObject), NULL);
+            halParams.procId = procHandle->procId;
+            status = VAYUIPU_halInit(&(object->halObject), &halParams);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
             if (status < 0) {

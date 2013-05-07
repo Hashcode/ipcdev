@@ -155,6 +155,22 @@ VAYUIPU_phyShmemInit (Ptr halObj)
         halObject->mmuBase = mapInfo.dst;
     }
 
+    mapInfo.src      = CTRL_MODULE_BASE;
+    mapInfo.size     = CTRL_MODULE_SIZE;
+    mapInfo.isCached = FALSE;
+    status = Memory_map (&mapInfo);
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "VAYUIPU_phyShmemInit",
+                             status,
+                             "Failure in Memory_map for Ctrl Module base registers");
+        halObject->ctrlModBase = 0;
+    }
+    else {
+        halObject->ctrlModBase = mapInfo.dst;
+    }
+
     GT_1trace (curTrace, GT_LEAVE, "VAYUIPU_phyShmemInit", status);
 
     /*! @retval PROCESSOR_SUCCESS Operation successful */
@@ -182,6 +198,21 @@ VAYUIPU_phyShmemExit (Ptr halObj)
     GT_assert (curTrace, (halObj != NULL));
 
     halObject = (VAYUIPU_HalObject *) halObj;
+
+    unmapInfo.addr = halObject->ctrlModBase;
+    unmapInfo.size = CTRL_MODULE_SIZE;
+    unmapInfo.isCached = FALSE;
+    if (unmapInfo.addr != 0) {
+        status = Memory_unmap (&unmapInfo);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                              GT_4CLASS,
+                              "VAYUIPU_phyShmemExit",
+                              status,
+                              "Failure in Memory_Unmap for Ctrl Module base registers");
+        }
+        halObject->ctrlModBase = 0 ;
+    }
 
     unmapInfo.addr = halObject->mmuBase;
     unmapInfo.size = MMU_SIZE;

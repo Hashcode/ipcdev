@@ -82,11 +82,21 @@ typedef struct VAYUIPU_HalObject_tag {
     /*!< Virtual base address of the General Control module. */
     UInt32                    mmuBase;
     /*!< Base address of the MMU module. */
+    UInt32                    ctrlModBase;
+    /*!< Base address of the control module. */
     UInt32                    procId;
     /*!< Processor ID. */
     VAYUIPU_HalMmuObject mmuObj;
     /*!< MMU abstraction. */
 } VAYUIPU_HalObject;
+
+/*!
+ *  @brief  Hardware Abstraction object.
+ */
+typedef struct VAYUIPU_HalParams_tag {
+    UInt16                    procId;
+    /*!< ProcId of the IPU being created. */
+} VAYUIPU_HalParams;
 
 
 /* =============================================================================

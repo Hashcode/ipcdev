@@ -86,10 +86,13 @@ extern "C" {
  */
 #define MMU_RAM_DEFAULT         0
 
+#define MPU_INT_OFFSET               32
+
 /*!
- *  @brief  Interrupt Id for IPU MMU faults
+ *  @brief  Interrupt Id for IPU2 MMU faults
  */
-#define MMU_FAULT_INTERRUPT     132
+#define MMU_FAULT_INTERRUPT_IPU2     142
+#define MMU_XBAR_INTERRUPT_IPU2      396
 
 /*!
  *  @brief  CAM register field values
@@ -121,6 +124,32 @@ extern "C" {
 #define MASTERPHYSADDR(x) ((x)->addr [ProcMgr_AddrType_MasterPhys])
 
 #define MMUPAGE_ALIGN(size, psz)  (((size) + psz - 1) & ~(psz -1))
+
+/*!
+ *  @def    CTRL_MODULE_MMR_OFFSET
+ *  @brief  offset in ctrl module to MMR LOCK reg.
+ */
+#define CTRL_MODULE_MMR_OFFSET           0x544
+
+/*!
+ *  @def    CTRL_MODULE_MPU_OFFSET
+ *  @brief  offset in ctrl module to MPU INTs.
+ */
+#define CTRL_MODULE_MPU_OFFSET           0xA4C
+
+/*!
+ *  @def    CTRL_MODULE_INT_BASE
+ *  @brief  interrupt num at offset.
+ */
+#define CTRL_MODULE_INT_BASE             0x8
+
+/*!
+ *  @def    CTRL_MODULE_INT_m_OFFSET
+ *  @brief  interrupt num at offset.
+ */
+#define CTRL_MODULE_INT_m_OFFSET(m)      CTRL_MODULE_MPU_OFFSET + \
+                                         ((((m) - CTRL_MODULE_INT_BASE) / 2) * 4) - \
+                                         (((m) > 131) ? 4 : 0)
 
 /*!
  *  @def    REG32
@@ -421,11 +450,15 @@ _VAYUIPU_halMmuInt_isr (Ptr arg)
 {
     VAYUIPU_HalObject * halObject = (VAYUIPU_HalObject *)arg;
     VAYUIPUCORE0PROC_Object * procObject = NULL;
+    Int32 status;
 
     GT_1trace (curTrace, GT_ENTER, "_VAYUIPU_halMmuInt_isr", arg);
-    VAYUIPUCORE0PROC_open((VAYUIPUCORE0PROC_Handle *)&procObject, halObject->procId);
-    Processor_setState(procObject->procHandle, ProcMgr_State_Mmu_Fault);
-    VAYUIPUCORE0PROC_close((VAYUIPUCORE0PROC_Handle *)&procObject);
+    status = VAYUIPUCORE0PROC_open((VAYUIPUCORE0PROC_Handle *)&procObject,
+                                     halObject->procId);
+    if (status >= 0) {
+        Processor_setState(procObject->procHandle, ProcMgr_State_Mmu_Fault);
+        VAYUIPUCORE0PROC_close((VAYUIPUCORE0PROC_Handle *)&procObject);
+    }
 
     GT_1trace (curTrace, GT_LEAVE, "_VAYUIPU_halMmuInt_isr", TRUE);
 
@@ -450,6 +483,7 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
     Int                           status    = PROCESSOR_SUCCESS;
     VAYUIPU_HalMmuObject *   mmuObj;
     OsalIsr_Params                isrParams;
+    UInt32 reg = 0;
 
     GT_3trace (curTrace, GT_ENTER, "_VAYUIPU_halMmuEnable",
                halObject, numMemEntries, memTable);
@@ -461,11 +495,26 @@ _VAYUIPU_halMmuEnable (VAYUIPU_HalObject * halObject,
      */
     mmuObj = &(halObject->mmuObj);
 
+    /* Program the MMR lock registers to access the SCM
+     * IRQ crossbar register address range */
+    REG32(halObject->ctrlModBase + CTRL_MODULE_MMR_OFFSET) = 0xF757FDC0;
+
+    /* Program the IntXbar */
+    reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2));
+    if ((MMU_FAULT_INTERRUPT_IPU2 - CTRL_MODULE_INT_BASE) % 2) {
+        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
+            (reg & 0x0000FFFF) | (MMU_XBAR_INTERRUPT_IPU2 << 16);
+    }
+    else {
+        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTERRUPT_IPU2)) =
+            (reg & 0xFFFF0000) | (MMU_XBAR_INTERRUPT_IPU2);
+    }
+
     /* Create the ISR to listen for MMU Faults */
     isrParams.sharedInt        = FALSE;
     isrParams.checkAndClearFxn = &_VAYUIPU_halMmuCheckAndClearFunc;
     isrParams.fxnArgs          = halObject;
-    isrParams.intId            = MMU_FAULT_INTERRUPT;
+    isrParams.intId            = MMU_FAULT_INTERRUPT_IPU2 + MPU_INT_OFFSET;
     mmuObj->isrHandle = OsalIsr_create (&_VAYUIPU_halMmuInt_isr,
                                         halObject,
                                         &isrParams);
