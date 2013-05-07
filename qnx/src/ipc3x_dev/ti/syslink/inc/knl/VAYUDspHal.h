@@ -90,11 +90,21 @@ typedef struct VAYUDSP_HalObject_tag {
     /*!< Base address of the MMU module. */
     UInt32                mmuSysBase;
     /*!< Base address of the MMU module. */
+    UInt32                    ctrlModBase;
+    /*!< Base address of the control module. */
     UInt32                procId;
     /*!< Processor ID. */
     VAYUDSP_HalMmuObject mmuObj;
     /*!< MMU abstraction. */
 } VAYUDSP_HalObject;
+
+/*!
+ *  @brief  Hardware Abstraction object.
+ */
+typedef struct VAYUDSP_HalParams_tag {
+    UInt16                    procId;
+    /*!< ProcId of the DSP being created. */
+} VAYUDSP_HalParams;
 
 
 /* =============================================================================

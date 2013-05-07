@@ -493,13 +493,14 @@ VAYUDSPPROC_create (      UInt16                procId,
                     handle->procId = procId;
                     object = (VAYUDSPPROC_Object *) handle->object;
                     object->halObject = NULL;
+                    object->procHandle = (Processor_Handle)handle;
                     /* Copy params into instance object. */
                     Memory_copy (&(object->params),
                                  (Ptr) params,
                                  sizeof (VAYUDSPPROC_Params));
                     /* Set the handle in the state object. */
                     VAYUDSPPROC_state.procHandles [procId] =
-                                                     (VAYUDSPPROC_Handle) handle;
+                                                     (VAYUDSPPROC_Handle) object;
                     /* Initialize the list of listeners */
                     List_Params_init(&listParams);
                     handle->registeredNotifiers = List_create(&listParams);
@@ -832,6 +833,7 @@ VAYUDSPPROC_attach(
     Char                        configProp[PARAMS_MAX_NAMELENGTH];
     UInt32                      numCarveouts = 0;
     VAYUDSP_HalMmuCtrlArgs_Enable mmuEnableArgs;
+    VAYUDSP_HalParams           halParams;
 
     GT_2trace (curTrace, GT_ENTER, "VAYUDSPPROC_attach", handle, params);
     GT_assert (curTrace, (handle != NULL));
@@ -986,7 +988,8 @@ VAYUDSPPROC_attach(
             memcpy((Ptr)params->memEntries, (Ptr)object->params.memEntries,
                 sizeof(ProcMgr_AddrInfo) * params->numMemEntries);
 
-            status = VAYUDSP_halInit(&(object->halObject), NULL);
+            halParams.procId = procHandle->procId;
+            status = VAYUDSP_halInit(&(object->halObject), &halParams);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
             if (status < 0) {

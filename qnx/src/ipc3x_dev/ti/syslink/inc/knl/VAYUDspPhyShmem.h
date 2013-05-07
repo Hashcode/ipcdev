@@ -124,6 +124,17 @@ extern "C" {
  */
 #define MMU_SIZE                0x1000
 
+/*!
+ *  @def    CTRL_MODULE_BASE
+ *  @brief  configuration address.
+ */
+#define CTRL_MODULE_BASE           0x4A002000
+
+/*!
+ *  @def    CTRL_MODULE_SIZE
+ *  @brief  size to be ioremapped.
+ */
+#define CTRL_MODULE_SIZE           0x1000
 
 /* =============================================================================
  *  APIs

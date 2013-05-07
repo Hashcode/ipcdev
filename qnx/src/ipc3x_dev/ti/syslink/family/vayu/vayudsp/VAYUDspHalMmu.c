@@ -384,21 +384,21 @@ _VAYUDSP_halMmuCheckAndClearFunc (Ptr arg)
 
     /* Print the fault information */
     GT_0trace (curTrace, GT_4CLASS,
-               "\n****************** DSP-MMU Fault ******************\n");
+               "****************** DSP-MMU Fault ******************");
     GT_1trace (curTrace, GT_4CLASS,
-               "****    addr: 0x%x\n", mmuObj->mmuFaultAddr);
+               "****    addr: 0x%x", mmuObj->mmuFaultAddr);
     if (mmuObj->mmuIrqStatus & MMU_IRQ_TLBMISS)
-        GT_0trace (curTrace, GT_4CLASS, "****    TLBMISS\n");
+        GT_0trace (curTrace, GT_4CLASS, "****    TLBMISS");
     if (mmuObj->mmuIrqStatus & MMU_IRQ_TRANSLATIONFAULT)
-        GT_0trace (curTrace, GT_4CLASS, "****    TRANSLATIONFAULT\n");
+        GT_0trace (curTrace, GT_4CLASS, "****    TRANSLATIONFAULT");
     if (mmuObj->mmuIrqStatus & MMU_IRQ_EMUMISS)
-        GT_0trace (curTrace, GT_4CLASS, "****    EMUMISS\n");
+        GT_0trace (curTrace, GT_4CLASS, "****    EMUMISS");
     if (mmuObj->mmuIrqStatus & MMU_IRQ_TABLEWALKFAULT)
-        GT_0trace (curTrace, GT_4CLASS, "****    TABLEWALKFAULT\n");
+        GT_0trace (curTrace, GT_4CLASS, "****    TABLEWALKFAULT");
     if (mmuObj->mmuIrqStatus & MMU_IRQ_MULTIHITFAULT)
-        GT_0trace (curTrace, GT_4CLASS, "****    MULTIHITFAULT\n");
+        GT_0trace (curTrace, GT_4CLASS, "****    MULTIHITFAULT");
     GT_0trace (curTrace, GT_4CLASS,
-               "**************************************************\n");
+               "**************************************************");
 
     /* Clear the interrupt and disable further interrupts. */
     REG32(halObject->mmuBase + MMU_MMU_IRQENABLE_OFFSET) = 0x0;
@@ -422,11 +422,14 @@ _VAYUDSP_halMmuInt_isr (Ptr arg)
 {
     VAYUDSP_HalObject * halObject = (VAYUDSP_HalObject *)arg;
     VAYUDSPPROC_Object * procObject = NULL;
+    Int32 status;
 
     GT_1trace (curTrace, GT_ENTER, "_VAYUDSP_halMmuInt_isr", arg);
-    VAYUDSPPROC_open((VAYUDSPPROC_Handle *)&procObject, halObject->procId);
-    Processor_setState(procObject->procHandle, ProcMgr_State_Mmu_Fault);
-    VAYUDSPPROC_close((VAYUDSPPROC_Handle *)&procObject);
+    status = VAYUDSPPROC_open((VAYUDSPPROC_Handle *)&procObject, halObject->procId);
+    if (status >= 0) {
+        Processor_setState(procObject->procHandle, ProcMgr_State_Mmu_Fault);
+        VAYUDSPPROC_close((VAYUDSPPROC_Handle *)&procObject);
+    }
 
     GT_1trace (curTrace, GT_LEAVE, "_VAYUDSP_halMmuInt_isr", TRUE);
 

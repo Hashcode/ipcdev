@@ -92,6 +92,7 @@ VAYUDSP_halInit (Ptr * halObj, Ptr params)
 {
     Int                  status    = PROCESSOR_SUCCESS;
     VAYUDSP_HalObject *  halObject = NULL;
+    VAYUDSP_HalParams *  halParams = NULL;
 
     GT_2trace(curTrace, GT_ENTER, "VAYUDSP_halInit", halObj, params);
 
@@ -99,7 +100,7 @@ VAYUDSP_halInit (Ptr * halObj, Ptr params)
 
     halObject = (VAYUDSP_HalObject *) halObj ;
 
-    (Void) params ; /* Not used. */
+    halParams = (VAYUDSP_HalParams *)params ;
 
     *halObj = Memory_calloc (NULL, sizeof (VAYUDSP_HalObject), 0, NULL);
     if (halObject == NULL) {
@@ -112,6 +113,9 @@ VAYUDSP_halInit (Ptr * halObj, Ptr params)
                              "Memory allocation failed for HAL object!");
     }
     else {
+        halObject = (VAYUDSP_HalObject *) *halObj ;
+        halObject->procId = halParams->procId;
+
         status = VAYUDSP_phyShmemInit (*halObj);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         if (status < 0) {
