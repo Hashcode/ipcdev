@@ -74,6 +74,8 @@ enum {
     FXN_IDX_FXNADD,
     FXN_IDX_FXNADD3,
     FXN_IDX_FXNADDX,
+    FXN_IDX_FXNCOMPUTE,
+    FXN_IDX_FXNFAULT,
     FXN_IDX_MAX
 };
 
@@ -144,6 +146,7 @@ typedef struct test_exec_args {
     sem_t * sem;
     int thread_num;
     int func_idx;
+    int sub_test;
 } test_exec_args;
 
 static pthread_t * clientThreads = NULL;
@@ -276,6 +279,13 @@ void * test_exec_call(void * arg)
                     function->translations[0].offset = (int)&(((fxn_addx_args *)ptr)->array) - (int)ptr;
                     function->translations[0].base = ((fxn_addx_args *)ptr)->array;
                 }
+                break;
+            case FXN_IDX_FXNFAULT:
+                function->num_params = 1;
+                function->params[0].type = RPPC_PARAM_TYPE_ATOMIC;
+                function->params[0].size = sizeof(int);
+                function->params[0].data = args->sub_test;
+                function->num_translations = 0;
                 break;
         }
 
@@ -965,6 +975,78 @@ int test_rpc_stress_multi_srvmgr(int core_id, int num_comps, int func_idx)
     return ret;
 }
 
+int test_errors(int core_id, int num_comps, int sub_test)
+{
+    int ret = 0;
+    int i = 0, j = 0;
+    int fd;
+    struct rppc_create_instance connreq;
+    test_exec_args args;
+
+    /* Connect to the rpc_example ServiceMgr on the specified core: */
+    fd = open("/dev/rpc_example", O_RDWR);
+    if (fd < 0) {
+        perror("Can't open rpc_example device");
+        ret = -1;
+        return -1;
+    }
+    strcpy(connreq.name, "rpc_example");
+
+    /* Create an rpc_example server instance, and rebind its address to this
+    * file descriptor.
+    */
+    ret = ioctl(fd, RPPC_IOC_CREATE, &connreq);
+    if (ret < 0) {
+        perror("Can't connect to rpc_example instance");
+        close(fd);
+        return -1;
+    }
+    printf("rpc_sample: Connected to %s\n", connreq.name);
+
+    clientThreads = malloc(sizeof(pthread_t));
+    if (!clientThreads) {
+        ret = close(fd);
+        if (ret < 0) {
+            perror("Can't close rpc_example fd ??");
+        }
+        return -1;
+    }
+
+    args.fd = fd;
+    args.start_num = 1;
+    args.test_num = 1;
+    args.sem = NULL;
+    args.thread_num = i;
+    args.func_idx = FXN_IDX_FXNFAULT;
+    args.sub_test = sub_test;
+    ret = pthread_create(&clientThreads[0], NULL, test_exec_call,
+                         (void *)&args);
+    if (ret < 0) {
+        perror("Can't create thread");
+        ret = close(fd);
+        if (ret < 0) {
+            perror("Can't close rpc_example fd ??");
+        }
+        return -1;
+    }
+    printf("Created thread %d\n", i);
+
+    printf("Join thread %d\n", j);
+    pthread_join(clientThreads[0], NULL);
+
+    free(clientThreads);
+
+    /* Terminate connection and destroy rpc_example instance */
+    ret = close(fd);
+    if (ret < 0) {
+        perror("Can't close rpc_example fd ??");
+        ret = -1;
+    }
+    printf("rpc_sample: Closed connection to %s!\n", connreq.name);
+
+    return ret;
+}
+
 int main(int argc, char *argv[])
 {
     int ret;
@@ -973,11 +1055,12 @@ int main(int argc, char *argv[])
     int num_comps = 1;
     int num_threads = 1;
     int func_idx = 1;
+    int sub_test = 0;
     int c;
 
     while (1)
     {
-        c = getopt (argc, argv, "t:c:x:l:f:");
+        c = getopt (argc, argv, "t:c:x:l:f:s:");
         if (c == -1)
             break;
 
@@ -998,12 +1081,15 @@ int main(int argc, char *argv[])
         case 'f':
             func_idx = atoi(optarg);
             break;
+        case 's':
+            sub_test = atoi(optarg);
+            break;
         default:
             printf ("Unrecognized argument\n");
         }
     }
 
-    if (test_id < 0 || test_id > 3) {
+    if (test_id < 0 || test_id > 4) {
         printf("Invalid test id\n");
         return 1;
     }
@@ -1057,6 +1143,18 @@ int main(int argc, char *argv[])
                 return 1;
             }
             ret = test_rpc_stress_select(core_id, num_comps, func_idx);
+            break;
+        case 4:
+            /* MMU fault test */
+            if (core_id < 0 || core_id > 4) {
+                printf("Invalid core id\n");
+                return 1;
+            }
+            if (num_comps < 0) {
+                printf("Invalid num comps id\n");
+                return 1;
+            }
+            ret = test_errors(core_id, num_comps, sub_test);
             break;
         default:
             break;

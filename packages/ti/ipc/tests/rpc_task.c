@@ -71,6 +71,7 @@ static Int32 MxServer_skel_add(UInt32 size, UInt32 *data);
 static Int32 fxnAdd3(UInt32 size, UInt32 *data);
 static Int32 fxnAddX(UInt32 size, UInt32 *data);
 static Int32 MxServer_skel_compute(UInt32 size, UInt32 *data);
+static Int32 fxnFault(UInt32 size, UInt32 *data);
 
 /* MxServer skel function array */
 static RcmServer_FxnDesc mxSkelAry[] = {
@@ -79,7 +80,8 @@ static RcmServer_FxnDesc mxSkelAry[] = {
     { "MxServer_add",           MxServer_skel_add       },
     { "fxnAdd3",                fxnAdd3                 },
     { "fxnAddX",                fxnAddX                 },
-    { "MxServer_compute",       MxServer_skel_compute   }
+    { "MxServer_compute",       MxServer_skel_compute   },
+    { "fxnFault",               fxnFault                }
 };
 
 /* MxServer skel function table */
@@ -125,6 +127,12 @@ static MmType_FxnSig rpc_sigAry[] = {
         {
             { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
             { MmType_Dir_In,  MmType_PtrType(MmType_Param_VOID), 1 }
+        }
+    },
+    { "fxnFault", 2,
+        {
+            { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
+            { MmType_Dir_In,  MmType_PtrType(MmType_Param_U32), 1 }
         }
     }
 };
@@ -282,6 +290,33 @@ Int32 MxServer_skel_compute(UInt32 size, UInt32 *data)
             Cache_Type_ALL, TRUE);
 
     return(result);
+}
+
+/*
+ *  ======== fxnAddX ========
+ */
+Int32 fxnFault(UInt32 size, UInt32 *data)
+{
+    MmType_Param *payload = (MmType_Param *)data;
+    Int a;
+
+    a = (UInt32)payload[0].data;
+
+    switch (a) {
+        case 1:
+            System_printf("Generating read MMU Fault...\n");
+            a = *(volatile int *)(0x96000000);
+            break;
+        case 2:
+            System_printf("Generating write MMU Fault...\n");
+            *(volatile int *)(0x96000000) = 0x1;
+            break;
+        default:
+            System_printf("Invalid fxnFault test\n");
+            break;
+    }
+
+    return(0);
 }
 
 /*
