@@ -106,6 +106,12 @@ extern "C" {
 #define HWSPINLOCK_SIZE             0x1000
 #define HWSPINLOCK_OFFSET           0x800
 
+#ifndef SYSLINK_SYSBIOS_SMP
+#define CORE0 "CORE0"
+#else
+#define CORE0 "IPU"
+#endif
+
 /** ============================================================================
  *  Application specific configuration, please change these value according to
  *  your application's need.
@@ -238,9 +244,15 @@ extern unsigned int syslink_dsp_mem_size;
 
 /*Char Syslink_Override_Params[MAX_SIZE_OVERRIDE_PARAMS];*/
 
+#ifndef SYSLINK_SYSBIOS_SMP
 String Syslink_Override_Params = "ProcMgr.proc[CORE0].mmuEnable=TRUE;"
                                  "ProcMgr.proc[CORE0].carveoutAddr0=0xBA300000;"
                                  "ProcMgr.proc[CORE0].carveoutSize0=0x5A00000;"
+#else
+String Syslink_Override_Params = "ProcMgr.proc[IPU].mmuEnable=TRUE;"
+                                 "ProcMgr.proc[IPU].carveoutAddr0=0xBA300000;"
+                                 "ProcMgr.proc[IPU].carveoutSize0=0x5A00000;"
+#endif
                                  "ProcMgr.proc[DSP].mmuEnable=TRUE;"
                                  "ProcMgr.proc[DSP].carveoutAddr0=0xBA300000;"
                                  "ProcMgr.proc[DSP].carveoutSize0=0x5A00000;";
@@ -377,7 +389,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         String_cpy (config->multiProcConfig.nameList [0],
                     "HOST");
         String_cpy (config->multiProcConfig.nameList [1],
-                    "CORE0");
+                    "IPU");
         String_cpy (config->multiProcConfig.nameList [2],
                     "DSP");
 #else
@@ -405,7 +417,7 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
         config->ipu_pm_config.int_id = 58;
 #ifdef SYSLINK_SYSBIOS_SMP
         config->ipu_pm_config.num_procs = 2;
-        config->ipu_pm_config.proc_ids[0] = 1; // CORE0 is set as 1 above
+        config->ipu_pm_config.proc_ids[0] = 1; // IPU is set as 1 above
         config->ipu_pm_config.proc_ids[1] = 2; // DSP is set as 2 above
 #else
         config->ipu_pm_config.num_procs = 3;
@@ -855,7 +867,7 @@ _Platform_setup (Ipc_Config * cfg)
     GT_0trace (curTrace, GT_ENTER, "_Platform_setup");
 
     /* Get MultiProc ID by name. */
-    procId = MultiProc_getId ("CORE0");
+    procId = MultiProc_getId (CORE0);
 
     handle = &Platform_objects [procId];
 
@@ -1081,7 +1093,8 @@ _Platform_setup (Ipc_Config * cfg)
             OMAP5430BENELLIPROC_destroy(procId);
 #endif
 
-        procId = MultiProc_getId ("CORE0");
+        procId = MultiProc_getId (CORE0);
+
         handle = &Platform_objects [procId];
         if (handle->pmHandle) {
             ProcMgr_delete(&handle->pmHandle);
@@ -1188,7 +1201,7 @@ _Platform_destroy (void)
 #endif
 
     /* ------------------------- ipu0 cleanup ------------------------------- */
-    handle = &Platform_objects [MultiProc_getId ("CORE0")];
+    handle = &Platform_objects [MultiProc_getId (CORE0)];
     if (handle->pmHandle != NULL) {
         tmpStatus = ProcMgr_delete (&handle->pmHandle);
         GT_assert (curTrace, (tmpStatus >= 0));
@@ -1236,7 +1249,7 @@ _Platform_destroy (void)
         }
     }
 
-    tmpStatus = OMAP5430BENELLIPROC_destroy (MultiProc_getId ("CORE0"));
+    tmpStatus = OMAP5430BENELLIPROC_destroy (MultiProc_getId (CORE0));
     GT_assert (curTrace, (tmpStatus >= 0));
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;

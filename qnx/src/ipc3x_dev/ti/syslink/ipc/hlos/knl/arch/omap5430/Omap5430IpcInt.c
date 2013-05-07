@@ -131,6 +131,12 @@ extern "C" {
 #define OMAP5430_INDEX_HOST 3
 #endif
 
+#ifndef SYSLINK_SYSBIOS_SMP
+#define CORE0    "CORE0"
+#else
+#define CORE0    "IPU"
+#endif
+
 /* Macro to make a correct module magic number with refCount */
 #define OMAP5430IPCINT_MAKE_MAGICSTAMP(x) \
                                     ((OMAP5430IPCINT_MODULEID << 12u) | (x))
@@ -560,7 +566,7 @@ Omap5430IpcInt_setup (Omap5430IpcInt_Config * cfg)
                                                       MultiProc_getId ("CORE1");
 #endif
             Omap5430IpcInt_state.procIds [OMAP5430_INDEX_CORE0] =
-                                                      MultiProc_getId ("CORE0");
+                                                      MultiProc_getId (CORE0);
             Omap5430IpcInt_state.maxProcessors = MultiProc_getNumProcessors();
 
             if (status >= 0) {

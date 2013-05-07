@@ -107,11 +107,19 @@ extern "C" {
 #define NumCarveouts 1
 
 /* config param for core0 mmu */
+#ifndef SYSLINK_SYSBIOS_SMP
 #define PARAMS_mmuEnable "ProcMgr.proc[CORE0].mmuEnable="
 #define PARAMS_carveoutAddr0 "ProcMgr.proc[CORE0].carveoutAddr0="
 #define PARAMS_carveoutSize0 "ProcMgr.proc[CORE0].carveoutSize0="
 #define PARAMS_carveoutAddr1 "ProcMgr.proc[CORE0].carveoutAddr1="
 #define PARAMS_carveoutSize1 "ProcMgr.proc[CORE0].carveoutSize1="
+#else
+#define PARAMS_mmuEnable "ProcMgr.proc[IPU].mmuEnable="
+#define PARAMS_carveoutAddr0 "ProcMgr.proc[IPU].carveoutAddr0="
+#define PARAMS_carveoutSize0 "ProcMgr.proc[IPU].carveoutSize0="
+#define PARAMS_carveoutAddr1 "ProcMgr.proc[IPU].carveoutAddr1="
+#define PARAMS_carveoutSize1 "ProcMgr.proc[IPU].carveoutSize1="
+#endif
 #define PARAMS_mmuEnableDSP "ProcMgr.proc[DSP].mmuEnable="
 #define PARAMS_carveoutAddr0DSP "ProcMgr.proc[DSP].carveoutAddr0="
 #define PARAMS_carveoutSize0DSP "ProcMgr.proc[DSP].carveoutSize0="

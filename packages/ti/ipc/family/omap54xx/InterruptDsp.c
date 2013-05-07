@@ -150,14 +150,19 @@ Void InterruptDsp_intSend(UInt16 remoteProcId, UArg arg)
     static UInt16 appm3ProcId = MultiProc_INVALIDID;
     static UInt16 hostProcId = MultiProc_INVALIDID;
     static UInt16 dspProcId = MultiProc_INVALIDID;
+    static UInt16 ipuProcId = MultiProc_INVALIDID;
 
     if (!configured) {
         hostProcId  = MultiProc_getId("HOST");
         dspProcId   = MultiProc_getId("DSP");
         sysm3ProcId = MultiProc_getId("CORE0");
         appm3ProcId = MultiProc_getId("CORE1");
+        ipuProcId   = MultiProc_getId("IPU");
         configured  = TRUE;
     }
+
+    /* We currently do not support interrupts from DSP to IPU in SMP mode */
+    Assert_isTrue(remoteProcId != ipuProcId, NULL);
 
     if (remoteProcId == sysm3ProcId) {
         REG32(MAILBOX_MESSAGE(HOST_TO_SYSM3_MBX)) = arg;

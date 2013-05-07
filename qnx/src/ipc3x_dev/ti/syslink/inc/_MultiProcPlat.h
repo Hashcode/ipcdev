@@ -77,7 +77,7 @@ MultiProc_Config MultiProc_PlatformConfig = {
 MultiProc_Config MultiProc_PlatformConfig = {
     .numProcessors = 3, /* numProcessors */
     .nameList[0] = "HOST",
-    .nameList[1] = "CORE0",
+    .nameList[1] = "IPU",
     .nameList[2] = "DSP",
     .id = 0,
 };

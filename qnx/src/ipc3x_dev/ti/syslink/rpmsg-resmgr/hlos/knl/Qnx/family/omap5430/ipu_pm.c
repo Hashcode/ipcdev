@@ -84,6 +84,12 @@
 #include <Bitops.h>
 #include <_rpmsg.h>
 
+#ifndef SYSLINK_SYSBIOS_SMP
+#define CORE0    "CORE0"
+#else
+#define CORE0    "IPU"
+#endif
+
 /* Defines the ipu_pm state object, which contains all the module
  * specific information. */
 struct ipu_pm_module_object {
@@ -579,7 +585,7 @@ static Bool ipu_pm_clr_gptimer_interrupt(Ptr fxnArgs)
 static Bool ipu_pm_gptimer_interrupt(Ptr fxnArgs)
 {
     int num;
-    uint16_t core0_id = MultiProc_getId("CORE0");
+    uint16_t core0_id = MultiProc_getId(CORE0);
     uint16_t core1_id = MultiProc_getId("CORE1");
     uint16_t dsp_id = MultiProc_getId("DSP");
 
@@ -1862,7 +1868,7 @@ int ipu_pm_save_ctx(int proc_id)
     int core0_loaded;
     int core1_loaded;
     unsigned long timeout;
-    unsigned short core0_id = MultiProc_getId("CORE0");
+    unsigned short core0_id = MultiProc_getId(CORE0);
     unsigned short core1_id = MultiProc_getId("CORE1");
     unsigned short dsp_id = MultiProc_getId("DSP");
     struct itimerspec value;
@@ -2046,7 +2052,7 @@ int ipu_pm_restore_ctx(int proc_id)
     int retval = 0;
     int core0_loaded;
     int core1_loaded;
-    unsigned short core0_id = MultiProc_getId("CORE0");
+    unsigned short core0_id = MultiProc_getId(CORE0);
     unsigned short core1_id = MultiProc_getId("CORE1");
     unsigned short dsp_id = MultiProc_getId("DSP");
 
@@ -2157,7 +2163,7 @@ error:
 /* ISR for Timer*/
 static void ipu_pm_timer_interrupt (union sigval val)
 {
-    ipu_pm_save_ctx(MultiProc_getId("CORE0"));
+    ipu_pm_save_ctx(MultiProc_getId(CORE0));
     return;
 }
 #else // BENELLI_SELF_HIBERNATION
@@ -2179,7 +2185,7 @@ int ipu_pm_attach(int proc_id)
         return -EINVAL;
     }
 
-    if (proc_id == MultiProc_getId("CORE0")) {
+    if (proc_id == MultiProc_getId(CORE0)) {
         ipu_pm_state.loaded_procs |= CORE0_LOADED;
 #ifdef BENELLI_WATCHDOG_TIMER
         ipu_pm_gpt_enable(GPTIMER_9);
@@ -2250,7 +2256,7 @@ int ipu_pm_attach(int proc_id)
 
     if (retval < 0) {
 #ifdef BENELLI_WATCHDOG_TIMER
-        if (proc_id == MultiProc_getId("CORE0")) {
+        if (proc_id == MultiProc_getId(CORE0)) {
             if (ipu_pm_state.gpt9IsrObject) {
                 OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
                 OsalIsr_delete(&ipu_pm_state.gpt9IsrObject);
@@ -2307,7 +2313,7 @@ int ipu_pm_detach(int proc_id)
     }
 #endif
 
-    if (proc_id == MultiProc_getId("CORE0")) {
+    if (proc_id == MultiProc_getId(CORE0)) {
 #ifdef BENELLI_WATCHDOG_TIMER
         OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt9IsrObject);

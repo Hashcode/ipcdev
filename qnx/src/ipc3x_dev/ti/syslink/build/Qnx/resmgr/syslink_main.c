@@ -1174,7 +1174,11 @@ int main(int argc, char *argv[])
 #if defined(SYSLINK_PLATFORM_OMAP4430)
             syslink_firmware[syslink_num_cores].proc = "SYSM3";
 #else
+#ifndef SYSLINK_SYSBIOS_SMP
             syslink_firmware[syslink_num_cores].proc = "CORE0";
+#else
+            syslink_firmware[syslink_num_cores].proc = "IPU";
+#endif
 #endif
             syslink_num_cores++;
 #ifndef SYSLINK_SYSBIOS_SMP
