@@ -64,7 +64,7 @@
 #include <ti/sysbios/gates/GateAll.h>
 
 #include <ti/sysbios/knl/Clock.h>
-#include <ti/sysbios/hal/Cache.h>
+#include <ti/sysbios/family/c64p/Cache.h>
 #include <ti/sysbios/knl/Swi.h>
 
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
@@ -82,11 +82,6 @@
 
 /* Used for defining the size of the virtqueue registry */
 #define NUM_QUEUES                      2
-
-/* Predefined device addresses */
-#define IPU_MEM_VRING0          0xc3000000
-#define IPU_MEM_VRING1          0xc3004000
-
 
 #define DIV_ROUND_UP(n,d)   (((n) + (d) - 1) / (d))
 #define RP_MSG_BUFS_SPACE   (VirtQueue_RP_MSG_NUM_BUFS * RPMSG_BUF_SIZE * 2)
@@ -129,6 +124,7 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 
 {
     void *vringAddr = NULL;
+    Cache_Mar         marValue;
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
 
@@ -152,12 +148,16 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
     vq->num_free = VirtQueue_RP_MSG_NUM_BUFS;
 
     switch (vq->id) {
-    /* sysm3 rpmsg vrings */
         case ID_DSP_TO_A9:
-            vringAddr = (struct vring *) IPU_MEM_VRING0;
-            break;
         case ID_A9_TO_DSP:
-            vringAddr = (struct vring *) IPU_MEM_VRING1;
+            vringAddr = (struct vring *)Resource_getVringDA(vq->id);
+            Assert_isTrue(vringAddr != NULL, NULL);
+
+            /* Also, assert that the vring address is non-cached: */
+            marValue = Cache_getMar((Ptr)vringAddr);
+            Log_print1(Diags_USER1, "Vring cache is %s",
+                 (IArg)(marValue == Cache_Mar_ENABLE? "enabled" : "disabled"));
+            Assert_isTrue(marValue == Cache_Mar_DISABLE, NULL);
             break;
          default:
             Log_error1("VirtQueue_create: invalid vq->id: %d", vq->id);

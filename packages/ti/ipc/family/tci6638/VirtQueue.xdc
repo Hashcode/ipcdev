@@ -136,9 +136,7 @@ module VirtQueue
 
     // -------- Module Parameters --------
 
-    /* Predefined device addresses */
-    config UInt32 CORE0_MEM_VRING0 = 0xA0000000;
-    config UInt32 CORE0_MEM_VRING1 = 0xA0004000;
+    /* Per Core offset of start of VRING control structures from CORE0 */
     config UInt32 VRING_OFFSET = 0x00080000;
 
     /*

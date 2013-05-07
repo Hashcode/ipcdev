@@ -141,6 +141,7 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
                              const VirtQueue_Params *params, Error_Block *eb)
 {
     void *vringAddr = NULL;
+    UInt32 marValue;
 
     VirtQueue_module->traceBufPtr = Resource_getTraceBufPtr();
     /* Create the thread protection gate */
@@ -164,13 +165,20 @@ Int VirtQueue_Instance_init(VirtQueue_Object *vq, UInt16 remoteProcId,
 
     switch (vq->id) {
         case ID_DSP_TO_A9:
-            vringAddr = (struct vring *) (VirtQueue_CORE0_MEM_VRING0 +
-                (DNUM * VirtQueue_VRING_OFFSET));
-            break;
         case ID_A9_TO_DSP:
-            vringAddr = (struct vring *) (VirtQueue_CORE0_MEM_VRING1 +
-                (DNUM * VirtQueue_VRING_OFFSET));
-            break;
+            vringAddr = (struct vring *)Resource_getVringDA(vq->id);
+            Assert_isTrue(vringAddr != NULL, NULL);
+            /* Add per core offset: must match on host side: */
+            vringAddr = (struct vring *)((UInt32)vringAddr +
+                                         (DNUM * VirtQueue_VRING_OFFSET));
+
+            /* Also, assert that the vring address is non-cached: */
+            marValue = Cache_getMar((Ptr)vringAddr);
+            Log_print1(Diags_USER1, "Vring cache is %s",
+                 (IArg)(marValue & 0x1 ? "enabled" : "disabled"));
+            Assert_isTrue(!(marValue & 0x1), NULL);
+            break ;
+
          default:
             Log_error1("VirtQueue_create: invalid vq->id: %d", vq->id);
             GateAll_delete(&vq->gateH);
