@@ -204,7 +204,7 @@ static Void RPMessage_swiFxn(UArg arg0, UArg arg1)
     while ((token = VirtQueue_getAvailBuf(transport.virtQueue_fromHost,
                                          (Void **)&msg, &len)) >= 0) {
 
-        Log_print3(Diags_INFO, FXNN": \n\tReceived msg: from: 0x%x, "
+        Log_print3(Diags_INFO, FXNN": Received msg from: 0x%x, "
                    "to: 0x%x, dataLen: %d",
                   (IArg)msg->srcAddr, (IArg)msg->dstAddr, (IArg)msg->dataLen);
 
@@ -609,7 +609,7 @@ Int RPMessage_send(UInt16 dstProc,
         /* If callback registered, call it: */
         if (obj->cb) {
             Log_print2(Diags_INFO, FXNN": calling callback with data len: "
-                            "%d, from: %d\n", len, srcEndpt);
+                            "%d, from: %d", len, srcEndpt);
             obj->cb(obj, obj->arg, data, len, srcEndpt);
         }
         else {
