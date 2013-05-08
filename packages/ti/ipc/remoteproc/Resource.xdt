@@ -63,13 +63,20 @@
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
 %}
-%else if (prog.platformName.match(/vayu\.ipu2/)) {
+%else if (prog.cpu.deviceName.match(/Vayu/)) { // NOTE: This will probably change to DRA7xx
+%    if (prog.cpu.attrs.cpuCore.match(/CM4/) &&
+%       (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 2)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_vayu_ipu.h>
-%}
-%else if (prog.platformName.match(/vayu\.dsp1/)) {
+%    }
+%    else if (prog.cpu.attrs.cpuCore.match(/6600/)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_vayu_dsp.h>
+%    }
+%    else {
+%        print("ti.ipc.remoteproc.Resource.xdt - unable to provide Vayu " +
+%                "resource table (" + prog.cpu.attrs.cpuCore + ")");
+%    }
 %}
 %else {
 %    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
