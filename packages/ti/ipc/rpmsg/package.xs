@@ -84,6 +84,8 @@ function close()
     xdc.useModule('ti.sysbios.heaps.HeapBuf');
     xdc.useModule('ti.sysbios.knl.Semaphore');
     xdc.useModule('ti.sysbios.knl.Swi');
+
+    xdc.useModule('ti.sdo.utils.List');
 }
 
 /*
