@@ -49,7 +49,6 @@
 #include <stdlib.h>
 
 #include <ti/ipc/rpmsg/RPMessage.h>
-#include <ti/ipc/rpmsg/NameMap.h>
 #include "rpmsg_omx.h"
 #include "ServiceMgr.h"
 
