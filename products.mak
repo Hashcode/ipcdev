@@ -33,15 +33,15 @@
 
 # Optional: recommended to install all dependent components in one folder.
 #
-DEPOT = _your_depot_folder_
+DEPOT ?= _your_depot_folder_
 
 #################### IPC Linux ####################
 
 # Set up required cross compiler path for IPC Linux configuration and build
-TOOLCHAIN_LONGNAME ?=arm-none-linux-gnueabi
+TOOLCHAIN_LONGNAME ?= arm-none-linux-gnueabi
 TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
-TOOLCHAIN_PREFIX = $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
-KERNEL_INSTALL_DIR =
+TOOLCHAIN_PREFIX ?= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
+KERNEL_INSTALL_DIR ?=
 
 # Linux platform to build (optional)
 # Run './configure --help' for available PLATFORM options
@@ -59,7 +59,7 @@ DESTDIR ?=
 
 # List of supported devices (choose one): omap5432, vayu
 #
-DEVICE = _device_
+DEVICE ?= _device_
 
 # Define the product variables for the device you will be using.
 #
