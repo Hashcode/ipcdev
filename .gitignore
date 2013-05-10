@@ -44,10 +44,10 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /linux/src/*/.libs
 /linux/src/*/*.o
 /linux/src/daemon/lad_*
-/linux/src/tests/MessageQApp_*
-/linux/src/tests/MessageQBench_*
-/linux/src/tests/MessageQMulti_*
-/linux/src/tests/NameServerApp_*
+/linux/src/tests/MessageQApp
+/linux/src/tests/MessageQBench
+/linux/src/tests/MessageQMulti
+/linux/src/tests/NameServerApp
 /linux/src/tests/nano_test_*
 /linux/src/tests/ping_rpmsg
 /linux/src/tests/mmrpc_test

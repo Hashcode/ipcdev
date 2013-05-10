@@ -35,33 +35,24 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = ping_rpmsg$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_3) $(am__EXEEXT_4) $(am__EXEEXT_5) \
-	$(am__EXEEXT_6) $(am__EXEEXT_7) $(am__EXEEXT_8)
-@OMAP54XX_SMP_TRUE@am__append_1 = MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
-@OMAP54XX_SMP_TRUE@                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp
+bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
+	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
+	NameServerApp$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_1) $(am__EXEEXT_3) $(am__EXEEXT_1) \
+	$(am__EXEEXT_1) $(am__EXEEXT_4)
 
+# Add platform specific bin application's here
+@OMAP54XX_SMP_TRUE@am__append_1 = 
 @KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_2 = mmrpc_test
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_3 = MessageQApp_omapl138 MessageQBench_omapl138 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@                MessageQMulti_omapl138 NameServerApp_omapl138
-
-@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_4 = nano_test_omapl138
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_5 = MessageQApp_tci6614 MessageQBench_tci6614 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@                MessageQMulti_tci6614 NameServerApp_tci6614
-
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_6 = MessageQApp_tci6638 MessageQBench_tci6638 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@                MessageQMulti_tci6638 NameServerApp_tci6638
-
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_omapl138 MessageQBench_omapl138 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_omapl138 NameServerApp_omapl138 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6614 MessageQBench_tci6614 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6614 NameServerApp_tci6614 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQApp_tci6638 MessageQBench_tci6638 \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@                MessageQMulti_tci6638 NameServerApp_tci6638
-
-@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_8 = nano_test_omapl138
+# Add platform specific bin application's here
+@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_3 = 
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_4 = nano_test
+# Add platform specific bin application's here
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_5 = 
+# Add platform specific bin application's here
+@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_6 = 
+# Add platform independent apps here or above in bin_PROGRMAS
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = nano_test
 subdir = linux/src/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -70,135 +61,39 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-@OMAP54XX_SMP_TRUE@am__EXEEXT_1 = MessageQApp_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_TRUE@	MessageQBench_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_TRUE@	MessageQMulti_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_TRUE@	NameServerApp_omap54xx_smp$(EXEEXT)
+am__EXEEXT_1 =
 @KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__EXEEXT_2 = mmrpc_test$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = MessageQApp_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	MessageQBench_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	MessageQMulti_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	NameServerApp_omapl138$(EXEEXT)
-@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_4 = nano_test_omapl138$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_5 = MessageQApp_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQBench_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	MessageQMulti_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@	NameServerApp_tci6614$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_6 = MessageQApp_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQBench_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	MessageQMulti_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@	NameServerApp_tci6638$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_7 = MessageQApp_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQApp_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQBench_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	MessageQMulti_tci6638$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@	NameServerApp_tci6638$(EXEEXT)
-@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_8 = nano_test_omapl138$(EXEEXT)
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = nano_test$(EXEEXT)
+@CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_4 = nano_test$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am_MessageQApp_omap54xx_smp_OBJECTS = $(am__objects_1) \
-	MessageQApp.$(OBJEXT)
-MessageQApp_omap54xx_smp_OBJECTS =  \
-	$(am_MessageQApp_omap54xx_smp_OBJECTS)
+am_MessageQApp_OBJECTS = $(am__objects_1) MessageQApp.$(OBJEXT)
+MessageQApp_OBJECTS = $(am_MessageQApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la
 am__DEPENDENCIES_2 =
-MessageQApp_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+MessageQApp_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+am_MessageQBench_OBJECTS = $(am__objects_1) MessageQBench.$(OBJEXT)
+MessageQBench_OBJECTS = $(am_MessageQBench_OBJECTS)
+MessageQBench_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
-am_MessageQApp_omapl138_OBJECTS = $(am__objects_1) \
-	MessageQApp.$(OBJEXT)
-MessageQApp_omapl138_OBJECTS = $(am_MessageQApp_omapl138_OBJECTS)
-MessageQApp_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQApp_tci6614_OBJECTS = $(am__objects_1) \
-	MessageQApp.$(OBJEXT)
-MessageQApp_tci6614_OBJECTS = $(am_MessageQApp_tci6614_OBJECTS)
-MessageQApp_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQApp_tci6638_OBJECTS = $(am__objects_1) \
-	MessageQApp.$(OBJEXT)
-MessageQApp_tci6638_OBJECTS = $(am_MessageQApp_tci6638_OBJECTS)
-MessageQApp_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQBench_omap54xx_smp_OBJECTS = $(am__objects_1) \
-	MessageQBench.$(OBJEXT)
-MessageQBench_omap54xx_smp_OBJECTS =  \
-	$(am_MessageQBench_omap54xx_smp_OBJECTS)
-MessageQBench_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQBench_omapl138_OBJECTS = $(am__objects_1) \
-	MessageQBench.$(OBJEXT)
-MessageQBench_omapl138_OBJECTS = $(am_MessageQBench_omapl138_OBJECTS)
-MessageQBench_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQBench_tci6614_OBJECTS = $(am__objects_1) \
-	MessageQBench.$(OBJEXT)
-MessageQBench_tci6614_OBJECTS = $(am_MessageQBench_tci6614_OBJECTS)
-MessageQBench_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQBench_tci6638_OBJECTS = $(am__objects_1) \
-	MessageQBench.$(OBJEXT)
-MessageQBench_tci6638_OBJECTS = $(am_MessageQBench_tci6638_OBJECTS)
-MessageQBench_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQMulti_omap54xx_smp_OBJECTS = $(am__objects_1) \
-	MessageQMulti.$(OBJEXT)
-MessageQMulti_omap54xx_smp_OBJECTS =  \
-	$(am_MessageQMulti_omap54xx_smp_OBJECTS)
-MessageQMulti_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQMulti_omapl138_OBJECTS = $(am__objects_1) \
-	MessageQMulti.$(OBJEXT)
-MessageQMulti_omapl138_OBJECTS = $(am_MessageQMulti_omapl138_OBJECTS)
-MessageQMulti_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQMulti_tci6614_OBJECTS = $(am__objects_1) \
-	MessageQMulti.$(OBJEXT)
-MessageQMulti_tci6614_OBJECTS = $(am_MessageQMulti_tci6614_OBJECTS)
-MessageQMulti_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_MessageQMulti_tci6638_OBJECTS = $(am__objects_1) \
-	MessageQMulti.$(OBJEXT)
-MessageQMulti_tci6638_OBJECTS = $(am_MessageQMulti_tci6638_OBJECTS)
-MessageQMulti_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+am_MessageQMulti_OBJECTS = $(am__objects_1) MessageQMulti.$(OBJEXT)
+MessageQMulti_OBJECTS = $(am_MessageQMulti_OBJECTS)
+MessageQMulti_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am__objects_2 = NameServerApp.$(OBJEXT)
-am_NameServerApp_omap54xx_smp_OBJECTS = $(am__objects_2)
-NameServerApp_omap54xx_smp_OBJECTS =  \
-	$(am_NameServerApp_omap54xx_smp_OBJECTS)
-NameServerApp_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_NameServerApp_omapl138_OBJECTS = $(am__objects_2)
-NameServerApp_omapl138_OBJECTS = $(am_NameServerApp_omapl138_OBJECTS)
-NameServerApp_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_NameServerApp_tci6614_OBJECTS = $(am__objects_2)
-NameServerApp_tci6614_OBJECTS = $(am_NameServerApp_tci6614_OBJECTS)
-NameServerApp_tci6614_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_2)
-am_NameServerApp_tci6638_OBJECTS = $(am__objects_2)
-NameServerApp_tci6638_OBJECTS = $(am_NameServerApp_tci6638_OBJECTS)
-NameServerApp_tci6638_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+am_NameServerApp_OBJECTS = $(am__objects_2)
+NameServerApp_OBJECTS = $(am_NameServerApp_OBJECTS)
+NameServerApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am_mmrpc_test_OBJECTS = Mx.$(OBJEXT) mmrpc_test.$(OBJEXT)
 mmrpc_test_OBJECTS = $(am_mmrpc_test_OBJECTS)
 mmrpc_test_DEPENDENCIES = $(top_builddir)/linux/src/mm/libmmrpc.la
-am_nano_test_omapl138_OBJECTS = $(am__objects_1) nano_test.$(OBJEXT)
-nano_test_omapl138_OBJECTS = $(am_nano_test_omapl138_OBJECTS)
-nano_test_omapl138_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+am_nano_test_OBJECTS = $(am__objects_1) nano_test.$(OBJEXT)
+nano_test_OBJECTS = $(am_nano_test_OBJECTS)
+nano_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
 	$(am__DEPENDENCIES_2)
 am_ping_rpmsg_OBJECTS = ping_rpmsg.$(OBJEXT)
@@ -215,38 +110,14 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(MessageQApp_omap54xx_smp_SOURCES) \
-	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
-	$(MessageQApp_tci6638_SOURCES) \
-	$(MessageQBench_omap54xx_smp_SOURCES) \
-	$(MessageQBench_omapl138_SOURCES) \
-	$(MessageQBench_tci6614_SOURCES) \
-	$(MessageQBench_tci6638_SOURCES) \
-	$(MessageQMulti_omap54xx_smp_SOURCES) \
-	$(MessageQMulti_omapl138_SOURCES) \
-	$(MessageQMulti_tci6614_SOURCES) \
-	$(MessageQMulti_tci6638_SOURCES) \
-	$(NameServerApp_omap54xx_smp_SOURCES) \
-	$(NameServerApp_omapl138_SOURCES) \
-	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_omapl138_SOURCES) $(ping_rpmsg_SOURCES)
-DIST_SOURCES = $(MessageQApp_omap54xx_smp_SOURCES) \
-	$(MessageQApp_omapl138_SOURCES) $(MessageQApp_tci6614_SOURCES) \
-	$(MessageQApp_tci6638_SOURCES) \
-	$(MessageQBench_omap54xx_smp_SOURCES) \
-	$(MessageQBench_omapl138_SOURCES) \
-	$(MessageQBench_tci6614_SOURCES) \
-	$(MessageQBench_tci6638_SOURCES) \
-	$(MessageQMulti_omap54xx_smp_SOURCES) \
-	$(MessageQMulti_omapl138_SOURCES) \
-	$(MessageQMulti_tci6614_SOURCES) \
-	$(MessageQMulti_tci6638_SOURCES) \
-	$(NameServerApp_omap54xx_smp_SOURCES) \
-	$(NameServerApp_omapl138_SOURCES) \
-	$(NameServerApp_tci6614_SOURCES) \
-	$(NameServerApp_tci6638_SOURCES) $(mmrpc_test_SOURCES) \
-	$(nano_test_omapl138_SOURCES) $(ping_rpmsg_SOURCES)
+SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
+	$(MessageQMulti_SOURCES) $(NameServerApp_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
+DIST_SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
+	$(MessageQMulti_SOURCES) $(NameServerApp_SOURCES) \
+	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
+	$(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -374,7 +245,7 @@ common_sources = \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h
 
 nameServer_common_sources = \
-                $(top_srcdir)/linux/include/Std.h\
+                $(top_srcdir)/linux/include/ti/ipc/Std.h \
                 $(top_srcdir)/linux/include/ladclient.h \
                 $(top_srcdir)/linux/include/_NameServer.h \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
@@ -388,31 +259,19 @@ ping_rpmsg_SOURCES = ping_rpmsg.c
 mmrpc_test_SOURCES = Mx.c mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
-MessageQApp_omap54xx_smp_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_tci6614_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_tci6638_SOURCES = $(common_sources) MessageQApp.c
+MessageQApp_SOURCES = $(common_sources) MessageQApp.c
 
 # list of sources for the 'MessageQBench' binary
-MessageQBench_omap54xx_smp_SOURCES = $(common_sources) MessageQBench.c
-MessageQBench_omapl138_SOURCES = $(common_sources) MessageQBench.c
-MessageQBench_tci6614_SOURCES = $(common_sources) MessageQBench.c
-MessageQBench_tci6638_SOURCES = $(common_sources) MessageQBench.c
+MessageQBench_SOURCES = $(common_sources) MessageQBench.c
 
 # list of sources for the 'MessageQMulti' binary
-MessageQMulti_omap54xx_smp_SOURCES = $(common_sources) MessageQMulti.c
-MessageQMulti_omapl138_SOURCES = $(common_sources) MessageQMulti.c
-MessageQMulti_tci6614_SOURCES = $(common_sources) MessageQMulti.c
-MessageQMulti_tci6638_SOURCES = $(common_sources) MessageQMulti.c
+MessageQMulti_SOURCES = $(common_sources) MessageQMulti.c
 
 # list of sources for the 'NameServerApp' binary
-NameServerApp_omap54xx_smp_SOURCES = $(nameServer_common_sources)
-NameServerApp_omapl138_SOURCES = $(nameServer_common_sources)
-NameServerApp_tci6614_SOURCES = $(nameServer_common_sources)
-NameServerApp_tci6638_SOURCES = $(nameServer_common_sources)
+NameServerApp_SOURCES = $(nameServer_common_sources)
 
 # list of sources for the 'nano_test' binary
-nano_test_omapl138_SOURCES = $(common_sources) nano_test.c
+nano_test_SOURCES = $(common_sources) nano_test.c
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
@@ -424,63 +283,27 @@ ping_rpmsg_LDADD = -lrt
 mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
-MessageQApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQApp_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQApp_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQApp_tci6638_LDADD = $(common_libraries) \
+MessageQApp_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link MessageQBench
-MessageQBench_omap54xx_smp_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-
-MessageQBench_omapl138_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-
-MessageQBench_tci6614_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-
-MessageQBench_tci6638_LDADD = $(common_libraries) -lrt \
+MessageQBench_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link MessageQMulti
-MessageQMulti_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQMulti_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQMulti_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-MessageQMulti_tci6638_LDADD = $(common_libraries) \
+MessageQMulti_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link NameServerApp
-NameServerApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-NameServerApp_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-NameServerApp_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-
-NameServerApp_tci6638_LDADD = $(common_libraries) \
+NameServerApp_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 
 # the additional libraries needed to link nano_test
-nano_test_omapl138_LDADD = $(common_libraries) \
+nano_test_LDADD = $(common_libraries) \
                 $(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
                 $(AM_LDFLAGS)
 
@@ -545,60 +368,24 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-MessageQApp_omap54xx_smp$(EXEEXT): $(MessageQApp_omap54xx_smp_OBJECTS) $(MessageQApp_omap54xx_smp_DEPENDENCIES) 
-	@rm -f MessageQApp_omap54xx_smp$(EXEEXT)
-	$(LINK) $(MessageQApp_omap54xx_smp_LDFLAGS) $(MessageQApp_omap54xx_smp_OBJECTS) $(MessageQApp_omap54xx_smp_LDADD) $(LIBS)
-MessageQApp_omapl138$(EXEEXT): $(MessageQApp_omapl138_OBJECTS) $(MessageQApp_omapl138_DEPENDENCIES) 
-	@rm -f MessageQApp_omapl138$(EXEEXT)
-	$(LINK) $(MessageQApp_omapl138_LDFLAGS) $(MessageQApp_omapl138_OBJECTS) $(MessageQApp_omapl138_LDADD) $(LIBS)
-MessageQApp_tci6614$(EXEEXT): $(MessageQApp_tci6614_OBJECTS) $(MessageQApp_tci6614_DEPENDENCIES) 
-	@rm -f MessageQApp_tci6614$(EXEEXT)
-	$(LINK) $(MessageQApp_tci6614_LDFLAGS) $(MessageQApp_tci6614_OBJECTS) $(MessageQApp_tci6614_LDADD) $(LIBS)
-MessageQApp_tci6638$(EXEEXT): $(MessageQApp_tci6638_OBJECTS) $(MessageQApp_tci6638_DEPENDENCIES) 
-	@rm -f MessageQApp_tci6638$(EXEEXT)
-	$(LINK) $(MessageQApp_tci6638_LDFLAGS) $(MessageQApp_tci6638_OBJECTS) $(MessageQApp_tci6638_LDADD) $(LIBS)
-MessageQBench_omap54xx_smp$(EXEEXT): $(MessageQBench_omap54xx_smp_OBJECTS) $(MessageQBench_omap54xx_smp_DEPENDENCIES) 
-	@rm -f MessageQBench_omap54xx_smp$(EXEEXT)
-	$(LINK) $(MessageQBench_omap54xx_smp_LDFLAGS) $(MessageQBench_omap54xx_smp_OBJECTS) $(MessageQBench_omap54xx_smp_LDADD) $(LIBS)
-MessageQBench_omapl138$(EXEEXT): $(MessageQBench_omapl138_OBJECTS) $(MessageQBench_omapl138_DEPENDENCIES) 
-	@rm -f MessageQBench_omapl138$(EXEEXT)
-	$(LINK) $(MessageQBench_omapl138_LDFLAGS) $(MessageQBench_omapl138_OBJECTS) $(MessageQBench_omapl138_LDADD) $(LIBS)
-MessageQBench_tci6614$(EXEEXT): $(MessageQBench_tci6614_OBJECTS) $(MessageQBench_tci6614_DEPENDENCIES) 
-	@rm -f MessageQBench_tci6614$(EXEEXT)
-	$(LINK) $(MessageQBench_tci6614_LDFLAGS) $(MessageQBench_tci6614_OBJECTS) $(MessageQBench_tci6614_LDADD) $(LIBS)
-MessageQBench_tci6638$(EXEEXT): $(MessageQBench_tci6638_OBJECTS) $(MessageQBench_tci6638_DEPENDENCIES) 
-	@rm -f MessageQBench_tci6638$(EXEEXT)
-	$(LINK) $(MessageQBench_tci6638_LDFLAGS) $(MessageQBench_tci6638_OBJECTS) $(MessageQBench_tci6638_LDADD) $(LIBS)
-MessageQMulti_omap54xx_smp$(EXEEXT): $(MessageQMulti_omap54xx_smp_OBJECTS) $(MessageQMulti_omap54xx_smp_DEPENDENCIES) 
-	@rm -f MessageQMulti_omap54xx_smp$(EXEEXT)
-	$(LINK) $(MessageQMulti_omap54xx_smp_LDFLAGS) $(MessageQMulti_omap54xx_smp_OBJECTS) $(MessageQMulti_omap54xx_smp_LDADD) $(LIBS)
-MessageQMulti_omapl138$(EXEEXT): $(MessageQMulti_omapl138_OBJECTS) $(MessageQMulti_omapl138_DEPENDENCIES) 
-	@rm -f MessageQMulti_omapl138$(EXEEXT)
-	$(LINK) $(MessageQMulti_omapl138_LDFLAGS) $(MessageQMulti_omapl138_OBJECTS) $(MessageQMulti_omapl138_LDADD) $(LIBS)
-MessageQMulti_tci6614$(EXEEXT): $(MessageQMulti_tci6614_OBJECTS) $(MessageQMulti_tci6614_DEPENDENCIES) 
-	@rm -f MessageQMulti_tci6614$(EXEEXT)
-	$(LINK) $(MessageQMulti_tci6614_LDFLAGS) $(MessageQMulti_tci6614_OBJECTS) $(MessageQMulti_tci6614_LDADD) $(LIBS)
-MessageQMulti_tci6638$(EXEEXT): $(MessageQMulti_tci6638_OBJECTS) $(MessageQMulti_tci6638_DEPENDENCIES) 
-	@rm -f MessageQMulti_tci6638$(EXEEXT)
-	$(LINK) $(MessageQMulti_tci6638_LDFLAGS) $(MessageQMulti_tci6638_OBJECTS) $(MessageQMulti_tci6638_LDADD) $(LIBS)
-NameServerApp_omap54xx_smp$(EXEEXT): $(NameServerApp_omap54xx_smp_OBJECTS) $(NameServerApp_omap54xx_smp_DEPENDENCIES) 
-	@rm -f NameServerApp_omap54xx_smp$(EXEEXT)
-	$(LINK) $(NameServerApp_omap54xx_smp_LDFLAGS) $(NameServerApp_omap54xx_smp_OBJECTS) $(NameServerApp_omap54xx_smp_LDADD) $(LIBS)
-NameServerApp_omapl138$(EXEEXT): $(NameServerApp_omapl138_OBJECTS) $(NameServerApp_omapl138_DEPENDENCIES) 
-	@rm -f NameServerApp_omapl138$(EXEEXT)
-	$(LINK) $(NameServerApp_omapl138_LDFLAGS) $(NameServerApp_omapl138_OBJECTS) $(NameServerApp_omapl138_LDADD) $(LIBS)
-NameServerApp_tci6614$(EXEEXT): $(NameServerApp_tci6614_OBJECTS) $(NameServerApp_tci6614_DEPENDENCIES) 
-	@rm -f NameServerApp_tci6614$(EXEEXT)
-	$(LINK) $(NameServerApp_tci6614_LDFLAGS) $(NameServerApp_tci6614_OBJECTS) $(NameServerApp_tci6614_LDADD) $(LIBS)
-NameServerApp_tci6638$(EXEEXT): $(NameServerApp_tci6638_OBJECTS) $(NameServerApp_tci6638_DEPENDENCIES) 
-	@rm -f NameServerApp_tci6638$(EXEEXT)
-	$(LINK) $(NameServerApp_tci6638_LDFLAGS) $(NameServerApp_tci6638_OBJECTS) $(NameServerApp_tci6638_LDADD) $(LIBS)
+MessageQApp$(EXEEXT): $(MessageQApp_OBJECTS) $(MessageQApp_DEPENDENCIES) 
+	@rm -f MessageQApp$(EXEEXT)
+	$(LINK) $(MessageQApp_LDFLAGS) $(MessageQApp_OBJECTS) $(MessageQApp_LDADD) $(LIBS)
+MessageQBench$(EXEEXT): $(MessageQBench_OBJECTS) $(MessageQBench_DEPENDENCIES) 
+	@rm -f MessageQBench$(EXEEXT)
+	$(LINK) $(MessageQBench_LDFLAGS) $(MessageQBench_OBJECTS) $(MessageQBench_LDADD) $(LIBS)
+MessageQMulti$(EXEEXT): $(MessageQMulti_OBJECTS) $(MessageQMulti_DEPENDENCIES) 
+	@rm -f MessageQMulti$(EXEEXT)
+	$(LINK) $(MessageQMulti_LDFLAGS) $(MessageQMulti_OBJECTS) $(MessageQMulti_LDADD) $(LIBS)
+NameServerApp$(EXEEXT): $(NameServerApp_OBJECTS) $(NameServerApp_DEPENDENCIES) 
+	@rm -f NameServerApp$(EXEEXT)
+	$(LINK) $(NameServerApp_LDFLAGS) $(NameServerApp_OBJECTS) $(NameServerApp_LDADD) $(LIBS)
 mmrpc_test$(EXEEXT): $(mmrpc_test_OBJECTS) $(mmrpc_test_DEPENDENCIES) 
 	@rm -f mmrpc_test$(EXEEXT)
 	$(LINK) $(mmrpc_test_LDFLAGS) $(mmrpc_test_OBJECTS) $(mmrpc_test_LDADD) $(LIBS)
-nano_test_omapl138$(EXEEXT): $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_DEPENDENCIES) 
-	@rm -f nano_test_omapl138$(EXEEXT)
-	$(LINK) $(nano_test_omapl138_LDFLAGS) $(nano_test_omapl138_OBJECTS) $(nano_test_omapl138_LDADD) $(LIBS)
+nano_test$(EXEEXT): $(nano_test_OBJECTS) $(nano_test_DEPENDENCIES) 
+	@rm -f nano_test$(EXEEXT)
+	$(LINK) $(nano_test_LDFLAGS) $(nano_test_OBJECTS) $(nano_test_LDADD) $(LIBS)
 ping_rpmsg$(EXEEXT): $(ping_rpmsg_OBJECTS) $(ping_rpmsg_DEPENDENCIES) 
 	@rm -f ping_rpmsg$(EXEEXT)
 	$(LINK) $(ping_rpmsg_LDFLAGS) $(ping_rpmsg_OBJECTS) $(ping_rpmsg_LDADD) $(LIBS)

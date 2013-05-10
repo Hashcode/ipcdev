@@ -41,40 +41,35 @@ VPATH = ../../../packages/ti/ipc/tests
 ###############################################################################
 
 # the program to build (the names of the final binaries)
-bin_PROGRAMS = ping_rpmsg
+bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
+                NameServerApp
+               
 
 if OMAP54XX_SMP
-  bin_PROGRAMS += MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
-                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
 if KDIR
   bin_PROGRAMS += mmrpc_test
 endif
 else
 if OMAPL138
-  bin_PROGRAMS += MessageQApp_omapl138 MessageQBench_omapl138 \
-                MessageQMulti_omapl138 NameServerApp_omapl138
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
 if CMEM
-  bin_PROGRAMS += nano_test_omapl138
+  bin_PROGRAMS += nano_test
 endif
 else
 if TCI6614
-  bin_PROGRAMS += MessageQApp_tci6614 MessageQBench_tci6614 \
-                MessageQMulti_tci6614 NameServerApp_tci6614
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
 else
 if TCI6638
-  bin_PROGRAMS += MessageQApp_tci6638 MessageQBench_tci6638 \
-                MessageQMulti_tci6638 NameServerApp_tci6638
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
 else
-  bin_PROGRAMS += MessageQApp_omap54xx_smp MessageQBench_omap54xx_smp \
-                MessageQMulti_omap54xx_smp NameServerApp_omap54xx_smp \
-                MessageQApp_omapl138 MessageQBench_omapl138 \
-                MessageQMulti_omapl138 NameServerApp_omapl138 \
-                MessageQApp_tci6614 MessageQBench_tci6614 \
-                MessageQMulti_tci6614 NameServerApp_tci6614 \
-                MessageQApp_tci6638 MessageQBench_tci6638 \
-                MessageQMulti_tci6638 NameServerApp_tci6638
+# Add platform independent apps here or above in bin_PROGRMAS
 if CMEM
-  bin_PROGRAMS += nano_test_omapl138
+  bin_PROGRAMS += nano_test
 endif
 endif
 endif
@@ -87,7 +82,7 @@ common_sources = \
                 $(top_srcdir)/packages/ti/ipc/MessageQ.h
 
 nameServer_common_sources = \
-                $(top_srcdir)/linux/include/Std.h\
+                $(top_srcdir)/linux/include/ti/ipc/Std.h \
                 $(top_srcdir)/linux/include/ladclient.h \
                 $(top_srcdir)/linux/include/_NameServer.h \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
@@ -100,31 +95,19 @@ ping_rpmsg_SOURCES = ping_rpmsg.c
 mmrpc_test_SOURCES = Mx.c mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
-MessageQApp_omap54xx_smp_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_omapl138_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_tci6614_SOURCES = $(common_sources) MessageQApp.c
-MessageQApp_tci6638_SOURCES = $(common_sources) MessageQApp.c
+MessageQApp_SOURCES = $(common_sources) MessageQApp.c
 
 # list of sources for the 'MessageQBench' binary
-MessageQBench_omap54xx_smp_SOURCES = $(common_sources) MessageQBench.c
-MessageQBench_omapl138_SOURCES = $(common_sources) MessageQBench.c
-MessageQBench_tci6614_SOURCES  = $(common_sources) MessageQBench.c
-MessageQBench_tci6638_SOURCES  = $(common_sources) MessageQBench.c
+MessageQBench_SOURCES = $(common_sources) MessageQBench.c
 
 # list of sources for the 'MessageQMulti' binary
-MessageQMulti_omap54xx_smp_SOURCES = $(common_sources) MessageQMulti.c
-MessageQMulti_omapl138_SOURCES = $(common_sources) MessageQMulti.c
-MessageQMulti_tci6614_SOURCES  = $(common_sources) MessageQMulti.c
-MessageQMulti_tci6638_SOURCES  = $(common_sources) MessageQMulti.c
+MessageQMulti_SOURCES = $(common_sources) MessageQMulti.c
 
 # list of sources for the 'NameServerApp' binary
-NameServerApp_omap54xx_smp_SOURCES = $(nameServer_common_sources)
-NameServerApp_omapl138_SOURCES = $(nameServer_common_sources)
-NameServerApp_tci6614_SOURCES  = $(nameServer_common_sources)
-NameServerApp_tci6638_SOURCES  = $(nameServer_common_sources)
+NameServerApp_SOURCES = $(nameServer_common_sources)
 
 # list of sources for the 'nano_test' binary
-nano_test_omapl138_SOURCES = $(common_sources) nano_test.c
+nano_test_SOURCES = $(common_sources) nano_test.c
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
@@ -136,47 +119,23 @@ ping_rpmsg_LDADD = -lrt
 mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
-MessageQApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQApp_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQApp_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQApp_tci6638_LDADD = $(common_libraries) \
+MessageQApp_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQBench
-MessageQBench_omap54xx_smp_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-MessageQBench_omapl138_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-MessageQBench_tci6614_LDADD = $(common_libraries) -lrt \
-                $(AM_LDFLAGS)
-MessageQBench_tci6638_LDADD = $(common_libraries) -lrt \
+MessageQBench_LDADD = $(common_libraries) -lrt \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link MessageQMulti
-MessageQMulti_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQMulti_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQMulti_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-MessageQMulti_tci6638_LDADD = $(common_libraries) \
+MessageQMulti_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link NameServerApp
-NameServerApp_omap54xx_smp_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-NameServerApp_omapl138_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-NameServerApp_tci6614_LDADD = $(common_libraries) \
-                $(AM_LDFLAGS)
-NameServerApp_tci6638_LDADD = $(common_libraries) \
+NameServerApp_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 # the additional libraries needed to link nano_test
-nano_test_omapl138_LDADD = $(common_libraries) \
+nano_test_LDADD = $(common_libraries) \
                 $(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
                 $(AM_LDFLAGS)
 
