@@ -39,7 +39,7 @@ bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
 	NameServerApp$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
 	$(am__EXEEXT_1) $(am__EXEEXT_3) $(am__EXEEXT_1) \
-	$(am__EXEEXT_1) $(am__EXEEXT_4)
+	$(am__EXEEXT_1) $(am__EXEEXT_4) $(am__EXEEXT_5)
 
 # Add platform specific bin application's here
 @OMAP54XX_SMP_TRUE@am__append_1 = 
@@ -53,6 +53,7 @@ bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 @OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_6 = 
 # Add platform independent apps here or above in bin_PROGRMAS
 @CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_7 = nano_test
+@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__append_8 = mmrpc_test
 subdir = linux/src/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -65,6 +66,7 @@ am__EXEEXT_1 =
 @KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__EXEEXT_2 = mmrpc_test$(EXEEXT)
 @CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = nano_test$(EXEEXT)
 @CMEM_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_4 = nano_test$(EXEEXT)
+@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_FALSE@am__EXEEXT_5 = mmrpc_test$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -256,7 +258,10 @@ nameServer_common_sources = \
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
 # list of sources for the 'mmrpc_test' binary
-mmrpc_test_SOURCES = Mx.c mmrpc_test.c
+mmrpc_test_SOURCES = $(top_srcdir)/packages/ti/ipc/tests/Mx.c \
+                $(top_srcdir)/packages/ti/ipc/tests/Mx.h \
+                $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+
 
 # list of sources for the 'MessageQApp' binary
 MessageQApp_SOURCES = $(common_sources) MessageQApp.c
@@ -425,6 +430,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+Mx.o: $(top_srcdir)/packages/ti/ipc/tests/Mx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Mx.o -MD -MP -MF "$(DEPDIR)/Mx.Tpo" -c -o Mx.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/Mx.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/Mx.Tpo" "$(DEPDIR)/Mx.Po"; else rm -f "$(DEPDIR)/Mx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/packages/ti/ipc/tests/Mx.c' object='Mx.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Mx.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/Mx.c
+
+Mx.obj: $(top_srcdir)/packages/ti/ipc/tests/Mx.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Mx.obj -MD -MP -MF "$(DEPDIR)/Mx.Tpo" -c -o Mx.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/Mx.Tpo" "$(DEPDIR)/Mx.Po"; else rm -f "$(DEPDIR)/Mx.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/packages/ti/ipc/tests/Mx.c' object='Mx.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Mx.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/Mx.c'; fi`
+
+mmrpc_test.o: $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mmrpc_test.o -MD -MP -MF "$(DEPDIR)/mmrpc_test.Tpo" -c -o mmrpc_test.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/mmrpc_test.Tpo" "$(DEPDIR)/mmrpc_test.Po"; else rm -f "$(DEPDIR)/mmrpc_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' object='mmrpc_test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mmrpc_test.o `test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' || echo '$(srcdir)/'`$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+
+mmrpc_test.obj: $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT mmrpc_test.obj -MD -MP -MF "$(DEPDIR)/mmrpc_test.Tpo" -c -o mmrpc_test.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/mmrpc_test.Tpo" "$(DEPDIR)/mmrpc_test.Po"; else rm -f "$(DEPDIR)/mmrpc_test.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c' object='mmrpc_test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o mmrpc_test.obj `if test -f '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; then $(CYGPATH_W) '$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

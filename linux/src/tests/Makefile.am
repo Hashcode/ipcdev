@@ -71,6 +71,9 @@ else
 if CMEM
   bin_PROGRAMS += nano_test
 endif
+if KDIR
+  bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif
@@ -92,7 +95,9 @@ nameServer_common_sources = \
 ping_rpmsg_SOURCES = ping_rpmsg.c
 
 # list of sources for the 'mmrpc_test' binary
-mmrpc_test_SOURCES = Mx.c mmrpc_test.c
+mmrpc_test_SOURCES = $(top_srcdir)/packages/ti/ipc/tests/Mx.c \
+                $(top_srcdir)/packages/ti/ipc/tests/Mx.h \
+                $(top_srcdir)/packages/ti/ipc/tests/mmrpc_test.c
 
 # list of sources for the 'MessageQApp' binary
 MessageQApp_SOURCES = $(common_sources) MessageQApp.c

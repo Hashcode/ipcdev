@@ -43,13 +43,13 @@ lib_LTLIBRARIES =
 
 if KDIR
 lib_LTLIBRARIES += libmmrpc.la
-endif
 
 # where to install the headers on the system
-libmmrpc_ladir = $(includedir)
+libmmrpc_ladir = $(includedir)/ti/ipc/mm
 
 # the list of header files that belong to the library (to be installed later)
 libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
+endif
 
 # the sources to add to the library and to add to the source distribution
 libmmrpc_la_SOURCES = \

@@ -39,7 +39,7 @@ build_triplet = @build@
 host_triplet = @host@
 @KDIR_TRUE@am__append_1 = libmmrpc.la
 subdir = linux/src/mm
-DIST_COMMON = $(libmmrpc_la_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(am__libmmrpc_la_HEADERS_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -57,6 +57,9 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libmmrpc_ladir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libmmrpc_la_LIBADD =
+am__libmmrpc_la_SOURCES_DIST =  \
+	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.h \
+	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.c
 am__objects_1 =
 am_libmmrpc_la_OBJECTS = $(am__objects_1) MmRpc.lo
 libmmrpc_la_OBJECTS = $(am_libmmrpc_la_OBJECTS)
@@ -73,7 +76,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libmmrpc_la_SOURCES)
-DIST_SOURCES = $(libmmrpc_la_SOURCES)
+DIST_SOURCES = $(am__libmmrpc_la_SOURCES_DIST)
+am__libmmrpc_la_HEADERS_DIST =  \
+	$(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
 libmmrpc_laHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(libmmrpc_la_HEADERS)
 ETAGS = etags
@@ -203,10 +208,10 @@ target_alias = @target_alias@
 lib_LTLIBRARIES = $(am__append_1)
 
 # where to install the headers on the system
-libmmrpc_ladir = $(includedir)
+@KDIR_TRUE@libmmrpc_ladir = $(includedir)/ti/ipc/mm
 
 # the list of header files that belong to the library (to be installed later)
-libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
+@KDIR_TRUE@libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
 
 # the sources to add to the library and to add to the source distribution
 libmmrpc_la_SOURCES = \
