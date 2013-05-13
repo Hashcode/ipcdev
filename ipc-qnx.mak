@@ -48,9 +48,17 @@ ifneq ($(wildcard $(QNX_INSTALL_DIR)),)
     export LD_LIBRARY_PATH=$(QNX_INSTALL_DIR)/host/linux/x86/usr/lib
 endif
 
+ifeq ("$(DEVICE)","simvayu")
+BUILD_FOR_VIRTIO        = true
+PLATFORM                = vayu
+else
+BUILD_FOR_VIRTIO        = false
+PLATFORM                = $(DEVICE)
+endif
+
 all: .qnx
 
-.qnx: .qnx,$(DEVICE)
+.qnx: .qnx,$(PLATFORM)
 
 .qnx,%: PATH:=$(QNX_PATH):$(PATH)
 .qnx,%:
@@ -64,7 +72,7 @@ clean:
 	@echo "cleaning Qnx user libraries ..."
 	@make -C qnx clean
 
-install: .install,$(DEVICE)
+install: .install,$(PLATFORM)
 
 .install,%: PATH:=$(QNX_PATH):$(PATH)
 .install,%:

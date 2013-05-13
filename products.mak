@@ -57,18 +57,9 @@ QNX_INSTALL_DIR ?=
 # Set up destination for target binaries
 DESTDIR ?=
 
-# List of supported devices (choose one): omap5432, vayu
+# List of supported devices (choose one): omap5432, vayu, simvayu
 #
 DEVICE ?= _device_
-
-# Define the product variables for the device you will be using.
-#
-######## For vayu device ########
-ifeq ("$(DEVICE)","vayu")
-BUILD_FOR_VIRTIO        ?= true
-else
-BUILD_FOR_VIRTIO        ?= false
-endif
 
 #################### IPC Bios ####################
 
