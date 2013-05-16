@@ -35,7 +35,6 @@ CCFLAGS += -O3
 
 $(PROJECT_ROOT)/arm/o.le.v7/NameServerApp: $(IPC_REPO)/qnx/src/api/arm/a.le.v7/libipc.a
 $(PROJECT_ROOT)/arm/o.le.v7/NameServerApp: $(IPC_REPO)/qnx/src/utils/arm/a.le.v7/libutils.a
-$(PROJECT_ROOT)/arm/o.le.v7/NameServerApp: $(IPC_REPO)/qnx/src/family/arm/a.le.v7/libcfg.a
 $(PROJECT_ROOT)/arm/o.le.v7/NameServerApp: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
 # link with syslink static library, dynamic for others
@@ -43,8 +42,6 @@ LIBPREF_ipc = -Bstatic
 LIBPOST_ipc = -Bdynamic
 LIBPREF_utils = -Bstatic
 LIBPOST_utils = -Bdynamic
-LIBPREF_cfg = -Bstatic
-LIBPOST_cfg = -Bdynamic
 LIBPREF_ipc_client = -Bstatic
 LIBPOST_ipc_client = -Bdynamic
 
@@ -53,8 +50,6 @@ EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/api/arm/a.le.v7
 LIBS += ipc
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.le.v7
 LIBS += utils
-EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/family/arm/a.le.v7
-LIBS += cfg
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7
 LIBS += ipc_clientS
 

@@ -50,6 +50,7 @@ extern "C" {
 typedef enum {
     _DCMD_SYSLINK_NAMESERVER = 0x2A,
     _DCMD_SYSLINK_MESSAGEQ,
+    _DCMD_SYSLINK_MULTIPROC
 } dcmd_class_t_val;
 
 /*  ----------------------------------------------------------------------------
@@ -149,6 +150,18 @@ typedef enum {
 #define DCMD_MESSAGEQ_DELETE                __DIOTF(_DCMD_SYSLINK_MESSAGEQ,\
                                             5,\
                                             MessageQDrv_CmdArgs)
+
+/*  ----------------------------------------------------------------------------
+*   IOCTL command IDs for MultiProc
+*   ----------------------------------------------------------------------------
+*/
+
+/*!
+ *  @brief  Command for MultiProc_getConfig
+*/
+#define DCMD_MULTIPROC_GETCONFIG            __DIOTF(_DCMD_SYSLINK_MULTIPROC,\
+                                            1,\
+                                            MultiProcDrv_CmdArgs)
 
 #if defined (__cplusplus)
 }

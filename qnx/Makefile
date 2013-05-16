@@ -42,7 +42,6 @@ all:  utils ipc3x_dev libs tests
 
 libs: ipc3x_dev
 	@cd src/api; make install
-	@cd src/family; make install
 	@cd src/mm; make install
 
 utils:
@@ -63,7 +62,6 @@ install:
 		INSTALL_ROOT_nto=$(DESTDIR) install
 
 clean:
-	@cd src/family; make clean
 	@cd src/api; make clean
 	@cd src/mm; make clean
 	@cd src/utils; make clean

@@ -1,14 +1,6 @@
-/**
- *  @file   MultiProcDrvDefs.h
- *
- *  @brief      Definitions of NameServerDrv types and structures.
- *
- *
- *  @ver        02.00.00.46_alpha1
- *
- *  ============================================================================
- *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+/*
+ *  Copyright (c) 2008-2013, Texas Instruments Incorporated
+ * All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -36,15 +28,11 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
+ */
+/*!
+ *  @file       MultiProcQDrvDefs.h
  *
+ *  @brief      Definitions of MultiProcDrv types and structures.
  */
 
 
@@ -52,9 +40,9 @@
 #define MULTIPROC_DRVDEFS_H_0xf2ba
 
 
-#include <UtilsCmdBase.h>
-#include <_MultiProc.h>
-
+#include <ti/syslink/inc/_MultiProc.h>
+#include "IpcCmdBase.h"
+#include <ti/syslink/inc/IoctlDefs.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -75,22 +63,10 @@ extern "C" {
 #define MULTIPROC_BASE_CMD                 0x130
 
 /*!
- *  @brief  Command for MultiProc_setup
+ *  @brief  Command for MultiProc_getConfig
  */
-#define CMD_MULTIPROC_SETUP                 _IOWR(UTILSCMDBASE,\
+#define CMD_MULTIPROC_GETCONFIG             _IOWR(IPCCMDBASE,\
                                             MULTIPROC_BASE_CMD + 1u,\
-                                            MultiProcDrv_CmdArgs)
-/*!
- *  @brief  Command for MultiProc_setup
- */
-#define CMD_MULTIPROC_DESTROY                 _IOWR(UTILSCMDBASE,\
-                                            MULTIPROC_BASE_CMD + 2u,\
-                                            MultiProcDrv_CmdArgs)
-/*!
- *  @brief  Command for MultiProc_destroy
- */
-#define CMD_MULTIPROC_GETCONFIG             _IOWR(UTILSCMDBASE,\
-                                            MULTIPROC_BASE_CMD + 3u,\
                                             MultiProcDrv_CmdArgs)
 /*  ----------------------------------------------------------------------------
  *  Command arguments for MultiProc
@@ -104,15 +80,13 @@ typedef struct MultiProcDrv_CmdArgs {
         struct {
             MultiProc_Config * config;
         } getConfig;
-
-        struct {
-            MultiProc_Config * config;
-        } setup;
-
+        /*
+         * Technically we do not need this union but left it there for
+         * consistency and in case we need to add commands in the future.
+         */
     } args;
 
     Int32 apiStatus;
-    UInt32 pid;
 } MultiProcDrv_CmdArgs;
 
 

@@ -129,7 +129,7 @@
 /* Module level headers */
 #include <ti/ipc/NameServer.h>
 #include <ti/ipc/MultiProc.h>
-#include <_MultiProc.h>
+#include <ti/syslink/inc/_MultiProc.h>
 #include <ti/ipc/MessageQ.h>
 #include <_MessageQ.h>
 #include <_IpcLog.h>

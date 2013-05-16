@@ -33,7 +33,6 @@ include ../../common.mk
 
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQApp_g: $(IPC_REPO)/qnx/src/api/arm/a.g.le.v7/libipc_g.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQApp_g: $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7/libutils_g.a
-$(PROJECT_ROOT)/arm/o.g.le.v7/MessageQApp_g: $(IPC_REPO)/qnx/src/family/arm/a.g.le.v7/libcfg_g.a
 $(PROJECT_ROOT)/arm/o.g.le.v7/MessageQApp_g: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
 # link with syslink static library, dynamic for others
@@ -41,8 +40,6 @@ LIBPREF_ipc_g = -Bstatic
 LIBPOST_ipc_g = -Bdynamic
 LIBPREF_utils_g = -Bstatic
 LIBPOST_utils_g = -Bdynamic
-LIBPREF_cfg_g = -Bstatic
-LIBPOST_cfg_g = -Bdynamic
 LIBPREF_ipc_client = -Bstatic
 LIBPOST_ipc_client = -Bdynamic
 
@@ -51,8 +48,6 @@ EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/api/arm/a.g.le.v7
 LIBS += ipc_g
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
 LIBS += utils_g
-EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/family/arm/a.g.le.v7
-LIBS += cfg_g
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7
 LIBS += ipc_clientS
 

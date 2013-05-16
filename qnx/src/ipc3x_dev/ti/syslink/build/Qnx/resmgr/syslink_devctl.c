@@ -68,6 +68,7 @@
 #include "HwSpinLockCmdBase.h"
 #include "NameServerDrvDefs.h"
 #include "MessageQDrvDefs.h"
+#include "MultiProcDrvDefs.h"
 #include <ti/syslink/build/Qnx/resmgr/dcmd_syslink.h>
 
 #include <ti/syslink/utils/Trace.h>
@@ -79,6 +80,8 @@ extern Int GateHWSpinlockDrv_devctl (resmgr_context_t * ctp, io_devctl_t * msg,
 extern int syslink_messageq_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                    syslink_ocb_t *ocb);
 extern int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                     syslink_ocb_t * ocb);
+extern int syslink_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                      syslink_ocb_t * ocb);
 
 /**
@@ -123,6 +126,9 @@ int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
             break;
         case _DCMD_SYSLINK_MESSAGEQ:
             status = syslink_messageq_devctl(ctp, msg, ocb);
+            break;
+        case _DCMD_SYSLINK_MULTIPROC:
+            status = syslink_multiproc_devctl(ctp, msg, ocb);
             break;
         default:
             status = _RESMGR_ERRNO(ENOSYS);

@@ -59,6 +59,9 @@
 #include <ti/ipc/NameServer.h>
 #include <_MessageQ.h>
 #include <_NameServer.h>
+#include <ti/syslink/inc/_MultiProc.h>
+
+MultiProc_Config _MultiProc_cfg;
 
 static void cleanup(int arg);
 
@@ -70,6 +73,7 @@ static void cleanup(int arg);
 Int Ipc_start (Void)
 {
     MessageQ_Config   msgqCfg;
+    MultiProc_Config  mpCfg;
     Int32             status = Ipc_S_SUCCESS;
     UInt16            rprocId;
 
@@ -87,6 +91,10 @@ Int Ipc_start (Void)
     if (status >= 0) {
         MessageQ_getConfig(&msgqCfg);
         MessageQ_setup(&msgqCfg);
+
+        /* Setup and get MultiProc configuration from resource manager */
+        MultiProc_getConfig(&mpCfg);
+        _MultiProc_cfg = mpCfg;
 
         /* Now attach to all remote processors, assuming they are up. */
         for (rprocId = 0;

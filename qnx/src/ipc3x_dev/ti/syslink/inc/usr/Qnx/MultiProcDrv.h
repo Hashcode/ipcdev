@@ -1,6 +1,16 @@
+/**
+ *  @file   MultiProcDrv.h
+ *
+ *  @brief      Declarations of OS-specific functionality for MultiProc
+ *
+ *              This file contains declarations of OS-specific functions for
+ *              MultiProc.
+ *
+ */
 /*
- *  Copyright (c) 2008-2013, Texas Instruments Incorporated
- *  All rights reserved.
+ *  ============================================================================
+ *
+ *  Copyright (c) 2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -29,16 +39,9 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** ============================================================================
- *  @file   _MultiProc.h
- *
- *  @brief  Header file for_MultiProc on HLOS side
- *  ============================================================================
- */
 
-
-#ifndef _MULTIPROC_H_0XB522
-#define _MULTIPROC_H_0XB522
+#ifndef MultiProcDrv_H
+#define MultiProcDrv_H
 
 
 #if defined (__cplusplus)
@@ -46,34 +49,17 @@ extern "C" {
 #endif
 
 
-/*!
- *  @brief  Max name length for a processor name.
+/* =============================================================================
+ *  APIs
+ * =============================================================================
  */
-#define MultiProc_MAXNAMELENGTH 32
+/* Function to invoke the APIs through ioctl. */
+Int MultiProcDrv_ioctl (UInt32 cmd, Ptr args);
 
-/*!
- *  @brief  Max number of processors supported.
- */
-#define MultiProc_MAXPROCESSORS 10
-
-
-/*!
- *  @brief  Configuration structure for MultiProc module
- */
-typedef struct MultiProc_Config_tag {
-    Int32  numProcessors;
-    /*!< Max number of procs for particular system */
-    Char   nameList [MultiProc_MAXPROCESSORS][MultiProc_MAXNAMELENGTH];
-    /*!< Name List for processors in the system */
-    UInt16 id;
-    /*!< Local Proc ID. This needs to be set before calling any other APIs */
-} MultiProc_Config;
-
-/* This exported from family/<PLATFORM_DIR>/SystemCfg.c: */
-extern MultiProc_Config _MultiProc_cfg;
 
 #if defined (__cplusplus)
 }
-#endif
+#endif /* defined (__cplusplus) */
 
-#endif
+
+#endif /* MultiProcDrv_H */
