@@ -80,6 +80,7 @@
 
 #include <ti/ipc/Ipc.h>
 #include <_Ipc.h>
+#include <_MultiProc.h>
 #include <IpcKnl.h>
 #include <sys/mman.h>
 
@@ -286,19 +287,8 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 
         _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
 
-        /* Override the MultiProc default config */
-        config->multiProcConfig.numProcessors = 5;
-        config->multiProcConfig.id            = 0;
-        String_cpy (config->multiProcConfig.nameList [0],
-                    "HOST");
-        String_cpy (config->multiProcConfig.nameList [1],
-                    "IPU2");
-        String_cpy (config->multiProcConfig.nameList [2],
-                    "IPU1");
-        String_cpy (config->multiProcConfig.nameList [3],
-                    "DSP2");
-        String_cpy (config->multiProcConfig.nameList [4],
-                    "DSP1");
+        /* Set the MultiProc config as defined in SystemCfg.c */
+        config->multiProcConfig = _MultiProc_cfg;
 
         /* Override the MESSAGEQCOPY default config */
         config->MQCopyConfig.intId[1] = 173; // 141 + 32

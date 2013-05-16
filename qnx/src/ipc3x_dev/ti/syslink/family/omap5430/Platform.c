@@ -3,12 +3,9 @@
  *
  *  @brief      Implementation of Platform initialization logic.
  *
- *
- *  @ver        02.00.00.46_alpha1
- *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -82,6 +79,7 @@
 
 #include <ti/ipc/Ipc.h>
 #include <_Ipc.h>
+#include <_MultiProc.h>
 #include <IpcKnl.h>
 #include <ipu_pm.h>
 #include <GateHWSpinlock.h>
@@ -381,31 +379,8 @@ Platform_overrideConfig (Platform_Config * config, Ipc_Config * cfg)
 
         _ProcMgr_saveParams(cfg->params, String_len(cfg->params));
 
-#ifdef SYSLINK_SYSBIOS_SMP
-        /* Override the gatepeterson default config */
-        config->multiProcConfig.numProcessors = 3;
-        config->multiProcConfig.id            = 0;
-
-        String_cpy (config->multiProcConfig.nameList [0],
-                    "HOST");
-        String_cpy (config->multiProcConfig.nameList [1],
-                    "IPU");
-        String_cpy (config->multiProcConfig.nameList [2],
-                    "DSP");
-#else
-        /* Override the gatepeterson default config */
-        config->multiProcConfig.numProcessors = 4;
-        config->multiProcConfig.id            = 0;
-
-        String_cpy (config->multiProcConfig.nameList [0],
-                    "HOST");
-        String_cpy (config->multiProcConfig.nameList [1],
-                    "CORE0");
-        String_cpy (config->multiProcConfig.nameList [2],
-                    "CORE1");
-        String_cpy (config->multiProcConfig.nameList [3],
-                    "DSP");
-#endif
+        /* Set the MultiProc config as defined in SystemCfg.c */
+        config->multiProcConfig = _MultiProc_cfg;
 
         /* Override the PROCMGR default config */
 
