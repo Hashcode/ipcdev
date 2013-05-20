@@ -51,7 +51,7 @@ module Resource {
 
     /*!
      *  @def    Resource_loadSegment
-     *  @brief  If loadSegment is defined, loadAddr is overriden with the base
+     *  @brief  If loadSegment is defined, loadAddr is overridden with the base
      *          address of the loadSegment
      */
     metaonly config String loadSegment;
