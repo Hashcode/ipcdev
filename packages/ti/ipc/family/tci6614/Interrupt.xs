@@ -63,6 +63,12 @@ function module$meta$init()
     }
 
     var settings = deviceSettings[Program.cpu.deviceName];
+    if (settings == undefined) {
+        this.$logError(Program.cpu.deviceName + " unsupported", this);
+
+        /* Early return so we don't dereference settings object below */
+        return;
+    }
 
     this.IPCGR0         = settings.IPCGR0;
     this.IPCAR0         = settings.IPCAR0;
