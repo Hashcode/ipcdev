@@ -71,7 +71,7 @@ Int MmServiceMgr_init(Void)
     }
 
     RcmServer_init();
-//  ServiceMgr_init();
+/*  ServiceMgr_init(); */
 
     return(MmServiceMgr_S_SUCCESS);
 }

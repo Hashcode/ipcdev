@@ -120,7 +120,7 @@
 /* Various arbitrary limits: */
 #define MAXMESSAGEQOBJECTS     256
 #define MAXMESSAGEBUFFERS      512
-#define MSGBUFFERSIZE          512   // Max payload + sizeof(ListElem)
+#define MSGBUFFERSIZE          512   /* Max payload + sizeof(ListElem) */
 #define MAXHEAPSIZE            (MAXMESSAGEBUFFERS * MSGBUFFERSIZE)
 #define HEAPALIGNMENT          8
 

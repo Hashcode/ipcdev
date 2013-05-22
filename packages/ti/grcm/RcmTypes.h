@@ -85,26 +85,26 @@
  */
 
 /* message type values */
-#define RcmClient_Desc_RCM_MSG    0x1       // client exec message
-#define RcmClient_Desc_DPC        0x2       // deferred procedure call
-#define RcmClient_Desc_SYM_ADD    0x3       // symbol add message
-#define RcmClient_Desc_SYM_IDX    0x4       // query symbox index
-#define RcmClient_Desc_CMD        0x5       // cmd message (one-way)
-#define RcmClient_Desc_JOB_ACQ    0x6       // acquire a job id
-#define RcmClient_Desc_JOB_REL    0x7       // release a job id
-#define RcmClient_Desc_TYPE_MASK  0x0F00    // field mask
-#define RcmClient_Desc_TYPE_SHIFT 8         // field shift width
+#define RcmClient_Desc_RCM_MSG    0x1       /* client exec message*/
+#define RcmClient_Desc_DPC        0x2       /* deferred procedure call*/
+#define RcmClient_Desc_SYM_ADD    0x3       /* symbol add message*/
+#define RcmClient_Desc_SYM_IDX    0x4       /* query symbox index*/
+#define RcmClient_Desc_CMD        0x5       /* cmd message (one-way)*/
+#define RcmClient_Desc_JOB_ACQ    0x6       /* acquire a job id*/
+#define RcmClient_Desc_JOB_REL    0x7       /* release a job id*/
+#define RcmClient_Desc_TYPE_MASK  0x0F00    /* field mask*/
+#define RcmClient_Desc_TYPE_SHIFT 8         /* field shift width*/
 
 /* server status codes must be 0 - 15, it has to fit in a 4-bit field */
-#define RcmServer_Status_SUCCESS          ((UInt16)0) // success
-#define RcmServer_Status_INVALID_FXN      ((UInt16)1) // invalid fxn index
-#define RcmServer_Status_SYMBOL_NOT_FOUND ((UInt16)2) // symbol not found
-#define RcmServer_Status_INVALID_MSG_TYPE ((UInt16)3) // invalid msg type
-#define RcmServer_Status_MSG_FXN_ERR      ((UInt16)4) // msg function error
-#define RcmServer_Status_Error            ((UInt16)5) // general failure
-#define RcmServer_Status_Unprocessed      ((UInt16)6) // unprocessed message
-#define RcmServer_Status_JobNotFound      ((UInt16)7) // job id not found
-#define RcmServer_Status_PoolNotFound     ((UInt16)8) // pool id not found
+#define RcmServer_Status_SUCCESS          ((UInt16)0) /* success*/
+#define RcmServer_Status_INVALID_FXN      ((UInt16)1) /* invalid fxn index*/
+#define RcmServer_Status_SYMBOL_NOT_FOUND ((UInt16)2) /* symbol not found*/
+#define RcmServer_Status_INVALID_MSG_TYPE ((UInt16)3) /* invalid msg type*/
+#define RcmServer_Status_MSG_FXN_ERR      ((UInt16)4) /* msg function error*/
+#define RcmServer_Status_Error            ((UInt16)5) /* general failure*/
+#define RcmServer_Status_Unprocessed      ((UInt16)6) /* unprocessed message*/
+#define RcmServer_Status_JobNotFound      ((UInt16)7) /* job id not found*/
+#define RcmServer_Status_PoolNotFound     ((UInt16)8) /* pool id not found*/
 
 /* the packet structure (actual message send to server) */
 
@@ -115,15 +115,17 @@ struct rpmsg_omx_hdr {
     UInt32 len;
 };
 
-// Warning: This packet cannot be placed on RCMServer job queues, so can't use
-// that capability for now.
+/*
+ * Warning: This packet cannot be placed on RCMServer job queues, so can't use
+ * that capability for now.
+ */
 typedef struct {
-    Bits32             reserved0; // reserved for List.elem->next
-    Bits32             reserved1; // reserved for List.elem->prev
+    Bits32             reserved0; /* reserved for List.elem->next */
+    Bits32             reserved1; /* reserved for List.elem->prev */
     struct rpmsg_omx_hdr hdr;
-    UInt16             desc;      // protocol, descriptor, status
-    UInt16             msgId;     // message id
-    RcmClient_Message  message;   // client message body (5 words + payload)
+    UInt16             desc;      /* protocol, descriptor, status */
+    UInt16             msgId;     /* message id */
+    RcmClient_Message  message;   /* client message body (5 words + payload) */
 } RcmClient_Packet;
 
 /*
@@ -136,14 +138,14 @@ typedef struct {
 /* To test on BIOS side only, uncomment and rebuild anything that
  * calls RPMessage()
  */
-//#define  BIOS_ONLY_TEST
+/* #define  BIOS_ONLY_TEST */
 
 #else
 typedef struct {
-    MessageQ_MsgHeader msgqHeader;  // MessageQ header (8 words)
-    UInt16 desc;                    // protocol, descriptor, status
-    UInt16 msgId;                   // message id
-    RcmClient_Message message;      // client message body (5 words + payload)
+    MessageQ_MsgHeader msgqHeader;  /* MessageQ header (8 words)*/
+    UInt16 desc;                    /* protocol, descriptor, status*/
+    UInt16 msgId;                   /* message id*/
+    RcmClient_Message message;      /* client message body (5 words + payload)*/
 } RcmClient_Packet;
 
 #endif

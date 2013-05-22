@@ -306,7 +306,7 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
     }
 #endif
 
-    // setup other variables...
+    /* setup other variables... */
     obj->shutdown = FALSE;
     obj->dstProc = dstProc;
     obj->port = port;
@@ -324,7 +324,7 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
     /* setup the RCM functions and Signatures */
     for (func = 0; func < obj->numFuncs; func++) {
         if (func == 0) {
-            // assign the "first function"
+            /* assign the "first function" */
             obj->rcmParams.fxns.elem[func].name =
                     OmapRpc_Stringerize(OmapRpc_GetSvrMgrHandle);
             obj->rcmParams.fxns.elem[func].addr.createFxn =
@@ -335,18 +335,18 @@ OmapRpc_Handle OmapRpc_createChannel(String channelName, UInt16 dstProc,
             obj->funcSigs[func].numParam = 0;
         }
         else {
-            // assign the other functions
-//          obj->rcmParams.fxns.elem[func].name = fxns[func-1].signature.name;
+            /* assign the other functions */
+/*          obj->rcmParams.fxns.elem[func].name = fxns[func-1].signature.name; */
             obj->rcmParams.fxns.elem[func].name =
                     rcmParams->fxns.elem[func-1].name;
-//          obj->rcmParams.fxns.elem[func].addr.fxn =
-//                  (RcmServer_MsgFxn)fxns[func-1].function;
+/*          obj->rcmParams.fxns.elem[func].addr.fxn =
+                    (RcmServer_MsgFxn)fxns[func-1].function; */
             obj->rcmParams.fxns.elem[func].addr.fxn =
                     rcmParams->fxns.elem[func-1].addr.fxn;
 
-            // copy the signature
-//          memcpy(&obj->funcSigs[func], &fxns[func-1].signature,
-//                  sizeof(OmapRpc_FuncSignature));
+            /* copy the signature */
+/*          memcpy(&obj->funcSigs[func], &fxns[func-1].signature,
+                    sizeof(OmapRpc_FuncSignature)); */
             memcpy(&obj->funcSigs[func], &fxnSigTab->table[func - 1],
                     sizeof(MmType_FxnSig));
         }
@@ -463,16 +463,16 @@ Int OmapRpc_start(const String name, Int port, Int aryLen,
     /* setup the functions and signatures */
     for (func = 0; func < obj->numFuncs; func++) {
         if (func == 0) {
-            // assign the "first function"
-//          strncpy(obj->funcSigs[func].name, obj->rcmParams.fxns.elem[0].name,
-//                  OMAPRPC_MAX_CHANNEL_NAMELEN);
+            /* assign the "first function" */
+/*          strncpy(obj->funcSigs[func].name, obj->rcmParams.fxns.elem[0].name,
+                    OMAPRPC_MAX_CHANNEL_NAMELEN); */
             strncpy(obj->funcSigs[func].name,
                     OmapRpc_Stringerize(OmapRpc_GetSvrMgrHandle),
                     OMAPRPC_MAX_CHANNEL_NAMELEN);
             obj->funcSigs[func].numParam = 0;
         }
         else {
-            // copy the signature
+            /* copy the signature */
             memcpy(&obj->funcSigs[func], &fxns[func-1].signature,
                     sizeof(OmapRpc_FuncSignature));
         }

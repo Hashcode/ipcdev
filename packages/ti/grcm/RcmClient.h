@@ -248,7 +248,7 @@ extern "C" {
 #endif
 
 
-// -------- status codes --------
+/*   -------- status codes --------*/
 
 /*!
  *  @brief Success return code
@@ -393,7 +393,7 @@ extern "C" {
 #define RcmClient_E_JOBIDNOTFOUND (-17)
 
 
-// -------- constants and types --------
+/*   -------- constants and types --------*/
 
 /*!
  *  @brief Invalid function index
@@ -548,7 +548,7 @@ typedef struct {
 } RcmClient_Struct;
 
 
-// -------- functions --------
+/*   -------- functions --------*/
 
 /*
  *  ======== RcmClient_acquireJobId ========

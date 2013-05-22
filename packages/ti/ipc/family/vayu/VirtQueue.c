@@ -365,7 +365,7 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
  */
 Void VirtQueue_disableCallback(VirtQueue_Object *vq)
 {
-    //TODO
+    /* TODO */
     Log_print0(Diags_USER1, "VirtQueue_disableCallback called.");
 }
 
@@ -376,7 +376,7 @@ Bool VirtQueue_enableCallback(VirtQueue_Object *vq)
 {
     Log_print0(Diags_USER1, "VirtQueue_enableCallback called.");
 
-    //TODO
+    /* TODO */
     return (FALSE);
 }
 
@@ -407,10 +407,10 @@ Void VirtQueue_isr(UArg msg)
             case (UInt)RP_MBOX_ABORT_REQUEST:
                 {
                     /* Suppress Coverity Error: FORWARD_NULL: */
-                    // coverity[assign_zero]
+                    /* coverity[assign_zero] */
                     Fxn f = (Fxn)0x0;
                     Log_print0(Diags_USER1, "Crash on demand ...\n");
-                    // coverity[var_deref_op]
+                    /* coverity[var_deref_op] */
                     f();
                 }
                 return;
@@ -555,7 +555,7 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
             RP_MSG_RING_SIZE);
 
     /* See coverity related comment in vring_init() */
-    // coverity[overrun-call]
+    /* coverity[overrun-call] */
     vring_init(&(vq->vring), RP_MSG_NUM_BUFS, vringAddr, RP_MSG_VRING_ALIGN);
 
     /*

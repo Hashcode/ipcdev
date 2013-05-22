@@ -110,8 +110,7 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetParameter(UInt32 size, UInt32 *data);
 
 /* RcmServer static function table */
 static RcmServer_FxnDesc OMXServerFxnAry[] = {
-//    {"RPC_SKEL_GetHandle"   , RPC_SKEL_GetHandle},  // Set at runtime.
-    {"RPC_SKEL_GetHandle"   , NULL},
+    {"RPC_SKEL_GetHandle"   , NULL}, /* Set at runtime to RPC_SKEL_GetHandle */
     {"RPC_SKEL_SetParameter", RPC_SKEL_SetParameter},
     {"RPC_SKEL_GetParameter", RPC_SKEL_GetParameter},
     {"fxnDouble", fxnDouble },
@@ -162,9 +161,11 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
     struct omx_packet  * packet = (struct omx_packet *)hdr->data;
 
 
-    //Marshalled:[>offset(cParameterName)|>pAppData|>offset(RcmServerName)|>pid|
-    //>--cComponentName--|>--CallingCorercmServerName--|
-    //<hComp]
+    /*
+     * Marshalled:[>offset(cParameterName)|>pAppData|>offset(RcmServerName)|>pid|
+     * >--cComponentName--|>--CallingCorercmServerName--|
+     * <hComp]
+     */
 
     strcpy(cComponentName, (char *)data + sizeof(map_info_type));
 
@@ -176,8 +177,8 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
     /* Simulate sending an async OMX callback message, passing an omx_packet
      * structure.
      */
-    packet->msg_id  = 99;   // Set to indicate callback instance, buffer id, etc.
-    packet->fxn_idx = 5;    // Set to indicate callback fxn
+    packet->msg_id  = 99;   /* Indicates callback instance, buffer id, etc. */
+    packet->fxn_idx = 5;    /* Indicate callback fxn */
     packet->data_size = PAYLOAD_SIZE;
     strcpy((char *)packet->data, CALLBACK_DATA);
 
@@ -189,7 +190,7 @@ static RPC_OMX_ERRORTYPE RPC_SKEL_GetHandle(Void *srvc, UInt32 size,
     ServiceMgr_send(srvc, cb_data, CALLBACK_DATA_SIZE);
 
     /* Call OMX_Get_Handle() and return handle for future calls. */
-    //eCompReturn = OMX_GetHandle(&hComp, (OMX_STRING)&cComponentName[0], pAppData,&rpcCallBackInfo);
+    /*eCompReturn = OMX_GetHandle(&hComp, (OMX_STRING)&cComponentName[0], pAppData,&rpcCallBackInfo); */
     hComp = 0x5C0FFEE5;
     data[0] = hComp;
 

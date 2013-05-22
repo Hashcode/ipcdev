@@ -57,7 +57,7 @@ struct vring_desc
 
     /* Length. */
     UInt32 len;
-    /* The flags as indicated above. */  //Optional for now!
+    /* The flags as indicated above. */  /* Optional for now! */
     UInt16 flags;
     /* We chain unused descriptors via this, too */
     UInt16 next;
@@ -136,7 +136,7 @@ static inline void vring_init(struct vring *vr, unsigned int num, void *p,
      * Suppress Coverity Error: Indexing "vr->avail->ring" with "num".
      * This should be OK, because this is just address calculation:
      */
-    // coverity[index_parm]
+    /* coverity[index_parm] */
     vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + pagesize-1)
                 & ~(pagesize - 1));
 }

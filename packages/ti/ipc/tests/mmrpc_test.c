@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     SHM_alloc(compute->size * sizeof(uint32_t), &shmInBuf);
     compute->inBuf = (uint32_t *)(shmInBuf.vir_addr);
 #else
-//  compute->inBuf = ...;
+/*  compute->inBuf = ...; */
 #endif
 
     if (compute->inBuf == NULL) {
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     SHM_alloc(compute->size * sizeof(uint32_t), &shmOutBuf);
     compute->outBuf = (uint32_t *)(shmOutBuf.vir_addr);
 #else
-//  compute->outBuf = ...;
+/*  compute->outBuf = ...; */
 #endif
 
     if (compute->outBuf == NULL) {
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
     SHM_release(&shmInBuf);
     SHM_release(&shmCompute);
 #else
-//  ...
+/*  ... */
 #endif
 
 leave:

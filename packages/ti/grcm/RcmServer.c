@@ -58,7 +58,7 @@
 #include <xdc/runtime/knl/Thread.h>
 #include <xdc/runtime/System.h>
 
-#define MSGBUFFERSIZE    512   // Make global and move to RPMessage.h
+#define MSGBUFFERSIZE    512   /* Make global and move to RPMessage.h */
 
 #if defined(RCM_ti_ipc)
 #include <ti/sdo/utils/List.h>
@@ -82,18 +82,18 @@
 #include <ti/srvmgr/rpmsg_omx.h>
 #endif
 
-#define _RCM_KeyResetValue 0x07FF       // key reset value
-#define _RCM_KeyMask 0x7FF00000         // key mask in function index
-#define _RCM_KeyShift 20                // key bit position in function index
+#define _RCM_KeyResetValue 0x07FF       /* key reset value*/
+#define _RCM_KeyMask 0x7FF00000         /* key mask in function index*/
+#define _RCM_KeyShift 20                /* key bit position in function index*/
 
-#define RcmServer_MAX_TABLES 9          // max number of function tables
-#define RcmServer_POOL_MAP_LEN 4        // pool map length
+#define RcmServer_MAX_TABLES 9          /* max number of function tables*/
+#define RcmServer_POOL_MAP_LEN 4        /* pool map length*/
 
 #define RcmServer_E_InvalidFxnIdx       (-101)
 #define RcmServer_E_JobIdNotFound       (-102)
 #define RcmServer_E_PoolIdNotFound      (-103)
 
-typedef struct {                        // function table element
+typedef struct {                        /* function table element*/
     String                      name;
 #if USE_RPMESSAGE
     union  {
@@ -112,53 +112,53 @@ typedef struct {
 } RcmServer_FxnTabElemAry;
 
 typedef struct {
-    String                      name;       // pool name
-    Int                         count;      // thread count (at create time)
-    Thread_Priority             priority;   // thread priority
+    String                      name;       /* pool name*/
+    Int                         count;      /* thread count (at create time)*/
+    Thread_Priority             priority;   /* thread priority*/
     Int                         osPriority;
-    SizeT                       stackSize;  // thread stack size
-    String                      stackSeg;   // thread stack placement
-    ISemaphore_Handle           sem;        // message semaphore (counting)
-    List_Struct                 threadList; // list of worker threads
-    List_Struct                 readyQueue; // queue of messages
+    SizeT                       stackSize;  /* thread stack size*/
+    String                      stackSeg;   /* thread stack placement*/
+    ISemaphore_Handle           sem;        /* message semaphore (counting)*/
+    List_Struct                 threadList; /* list of worker threads*/
+    List_Struct                 readyQueue; /* queue of messages*/
 } RcmServer_ThreadPool;
 
 typedef struct RcmServer_Object_tag {
-    GateThread_Struct           gate;       // instance gate
-    Ptr                         run;        // run semaphore for the server
+    GateThread_Struct           gate;       /* instance gate*/
+    Ptr                         run;        /* run semaphore for the server*/
 #if USE_RPMESSAGE
-    RPMessage_Handle         serverQue;  // inbound message queue
-    UInt32                      localAddr;  // inbound message queue address
-    UInt32                      replyAddr;  // Reply address (same per inst.)
-    UInt32                      dstProc;    // Reply processor.
+    RPMessage_Handle         serverQue;  /* inbound message queue */
+    UInt32                      localAddr;  /* inbound message queue address */
+    UInt32                      replyAddr;  /* Reply address (same per inst.) */
+    UInt32                      dstProc;    /* Reply processor. */
 #else
-    MessageQ_Handle             serverQue;  // inbound message queue
+    MessageQ_Handle             serverQue;  /* inbound message queue*/
 #endif
-    Thread_Handle               serverThread; // server thread object
-    RcmServer_FxnTabElemAry     fxnTabStatic; // static function table
-    RcmServer_FxnTabElem *      fxnTab[RcmServer_MAX_TABLES]; // base pointers
-    UInt16                      key;        // function index key
-    UInt16                      jobId;      // job id tracker
-    Bool                        shutdown;   // server shutdown flag
-    Int                         poolMap0Len;// length of static table
+    Thread_Handle               serverThread; /* server thread object*/
+    RcmServer_FxnTabElemAry     fxnTabStatic; /* static function table*/
+    RcmServer_FxnTabElem *      fxnTab[RcmServer_MAX_TABLES]; /* base pointers*/
+    UInt16                      key;        /* function index key*/
+    UInt16                      jobId;      /* job id tracker*/
+    Bool                        shutdown;   /* server shutdown flag*/
+    Int                         poolMap0Len;/* length of static table*/
     RcmServer_ThreadPool *      poolMap[RcmServer_POOL_MAP_LEN];
-    List_Handle                 jobList;    // list of job stream queues
+    List_Handle                 jobList;    /* list of job stream queues*/
 } RcmServer_Object;
 
 typedef struct {
     List_Elem                   elem;
-    UInt16                      jobId;      // current job stream id
-    Thread_Handle               thread;     // server thread object
-    Bool                        terminate;  // thread terminate flag
-    RcmServer_ThreadPool*       pool;       // worker pool
-    RcmServer_Object *          server;     // server instance
+    UInt16                      jobId;      /* current job stream id*/
+    Thread_Handle               thread;     /* server thread object*/
+    Bool                        terminate;  /* thread terminate flag*/
+    RcmServer_ThreadPool*       pool;       /* worker pool*/
+    RcmServer_Object *          server;     /* server instance*/
 } RcmServer_WorkerThread;
 
 typedef struct {
     List_Elem                   elem;
-    UInt16                      jobId;      // job stream id
-    Bool                        empty;      // true if no messages on server
-    List_Struct                 msgQue;     // queue of messages
+    UInt16                      jobId;      /* job stream id*/
+    Bool                        empty;      /* true if no messages on server*/
+    List_Struct                 msgQue;     /* queue of messages*/
 } RcmServer_JobStream;
 
 typedef struct RcmServer_Module_tag {
@@ -288,7 +288,7 @@ Void RcmServer_init(Void)
     }
 
     /* register with xdc.runtime to get a diags mask */
-//  result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);
+/*  result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);*/
     result = Registry_addModule(&Registry_CURDESC, ti_grcm_RcmServer_Name);
     Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
 
@@ -304,7 +304,7 @@ Void RcmServer_init(Void)
  */
 Void RcmServer_exit(Void)
 {
-//  Registry_Result result;
+/*  Registry_Result result;*/
 
 
     if (--curInit != 0) {
@@ -312,8 +312,8 @@ Void RcmServer_exit(Void)
     }
 
     /* unregister from xdc.runtime */
-//  result = Registry_removeModule(MODULE_NAME);
-//  Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
+/*  result = Registry_removeModule(MODULE_NAME);*/
+/*  Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);*/
 }
 
 
@@ -325,7 +325,7 @@ Void RcmServer_Params_init(RcmServer_Params *params)
     /* server thread */
     params->priority = Thread_Priority_HIGHEST;
     params->osPriority = Thread_INVALID_OS_PRIORITY;
-    params->stackSize = 0;  // use system default
+    params->stackSize = 0;  /* use system default*/
     params->stackSeg = "";
 
     /* default pool */
@@ -333,7 +333,7 @@ Void RcmServer_Params_init(RcmServer_Params *params)
     params->defaultPool.count = 0;
     params->defaultPool.priority = Thread_Priority_NORMAL;
     params->defaultPool.osPriority = Thread_INVALID_OS_PRIORITY;
-    params->defaultPool.stackSize = 0;  // use system default
+    params->defaultPool.stackSize = 0;  /* use system default*/
     params->defaultPool.stackSeg = "";
 
     /* worker pools */
@@ -1138,7 +1138,7 @@ Int RcmServer_addSymbol(RcmServer_Object *obj, String funcName,
         if (obj->fxnTab[i] != NULL) {
             for (j = 0; j < (1 << (i + 4)); j++) {
                 if (((obj->fxnTab[i])+j)->addr.fxn == 0) {
-                    slot = (obj->fxnTab[i]) + j;  // found empty slot
+                    slot = (obj->fxnTab[i]) + j;  /* found empty slot*/
                     break;
                 }
             }

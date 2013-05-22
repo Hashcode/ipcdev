@@ -121,7 +121,7 @@ extern "C" {
 #define RcmServer_E_SYMBOLTABLEFULL (-5)
 
 
-// -------- constants and types --------
+/* -------- constants and types --------*/
 
 /*!
  *  @brief Remote function type
@@ -400,7 +400,7 @@ typedef struct {
 } RcmServer_Struct;
 
 
-// -------- functions --------
+/* -------- functions --------*/
 
 /*
  *  ======== RcmServer_addSymbol ========
