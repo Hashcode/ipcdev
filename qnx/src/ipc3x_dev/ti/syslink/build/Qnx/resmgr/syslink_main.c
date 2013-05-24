@@ -68,7 +68,6 @@
 #include <ti/syslink/utils/MemoryOS.h>
 #include <ti/ipc/MultiProc.h>
 #include <_MultiProc.h>
-#include <rprcfmt.h>
 #include <OsalSemaphore.h>
 #include <ti/syslink/utils/OsalPrint.h>
 #if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
@@ -309,8 +308,8 @@ int init_syslink_trace_device(syslink_dev_t *dev)
     syslink_attr_t * trace_attr;
     char             trace_name[_POSIX_PATH_MAX];
     int              status = 0;
-    u32              da = 0, pa = 0;
-    u32              len;
+    unsigned int     da = 0, pa = 0;
+    unsigned int     len;
 
     memset(&resmgr_attr, 0, sizeof resmgr_attr);
     resmgr_attr.nparts_max = 10;
@@ -407,8 +406,6 @@ int init_syslink_device(syslink_dev_t *dev)
     int              i;
     char             trace_name[_POSIX_PATH_MAX];
     int              status = 0;
-    u32              da = 0, pa = 0;
-    u32              len;
 
     pthread_mutex_init(&dev->lock, NULL);
 

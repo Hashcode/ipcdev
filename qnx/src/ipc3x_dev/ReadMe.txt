@@ -56,8 +56,6 @@ Build Instructions (Windows):
        Set the environment variable QCONF_OVERRIDE as follows:
            set QCONF_OVERRIDE = C:\ide-4.7-workspace\trunk\qconf-override.mk
     3) From the command prompt:
-           To build for OMAP4:
-               > make
            To build for OMAP5:
                > make SYSLINK_PLATFORM=omap5430 TILER_PLATFORM=omap5430 SMP=1
            To build for TI811X (note, there is no tiler support for j5 eco):

@@ -1,11 +1,5 @@
 /*
- *  @file       ipu_pm.c
- *
- *  @brief      power management for remote processors.
- *
- *  ============================================================================
- *
- *  Copyright (c) 2011, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -33,17 +27,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
-
 
 /* Standard headers */
 #include <ti/syslink/Std.h>
@@ -80,7 +64,6 @@
 #include <OMAP5430BenelliHalReset.h>
 
 //#include <camera/camdrv.h>
-#include <rprcfmt.h>
 #include <Bitops.h>
 #include <_rpmsg.h>
 
