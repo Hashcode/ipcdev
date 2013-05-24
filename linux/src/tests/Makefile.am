@@ -32,8 +32,9 @@
 ##
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/packages  \
-        -I$(CMEM_INSTALL_DIR)/packages -D_GNU_SOURCE -Wall @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
+        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
 VPATH = ../../../packages/ti/ipc/tests
 
 ###############################################################################

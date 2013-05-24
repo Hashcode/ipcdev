@@ -121,6 +121,7 @@ EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
 		  $(SYSLINK_ROOT)/tiler/resmgr/tiler/public	\
 		  $(SYSLINK_ROOT)/ti/syslink/resources	\
 		  $(IPC_REPO)/qnx/include \
+                  $(IPC_REPO)/hlos_common/include \
 		  $(IPC_REPO)/packages \
 
 #devctl for ipc, procmgr, utils

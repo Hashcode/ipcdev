@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,56 +29,27 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*!
- *  @file       _NameServer.h
- *
- *  @brief      HLOS-specific NameServer header
- *
- */
 
+#define NAMESERVER_REQUEST    0
+#define NAMESERVER_RESPONSE   1
 
-#ifndef NameServer_H_0XF414
-#define NameServer_H_0XF414
+#define NAME_SERVER_RPMSG_ADDR  0
 
-/* Utilities headers */
-#include <ti/ipc/NameServer.h>
+#define MAXNAMEINCHAR 80
+#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
 
-#if defined (__cplusplus)
-extern "C" {
-#endif
+#define NAMESERVER_GET_TIMEOUT  10 /* Seconds */
 
+#define NAMESERVER_MSG_TOKEN   0x5678abcd
 
-/* =============================================================================
- * Macros & Defines
- * =============================================================================
- */
-
-/*
- * This must match on BIOS side. This will occupy queueIndex 0 of the MessageQ
- * module queues array, forcing MessageQ indicies to start from 1.
- */
-#define NAME_SERVER_RPMSG_ADDR 0
-
-/* =============================================================================
- * APIs
- * =============================================================================
- */
-/*!
- *  @brief      Function to setup the nameserver module.
- *
- *  @sa         NameServer_destroy
- */
-Int NameServer_setup (Void);
-
-/*!
- *  @brief      Function to destroy the nameserver module.
- *
- *  @sa         NameServer_setup
- */
-Int NameServer_destroy (void);
-
-#if defined (__cplusplus)
-}
-#endif
-
-#endif
+/* message sent to remote procId */
+typedef struct NameServerMsg {
+    Bits32  reserved;           /* reserved field: must be first!   */
+    Bits32  value;              /* holds value                      */
+    Bits32  request;            /* whether its a request/response   */
+    Bits32  requestStatus;      /* status of request                */
+                                /* name of NameServer instance      */
+    Bits32  instanceName[NAMEARRAYSZIE];
+                                /* name of NameServer entry         */
+    Bits32  name[NAMEARRAYSZIE];
+} NameServerMsg;
