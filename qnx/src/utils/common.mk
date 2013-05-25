@@ -46,6 +46,7 @@ INSTALLDIR = /dev/null
 # source path
 EXTRA_SRCVPATH += \
         $(IPC_REPO)/qnx/src/utils \
+        $(IPC_REPO)/hlos_common/src/utils
 
 EXCLUDE_OBJS =
 

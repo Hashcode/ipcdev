@@ -58,7 +58,7 @@ libtiipcutils_la_SOURCES =    \
                         $(top_srcdir)/linux/include/ti/ipc/Std.h \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         LAD_client.c \
-                        MultiProc.c \
+                        $(top_srcdir)/hlos_common/src/utils/MultiProc.c \
                         SocketFxns.c
 
 # Add version info to the shared library
