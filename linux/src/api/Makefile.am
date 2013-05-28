@@ -52,8 +52,8 @@ libtiipc_la_HEADERS = $(top_srcdir)/linux/include/ti/ipc/Std.h
 libtiipc_la_SOURCES =    \
                         $(libtiipc_la_HEADERS) \
                         $(top_srcdir)/linux/include/_MultiProc.h \
-                        $(top_srcdir)/linux/include/_MessageQ.h \
-                        $(top_srcdir)/linux/include/_NameServer.h \
+                        $(top_srcdir)/hlos_common/include/_MessageQ.h \
+                        $(top_srcdir)/hlos_common/include/_NameServer.h \
                         $(top_srcdir)/linux/include/ladclient.h \
                         $(top_srcdir)/linux/include/_lad.h \
                         $(top_srcdir)/linux/include/SocketFxns.h \

@@ -88,7 +88,7 @@ common_sources = \
 nameServer_common_sources = \
                 $(top_srcdir)/linux/include/ti/ipc/Std.h \
                 $(top_srcdir)/linux/include/ladclient.h \
-                $(top_srcdir)/linux/include/_NameServer.h \
+                $(top_srcdir)/hlos_common/include/_NameServer.h \
                 $(top_srcdir)/packages/ti/ipc/NameServer.h \
                 NameServerApp.c
 

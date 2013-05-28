@@ -66,9 +66,9 @@ common_sources = \
                 MultiProc_daemon.c \
                 NameServer_daemon.c \
                 $(top_srcdir)/linux/include/ti/ipc/Std.h \
-                $(top_srcdir)/linux/include/_NameServerRemoteRpmsg.h \
-                $(top_srcdir)/linux/include/_MessageQ.h \
-                $(top_srcdir)/linux/include/_NameServer.h \
+                $(top_srcdir)/hlos_common/include/_NameServerRemoteRpmsg.h \
+                $(top_srcdir)/hlos_common/include/_MessageQ.h \
+                $(top_srcdir)/hlos_common/include/_NameServer.h \
                 $(top_srcdir)/linux/include/_MultiProc.h \
                 $(top_srcdir)/linux/include/_lad.h \
                 $(top_srcdir)/linux/include/SocketFxns.h \
