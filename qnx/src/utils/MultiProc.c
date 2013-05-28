@@ -35,7 +35,7 @@
  *  Implementation of functions to access processor IDs configured on BIOS side.
  */
 
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 #include <assert.h>
 #include <string.h>

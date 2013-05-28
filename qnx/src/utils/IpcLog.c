@@ -36,7 +36,7 @@
  */
 
 /* Standard headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 #include <stdio.h>
 

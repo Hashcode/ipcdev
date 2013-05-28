@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 /* Common IPC headers: */
 #include <ti/ipc/Ipc.h>

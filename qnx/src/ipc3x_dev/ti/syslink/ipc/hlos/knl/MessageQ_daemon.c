@@ -121,7 +121,7 @@
 
 
 /* Standard headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 /* Qnx specific header files */
 #include <pthread.h>

@@ -42,7 +42,7 @@
 #include <stdlib.h>
 
 /* IPC Headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 

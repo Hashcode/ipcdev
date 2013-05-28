@@ -35,7 +35,7 @@
  */
 
 /* Standard headers */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 /* For Backplane IPC startup/shutdown stuff: */
 #include <_MultiProc.h>

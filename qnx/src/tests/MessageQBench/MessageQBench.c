@@ -46,7 +46,7 @@
 #include <time.h>
 #include <sys/param.h>
 
-#include <Std.h>
+#include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 

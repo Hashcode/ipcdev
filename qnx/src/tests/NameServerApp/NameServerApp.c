@@ -41,7 +41,7 @@
 #include <stdio.h>
 
 /* Ipc Standard header */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 #include <ti/ipc/Ipc.h>
 #include <_NameServer.h>

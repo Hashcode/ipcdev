@@ -36,7 +36,7 @@
  */
 
 /* Standard IPC header */
-#include <Std.h>
+#include <ti/ipc/Std.h>
 
 /* Module level headers */
 #include <ti/ipc/MultiProc.h>
