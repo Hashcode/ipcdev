@@ -37,21 +37,25 @@
 
 %var prog = xdc.om['xdc.cfg.Program'];
 
-%if (prog.platformName.match(/OMAPL138/)) {
-#include <ti/ipc/remoteproc/rsc_table_omapl138.h>
+%if (this.customTable) {
+extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %}
-%else if (prog.platformName.match(/evm6614/)) {
+%else {
+%  if (prog.platformName.match(/OMAPL138/)) {
+#include <ti/ipc/remoteproc/rsc_table_omapl138.h>
+%  }
+%  else if (prog.platformName.match(/evm6614/)) {
 #include <ti/ipc/remoteproc/rsc_table_tci6614.h>
 //#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h> // Test with v3.3 Linux.
-%}
-%else if (prog.platformName.match(/Kepler/) ||
+%  }
+%  else if (prog.platformName.match(/Kepler/) ||
 %         prog.platformName.match(/TCI6638/)) {
 %    if (this.traceOnly) {
 #define TRACE_RESOURCE_ONLY
 %    }
 #include <ti/ipc/remoteproc/rsc_table_tci6638.h>
-%}
-%else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {
+%  }
+%  else if (prog.cpu.deviceName.match(/^OMAP5430$/)) {
 %    if (prog.cpu.attrs.cpuCore.match(/^CM4$/)) {
 #define OMAP5
 #include <ti/ipc/remoteproc/rsc_table_omap5_ipu.h>
@@ -63,8 +67,8 @@
 %        print("ti.ipc.remoteproc.Resource.xdt - unable to provide OMAP5 " +
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
-%}
-%else if (prog.cpu.deviceName.match(/Vayu/)) { // NOTE: This will probably change to DRA7xx
+%  }
+%  else if (prog.cpu.deviceName.match(/Vayu/)) { // NOTE: This will probably change to DRA7xx
 %    if (prog.cpu.attrs.cpuCore.match(/CM4/) &&
 %       (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 2)) {
 #define OMAP5
@@ -78,10 +82,11 @@
 %        print("ti.ipc.remoteproc.Resource.xdt - unable to provide Vayu " +
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
-%}
-%else {
+%  }
+%  else {
 %    print("ti.ipc.remoteproc.Resource.xdt - unable to provide resource table " +
 %            "(" + prog.cpu.deviceName + ", " + prog.cpu.attrs.cpuCore + ")");
+%  }
 %}
 
 Void ti_ipc_remoteproc_Resource_init__I()

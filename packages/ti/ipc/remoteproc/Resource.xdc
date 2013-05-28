@@ -65,6 +65,18 @@ module Resource {
     metaonly config Bool traceOnly = false;
 
     /*!
+     *  Flag to indicate the user will provide a custom resource table
+     *
+     *  If false (the default), a default resource table will be
+     *  created during configuration.
+     *
+     *  If true, the user must supply their own resource table.
+     *  Fundamentally, this amounts to providing a well-formed
+     *  resource_table structure named 'ti_ipc_remoteproc_ResourceTable'.
+     */
+    metaonly config Bool customTable = false;
+
+    /*!
      *  @def    Resource_S_SUCCESS
      *  @brief  Operation is successful.
      */
