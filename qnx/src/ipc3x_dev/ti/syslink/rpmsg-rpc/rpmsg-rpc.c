@@ -175,6 +175,7 @@ typedef struct rpmsg_rpc_conn_object {
     UInt16              procId;
     ProcMgr_Handle      procH;
     UInt32              numFuncs;
+    Bool                destroy;
 } rpmsg_rpc_conn_object;
 
 /*!
@@ -754,7 +755,7 @@ _rpmsg_rpc_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
         GT_0trace(curTrace, GT_4CLASS, "Already destroyed.");
         status = (EINVAL);
     }
-    else {
+    else if (!rpc->conn->destroy) {
         hdr = (struct rppc_msg_header *)buf;
         hdr->msg_type = RPPC_MSG_DESTROY_INSTANCE;
         hdr->msg_len = sizeof(struct rppc_instance_handle);
@@ -783,6 +784,11 @@ _rpmsg_rpc_destroy(resmgr_context_t *ctp, io_devctl_t *msg,
                 status = (ETIMEDOUT);
             }
         }
+    }
+    else {
+        /* This is the shutdown, remote proc has already been stopped,
+         * so just set created to false. */
+        rpc->created = FALSE;
     }
 
     return status;
@@ -2338,11 +2344,12 @@ rpmsg_rpc_destroy (Void)
     WaitingReaders_t      * wr = NULL;
     struct _msg_info        info;
 
-    GT_0trace (curTrace, GT_ENTER, "_rpmsg_rpc_destroy");
+    GT_0trace (curTrace, GT_ENTER, "rpmsg_rpc_destroy");
 
     for (i = 0; i < MAX_CONNS; i++) {
         if (rpmsg_rpc_state.objects[i]) {
             rpmsg_rpc_conn_object * obj = rpmsg_rpc_state.objects[i];
+            obj->destroy = TRUE;
             _deinit_rpmsg_rpc_device(obj->dev);
             ProcMgr_close(&obj->procH);
             Memory_free(NULL, obj, sizeof(rpmsg_rpc_conn_object));
