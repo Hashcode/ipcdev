@@ -115,8 +115,6 @@ Bool syslink_hib_hibernating = FALSE;
 pthread_mutex_t syslink_hib_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t syslink_hib_cond = PTHREAD_COND_INITIALIZER;
 
-extern int rpmsg_omx_setup (void);
-extern void rpmsg_omx_destroy (void);
 extern int rpmsg_resmgr_setup (void);
 extern void rpmsg_resmgr_destroy (void);
 extern Int rpmsg_dce_setup (Void);
@@ -819,11 +817,6 @@ procmgropen_fail:
         if (status < 0)
             goto resmgrsetup_fail;
 
-        /* Set up rpmsg_omx */
-        status = rpmsg_omx_setup();
-        if (status < 0)
-            goto omxsetup_fail;
-
         /* Set up rpmsg_dce */
         status = rpmsg_dce_setup();
         if (status < 0)
@@ -847,8 +840,6 @@ rpcsetup_fail:
 tiipcsetup_fail:
     rpmsg_dce_destroy();
 dcesetup_fail:
-    rpmsg_omx_destroy();
-omxsetup_fail:
     rpmsg_resmgr_destroy();
 resmgrsetup_fail:
     for (i-=1; i >= 0; i--) {
@@ -902,8 +893,6 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
     ti_ipc_destroy(recover);
 
     rpmsg_dce_destroy();
-
-    rpmsg_omx_destroy();
 
     rpmsg_resmgr_destroy();
 
