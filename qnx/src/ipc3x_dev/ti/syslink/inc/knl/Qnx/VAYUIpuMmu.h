@@ -1,5 +1,5 @@
 /**
- *  @file   VAYUBenelliMmu.h
+ *  @file   VAYUIpuMmu.h
  *
  *  @brief      Hardware abstraction for Memory Management Unit module.
  *
@@ -49,8 +49,8 @@
  */
 
 
-#ifndef VAYUBENELLIMMU_H_0xbbec
-#define VAYUBENELLIMMU_H_0xbbec
+#ifndef VAYUIPUMMU_H_0xbbec
+#define VAYUIPUMMU_H_0xbbec
 
 
 
@@ -63,12 +63,12 @@ extern "C" {
  * =============================================================================
  */
 /* Function to control MMU operations for this slave device. */
-Void VAYUBENELLIMMU_enable(PwrMgr_Handle handle);
+Void VAYUIPUMMU_enable(PwrMgr_Handle handle);
 /* Function to control MMU operations for this slave device. */
-Void VAYUBENELLIMMU_disable(PwrMgr_Handle handle);
+Void VAYUIPUMMU_disable(PwrMgr_Handle handle);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
 
-#endif /* VAYUBENELLIMMU_H_0xbbec */
+#endif /* VAYUIPUMMU_H_0xbbec */

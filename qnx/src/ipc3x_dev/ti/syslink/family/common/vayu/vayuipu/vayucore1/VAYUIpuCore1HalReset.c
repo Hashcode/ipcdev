@@ -105,7 +105,6 @@ VAYUIPUCORE1_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
     UInt32              cmBase;
     UInt32              prmBase;
     UInt32              reg       = 0;
-    UInt32              counter   = 10;
 
     GT_2trace (curTrace, GT_ENTER, "VAYUIPUCORE1_halResetCtrl", halObj, cmd);
 
