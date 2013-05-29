@@ -277,7 +277,7 @@ void * test_exec_call(void * arg)
                     function->num_translations = 1;
                     function->translations[0].index = 0;
                     function->translations[0].offset = (int)&(((fxn_addx_args *)ptr)->array) - (int)ptr;
-                    function->translations[0].base = ((fxn_addx_args *)ptr)->array;
+                    function->translations[0].base = (size_t)(((fxn_addx_args *)ptr)->array);
                 }
                 break;
             case FXN_IDX_FXNFAULT:
@@ -373,7 +373,7 @@ void * test_exec_call(void * arg)
                     if (((fxn_addx_args *)ptr)->array != ptr2) {
                         printf("rpc_stress: reverse addr translation failed, "
                                "addr = 0x%x expected 0x%x\n",
-                               ((fxn_addx_args *)ptr)->array, ptr2);
+                               (int)(((fxn_addx_args *)ptr)->array), (int)ptr2);
                         test_status = -1;
                     }
                     printf ("rpc_stress: called fxnAddX(%d,%d,%d), result = %d\n",
