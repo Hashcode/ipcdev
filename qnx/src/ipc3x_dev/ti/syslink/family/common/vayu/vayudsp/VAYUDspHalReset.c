@@ -213,10 +213,10 @@ VAYUDSP_halResetCtrl(Ptr halObj, VAYUDspHal_ResetCmd cmd)
             Osal_printf("DSP:RST2 released!\n");
             OUTREG32(addr, 0x2);
 
-            /* enable MMU0 through global system register */
+            /* enable MMU0 and MMU1 through global system register */
             val = INREG32(mmuSysBase + DSP_SYS_MMU_CONFIG_OFFSET);
-            OUTREG32(mmuSysBase + DSP_SYS_MMU_CONFIG_OFFSET, (val & ~0x1) | 0x1);
-            Osal_printf("DSP:SYS_MMU_CONFIG MMU0 enabled!\n");
+            OUTREG32(mmuSysBase + DSP_SYS_MMU_CONFIG_OFFSET, (val & ~0x11) | 0x11);
+            Osal_printf("DSP:SYS_MMU_CONFIG MMU0 and MMU1 enabled!\n");
         }
         break;
 

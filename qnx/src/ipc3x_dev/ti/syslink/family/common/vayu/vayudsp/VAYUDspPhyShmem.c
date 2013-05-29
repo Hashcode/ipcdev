@@ -190,8 +190,8 @@ VAYUDSP_phyShmemInit (Ptr halObj)
         halObject->prmBase = mapInfo.dst;
     }
 
-    mapInfo.src      = MMU_BASE;
-    mapInfo.size     = MMU_SIZE;
+    mapInfo.src      = MMU0_BASE;
+    mapInfo.size     = MMU0_SIZE;
     mapInfo.isCached = FALSE;
     status = Memory_map (&mapInfo);
     if (status < 0) {
@@ -199,11 +199,27 @@ VAYUDSP_phyShmemInit (Ptr halObj)
                              GT_4CLASS,
                              "VAYUDSP_phyShmemInit",
                              status,
-                             "Failure in Memory_map for MMU base registers");
-        halObject->mmuBase = 0;
+                             "Failure in Memory_map for MMU0 base registers");
+        halObject->mmu0Base = 0;
     }
     else {
-        halObject->mmuBase = mapInfo.dst;
+        halObject->mmu0Base = mapInfo.dst;
+    }
+
+    mapInfo.src      = MMU1_BASE;
+    mapInfo.size     = MMU1_SIZE;
+    mapInfo.isCached = FALSE;
+    status = Memory_map (&mapInfo);
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "VAYUDSP_phyShmemInit",
+                             status,
+                             "Failure in Memory_map for MMU1 base registers");
+        halObject->mmu1Base = 0;
+    }
+    else {
+        halObject->mmu1Base = mapInfo.dst;
     }
 
     mapInfo.src      = DSP_SYS_MMU_CONFIG_BASE;
@@ -281,8 +297,8 @@ VAYUDSP_phyShmemExit (Ptr halObj)
         halObject->ctrlModBase = 0 ;
     }
 
-    unmapInfo.addr = halObject->mmuBase;
-    unmapInfo.size = MMU_SIZE;
+    unmapInfo.addr = halObject->mmu1Base;
+    unmapInfo.size = MMU1_SIZE;
     unmapInfo.isCached = FALSE;
     if (unmapInfo.addr != 0) {
         status = Memory_unmap (&unmapInfo);
@@ -293,7 +309,22 @@ VAYUDSP_phyShmemExit (Ptr halObj)
                               status,
                               "Failure in Memory_Unmap for MMU base registers");
         }
-        halObject->mmuBase = 0 ;
+        halObject->mmu1Base = 0 ;
+    }
+
+    unmapInfo.addr = halObject->mmu0Base;
+    unmapInfo.size = MMU0_SIZE;
+    unmapInfo.isCached = FALSE;
+    if (unmapInfo.addr != 0) {
+        status = Memory_unmap (&unmapInfo);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                              GT_4CLASS,
+                              "VAYUDSP_phyShmemExit",
+                              status,
+                              "Failure in Memory_Unmap for MMU base registers");
+        }
+        halObject->mmu0Base = 0 ;
     }
 
     unmapInfo.addr = halObject->mmuSysBase;

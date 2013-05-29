@@ -118,11 +118,17 @@ extern "C" {
  */
 #define DSP_SYS_MMU_CONFIG_SIZE   0x1000
 
-#define MMU_BASE                0x40D01000
+#define MMU0_BASE                0x40D01000
 /*!
  *  @brief  size to be ioremapped.
  */
-#define MMU_SIZE                0x1000
+#define MMU0_SIZE                0x1000
+
+#define MMU1_BASE                0x40D02000
+/*!
+ *  @brief  size to be ioremapped.
+ */
+#define MMU1_SIZE                0x1000
 
 /*!
  *  @def    CTRL_MODULE_BASE

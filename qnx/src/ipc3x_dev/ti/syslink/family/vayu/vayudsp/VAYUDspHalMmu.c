@@ -87,10 +87,14 @@ extern "C" {
  */
 #define MMU_RAM_DEFAULT         0
 
+#define MPU_INT_OFFSET               32
+
 /*!
  *  @brief  Interrupt Id for DSP MMU faults
  */
-#define MMU_FAULT_INTERRUPT     60
+#define MMU_FAULT_INTR_DSP1_MMU0     60
+#define MMU_FAULT_INTR_DSP1_MMU1     143
+#define MMU_XBAR_INTR_DSP1_MMU1      145
 
 /*!
  *  @brief  CAM register field values
@@ -122,6 +126,28 @@ extern "C" {
 #define MASTERPHYSADDR(x) ((x)->addr [ProcMgr_AddrType_MasterPhys])
 
 #define MMUPAGE_ALIGN(size, psz)  (((size) + psz - 1) & ~(psz -1))
+
+/*!
+ *  @brief  offset in ctrl module to MMR LOCK reg.
+ */
+#define CTRL_MODULE_MMR_OFFSET           0x544
+
+/*!
+ *  @brief  offset in ctrl module to MPU INTs.
+ */
+#define CTRL_MODULE_MPU_OFFSET           0xA4C
+
+/*!
+ *  @brief  interrupt num at offset.
+ */
+#define CTRL_MODULE_INT_BASE             0x8
+
+/*!
+ *  @brief  interrupt num at offset.
+ */
+#define CTRL_MODULE_INT_m_OFFSET(m)      CTRL_MODULE_MPU_OFFSET + \
+                                         ((((m) - CTRL_MODULE_INT_BASE) / 2) * 4) - \
+                                         (((m) > 131) ? 4 : 0)
 
 /*!
  *  @def    REG32
@@ -371,20 +397,37 @@ Bool
 _VAYUDSP_halMmuCheckAndClearFunc (Ptr arg)
 {
     VAYUDSP_HalObject * halObject = (VAYUDSP_HalObject *)arg;
-    VAYUDSP_HalMmuObject * mmuObj = &(halObject->mmuObj);
+    VAYUDSP_HalMmuObject * mmuObj = &(halObject->mmu0Obj);
+    UInt32 mmuBase;
 
     /* Check the interrupt status */
-    mmuObj->mmuIrqStatus = REG32(halObject->mmuBase + MMU_MMU_IRQSTATUS_OFFSET);
+    mmuObj->mmuIrqStatus = REG32(halObject->mmu0Base + MMU_MMU_IRQSTATUS_OFFSET);
     mmuObj->mmuIrqStatus &= MMU_IRQ_MASK;
-    if (!(mmuObj->mmuIrqStatus))
-        return (FALSE);
+    if (!(mmuObj->mmuIrqStatus)) {
+        mmuObj = &(halObject->mmu1Obj);
+
+        /* Check the interrupt status */
+        mmuObj->mmuIrqStatus = REG32(halObject->mmu1Base + MMU_MMU_IRQSTATUS_OFFSET);
+        mmuObj->mmuIrqStatus &= MMU_IRQ_MASK;
+        if (!(mmuObj->mmuIrqStatus)) {
+            return (FALSE);
+        }
+        else {
+            mmuBase = halObject->mmu1Base;
+            GT_0trace (curTrace, GT_4CLASS,
+                       "****************** DSP-MMU1 Fault ******************");
+        }
+    }
+    else {
+        mmuBase = halObject->mmu0Base;
+        GT_0trace (curTrace, GT_4CLASS,
+                   "****************** DSP-MMU0 Fault ******************");
+    }
 
     /* Get the fault address. */
-    mmuObj->mmuFaultAddr = REG32(halObject->mmuBase + MMU_MMU_FAULT_AD_OFFSET);
+    mmuObj->mmuFaultAddr = REG32(mmuBase + MMU_MMU_FAULT_AD_OFFSET);
 
     /* Print the fault information */
-    GT_0trace (curTrace, GT_4CLASS,
-               "****************** DSP-MMU Fault ******************");
     GT_1trace (curTrace, GT_4CLASS,
                "****    addr: 0x%x", mmuObj->mmuFaultAddr);
     if (mmuObj->mmuIrqStatus & MMU_IRQ_TLBMISS)
@@ -401,8 +444,8 @@ _VAYUDSP_halMmuCheckAndClearFunc (Ptr arg)
                "**************************************************");
 
     /* Clear the interrupt and disable further interrupts. */
-    REG32(halObject->mmuBase + MMU_MMU_IRQENABLE_OFFSET) = 0x0;
-    REG32(halObject->mmuBase + MMU_MMU_IRQSTATUS_OFFSET) = mmuObj->mmuIrqStatus;
+    REG32(mmuBase + MMU_MMU_IRQENABLE_OFFSET) = 0x0;
+    REG32(mmuBase + MMU_MMU_IRQSTATUS_OFFSET) = mmuObj->mmuIrqStatus;
 
     /* This is not a shared interrupt, so interrupt has always occurred */
     /*! @retval TRUE Interrupt has occurred. */
@@ -452,8 +495,9 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
                        ProcMgr_AddrInfo *   memTable)
 {
     Int                           status    = PROCESSOR_SUCCESS;
-    VAYUDSP_HalMmuObject *        mmuObj;
+    VAYUDSP_HalMmuObject *        mmu0Obj, *mmu1Obj;
     OsalIsr_Params                isrParams;
+    UInt32 reg = 0;
 
     GT_3trace (curTrace, GT_ENTER, "_VAYUDSP_halMmuEnable",
                halObject, numMemEntries, memTable);
@@ -463,19 +507,39 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
      * configure any default regions.
      * memTable may also be NULL.
      */
-    mmuObj = &(halObject->mmuObj);
+    mmu0Obj = &(halObject->mmu0Obj);
+    mmu1Obj = &(halObject->mmu1Obj);
+
+    /* Program the MMR lock registers to access the SCM
+     * IRQ crossbar register address range */
+    REG32(halObject->ctrlModBase + CTRL_MODULE_MMR_OFFSET) = 0xF757FDC0;
+
+    /* Program the IntXbar */
+    reg = REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1));
+    if ((MMU_FAULT_INTR_DSP1_MMU1 - CTRL_MODULE_INT_BASE) % 2) {
+        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
+            (reg & 0x0000FFFF) | (MMU_XBAR_INTR_DSP1_MMU1 << 16);
+    }
+    else {
+        REG32(halObject->ctrlModBase + CTRL_MODULE_INT_m_OFFSET(MMU_FAULT_INTR_DSP1_MMU1)) =
+            (reg & 0xFFFF0000) | (MMU_XBAR_INTR_DSP1_MMU1);
+    }
 
     /* Create the ISR to listen for MMU Faults */
     isrParams.sharedInt        = FALSE;
     isrParams.checkAndClearFxn = &_VAYUDSP_halMmuCheckAndClearFunc;
     isrParams.fxnArgs          = halObject;
-    isrParams.intId            = MMU_FAULT_INTERRUPT;
-    mmuObj->isrHandle = OsalIsr_create (&_VAYUDSP_halMmuInt_isr,
+    isrParams.intId            = MMU_FAULT_INTR_DSP1_MMU0;
+    mmu0Obj->isrHandle = OsalIsr_create (&_VAYUDSP_halMmuInt_isr,
+                                        halObject,
+                                        &isrParams);
+    isrParams.intId            = MMU_FAULT_INTR_DSP1_MMU1;
+    mmu1Obj->isrHandle = OsalIsr_create (&_VAYUDSP_halMmuInt_isr,
                                         halObject,
                                         &isrParams);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-    if (mmuObj->isrHandle == NULL) {
+    if (mmu0Obj->isrHandle == NULL || mmu1Obj->isrHandle == NULL) {
         /*! @retval PROCESSOR_E_FAIL OsalIsr_create failed */
         status = PROCESSOR_E_FAIL;
         GT_setFailureReason (curTrace,
@@ -487,7 +551,7 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
-        status = OsalIsr_install (mmuObj->isrHandle);
+        status = OsalIsr_install (mmu0Obj->isrHandle);
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
         if (status < 0) {
@@ -496,6 +560,20 @@ _VAYUDSP_halMmuEnable (VAYUDSP_HalObject * halObject,
                                  "_VAYUDSP_halMmuEnable",
                                  status,
                                  "OsalIsr_install failed");
+        }
+        else {
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
+            status = OsalIsr_install (mmu1Obj->isrHandle);
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+            if (status < 0) {
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "_VAYUDSP_halMmuEnable",
+                                     status,
+                                     "OsalIsr_install failed");
+            }
         }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
@@ -542,14 +620,26 @@ _VAYUDSP_halMmuDisable (VAYUDSP_HalObject * halObject)
 {
     Int                        status    = PROCESSOR_SUCCESS;
     Int                        tmpStatus = PROCESSOR_SUCCESS;
-    VAYUDSP_HalMmuObject *     mmuObj;
+    VAYUDSP_HalMmuObject *     mmu0Obj, *mmu1Obj;
 
     GT_1trace (curTrace, GT_ENTER, "_VAYUDSP_halMmuDisable", halObject);
 
     GT_assert (curTrace, (halObject != NULL));
-    mmuObj = &(halObject->mmuObj);
+    mmu0Obj = &(halObject->mmu0Obj);
+    mmu1Obj = &(halObject->mmu1Obj);
 
-    status = OsalIsr_uninstall (mmuObj->isrHandle);
+    status = OsalIsr_uninstall (mmu0Obj->isrHandle);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    if (status < 0) {
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_VAYUDSP_halMmuDisable",
+                             status,
+                             "OsalIsr_uninstall failed");
+    }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
+    status = OsalIsr_uninstall (mmu1Obj->isrHandle);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     if (status < 0) {
         GT_setFailureReason (curTrace,
@@ -563,7 +653,22 @@ _VAYUDSP_halMmuDisable (VAYUDSP_HalObject * halObject)
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     tmpStatus =
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        OsalIsr_delete (&(mmuObj->isrHandle));
+        OsalIsr_delete (&(mmu0Obj->isrHandle));
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    if ((status >= 0) && (tmpStatus < 0)) {
+        status = tmpStatus;
+        GT_setFailureReason (curTrace,
+                             GT_4CLASS,
+                             "_VAYUDSP_halMmuDisable",
+                             status,
+                             "OsalIsr_delete failed");
+    }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+    tmpStatus =
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+        OsalIsr_delete (&(mmu1Obj->isrHandle));
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     if ((status >= 0) && (tmpStatus < 0)) {
         status = tmpStatus;
@@ -735,7 +840,7 @@ _VAYUDSP_halMmuDeleteEntry (VAYUDSP_HalObject       * halObject,
     UInt32 *                    iopgd       = NULL;
     UInt32                      currentEntrySize;
     VAYUDSP_HalMmuEntryInfo     currentEntry;
-    VAYUDSP_HalMmuObject *      mmuObj;
+    VAYUDSP_HalMmuObject *      mmu0Obj, *mmu1Obj;
     //UInt32                      clearBytes = 0;
 
     GT_2trace (curTrace, GT_ENTER, "_VAYUDSP_halMmuDeleteEntry",
@@ -745,7 +850,8 @@ _VAYUDSP_halMmuDeleteEntry (VAYUDSP_HalObject       * halObject,
     GT_assert (curTrace, (entry                != NULL));
     GT_assert (curTrace, (entry->size          != 0));
 
-    mmuObj = &(halObject->mmuObj);
+    mmu0Obj = &(halObject->mmu0Obj);
+    mmu1Obj = &(halObject->mmu1Obj);
 
     /* Add the entry (or entries) */
     Memory_copy(&currentEntry,
@@ -917,15 +1023,17 @@ Int
 _VAYUDSP_halMmuPteSet (VAYUDSP_HalObject *      halObject,
                        VAYUDSP_HalMmuEntryInfo* setPteInfo)
 {
-    VAYUDSP_HalMmuObject *     mmuObj;
+    VAYUDSP_HalMmuObject *     mmu0Obj, *mmu1Obj;
     struct iotlb_entry tlb_entry;
     Int    status = PROCESSOR_SUCCESS;
 
     GT_assert (curTrace, (halObject  != NULL));
     GT_assert (curTrace, (setPteInfo != NULL));
 
-    mmuObj = &(halObject->mmuObj);
-    GT_assert(curTrace, (mmuObj != NULL));
+    mmu0Obj = &(halObject->mmu0Obj);
+    GT_assert(curTrace, (mmu0Obj != NULL));
+    mmu1Obj = &(halObject->mmu1Obj);
+    GT_assert(curTrace, (mmu1Obj != NULL));
 
     switch (setPteInfo->size) {
         case PAGE_SIZE_16MB:
@@ -1023,7 +1131,15 @@ _VAYUDSP_halMmuPteSet (VAYUDSP_HalObject *      halObject,
                 tlb_entry.da = setPteInfo->slaveVirtAddr;
                 tlb_entry.pa = setPteInfo->masterPhyAddr;
 
-                if (VAYUDSP_InternalMMU_PteSet(halObject->mmuBase, &tlb_entry)){
+                if (VAYUDSP_InternalMMU_PteSet(halObject->mmu0Base, &tlb_entry)){
+                    status = PROCESSOR_E_STOREENTERY;
+                    GT_setFailureReason (curTrace,
+                            GT_4CLASS,
+                            "_VAYUDSP_halMmuPteSet",
+                            status,
+                            "iopgtable_store_entry failed!");
+                }
+                if (VAYUDSP_InternalMMU_PteSet(halObject->mmu1Base, &tlb_entry)){
                     status = PROCESSOR_E_STOREENTERY;
                     GT_setFailureReason (curTrace,
                             GT_4CLASS,

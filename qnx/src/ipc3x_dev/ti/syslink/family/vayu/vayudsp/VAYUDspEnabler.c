@@ -123,15 +123,14 @@ static UInt32 shm_phys_addr_dsp;
 #define SIZE 0x4
 
 static UInt32 iotlb_dump_cr (struct cr_regs *cr, char *buf);
-static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
-                             struct iotlb_entry *e);
+static Int load_iotlb_entry (UInt32 mmuBase, struct iotlb_entry *e);
 static Int iotlb_cr_valid (struct cr_regs *cr);
 
-static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
+static Int rproc_mem_map (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
                           UInt32 mpu_addr, UInt32 ul_virt_addr,
                           UInt32 num_bytes, UInt32 map_attr);
-static Int rproc_mem_unmap (VAYUDSP_HalObject * halObject, UInt32 da,
-                            UInt32 num_bytes);
+static Int rproc_mem_unmap (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
+                            UInt32 da, UInt32 num_bytes);
 
 
 static Void iotlb_cr_to_e (struct cr_regs *cr, struct iotlb_entry *e)
@@ -146,56 +145,49 @@ static Void iotlb_cr_to_e (struct cr_regs *cr, struct iotlb_entry *e)
     e->mixed    = cr->ram & MMU_RAM_MIXED;
 }
 
-static Void iotlb_getLock (VAYUDSP_HalObject * halObject,
-                           struct iotlb_lock *l)
+static Void iotlb_getLock (UInt32 mmuBase, struct iotlb_lock *l)
 {
     ULONG reg;
-    VAYUDsp_MMURegs * mmuRegs =
-                                  (VAYUDsp_MMURegs *)halObject->mmuBase;
+    VAYUDsp_MMURegs * mmuRegs = (VAYUDsp_MMURegs *)mmuBase;
 
     reg = INREG32(&mmuRegs->LOCK);
     l->base = MMU_LOCK_BASE(reg);
     l->vict = MMU_LOCK_VICT(reg);
 }
 
-static Void iotlb_setLock (VAYUDSP_HalObject * halObject,
-                           struct iotlb_lock *l)
+static Void iotlb_setLock (UInt32 mmuBase, struct iotlb_lock *l)
 {
     ULONG reg;
-    VAYUDsp_MMURegs * mmuRegs =
-                                  (VAYUDsp_MMURegs *)halObject->mmuBase;
+    VAYUDsp_MMURegs * mmuRegs = (VAYUDsp_MMURegs *)mmuBase;
 
     reg = (l->base << MMU_LOCK_BASE_SHIFT);
     reg |= (l->vict << MMU_LOCK_VICT_SHIFT);
     OUTREG32(&mmuRegs->LOCK, reg);
 }
 
-static void omap4_tlb_read_cr (VAYUDSP_HalObject * halObject,
-                               struct cr_regs *cr)
+static void omap4_tlb_read_cr (UInt32 mmuBase, struct cr_regs *cr)
 {
-    VAYUDsp_MMURegs * mmuRegs =
-                                  (VAYUDsp_MMURegs *)halObject->mmuBase;
+    VAYUDsp_MMURegs * mmuRegs = (VAYUDsp_MMURegs *)mmuBase;
 
     cr->cam = INREG32(&mmuRegs->READ_CAM);
     cr->ram = INREG32(&mmuRegs->READ_RAM);
 }
 
 /* only used for iotlb iteration in for-loop */
-static struct cr_regs __iotlb_read_cr (VAYUDSP_HalObject * halObject,
-                                       int n)
+static struct cr_regs __iotlb_read_cr (UInt32 mmuBase, int n)
 {
      struct cr_regs cr;
      struct iotlb_lock l;
-     iotlb_getLock(halObject, &l);
+     iotlb_getLock(mmuBase, &l);
      l.vict = n;
-     iotlb_setLock(halObject, &l);
-     omap4_tlb_read_cr(halObject, &cr);
+     iotlb_setLock(mmuBase, &l);
+     omap4_tlb_read_cr(mmuBase, &cr);
      return cr;
 }
 
 #define for_each_iotlb_cr(n, __i, cr)                \
     for (__i = 0;                            \
-         (__i < (n)) && (cr = __iotlb_read_cr(halObject, __i), TRUE);    \
+         (__i < (n)) && (cr = __iotlb_read_cr(mmuBase, __i), TRUE);    \
          __i++)
 
 static Int save_tlbs (VAYUDSP_HalObject * halObject, UINT32 procId)
@@ -203,12 +195,24 @@ static Int save_tlbs (VAYUDSP_HalObject * halObject, UINT32 procId)
     Int i =0;
     struct cr_regs cr_tmp;
     struct iotlb_lock l;
+    UInt32 mmuBase;
 
-    iotlb_getLock(halObject, &l);
+    iotlb_getLock(halObject->mmu0Base, &l);
 
-    halObject->mmuObj.nrTlbs = l.base;
-    for_each_iotlb_cr(halObject->mmuObj.nrTlbs, i, cr_tmp) {
-        iotlb_cr_to_e(&cr_tmp, &halObject->mmuObj.tlbs[i]);
+    halObject->mmu0Obj.nrTlbs = l.base;
+    mmuBase = halObject->mmu0Base;
+
+    for_each_iotlb_cr(halObject->mmu0Obj.nrTlbs, i, cr_tmp) {
+        iotlb_cr_to_e(&cr_tmp, &halObject->mmu0Obj.tlbs[i]);
+    }
+
+    iotlb_getLock(halObject->mmu1Base, &l);
+
+    halObject->mmu1Obj.nrTlbs = l.base;
+    mmuBase = halObject->mmu1Base;
+
+    for_each_iotlb_cr(halObject->mmu1Obj.nrTlbs, i, cr_tmp) {
+        iotlb_cr_to_e(&cr_tmp, &halObject->mmu1Obj.tlbs[i]);
     }
 
     return 0;
@@ -224,16 +228,29 @@ static Int restore_tlbs (VAYUDSP_HalObject * halObject, UInt32 procId)
     /* Reset the base and victim values */
     save.base = 0;
     save.vict = 0;
-    iotlb_setLock(halObject, &save);
+    iotlb_setLock(halObject->mmu0Base, &save);
+    iotlb_setLock(halObject->mmu1Base, &save);
 
-    for (i = 0; i < halObject->mmuObj.nrTlbs; i++) {
-        status = load_iotlb_entry(halObject, &halObject->mmuObj.tlbs[i]);
+    for (i = 0; i < halObject->mmu0Obj.nrTlbs; i++) {
+        status = load_iotlb_entry(halObject->mmu0Base, &halObject->mmu0Obj.tlbs[i]);
         if (status < 0) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "restore_tlbs",
                                  status,
-                                 "Error restoring the tlbs");
+                                 "Error restoring the mmu0 tlbs");
+            goto err;
+        }
+    }
+
+    for (i = 0; i < halObject->mmu1Obj.nrTlbs; i++) {
+        status = load_iotlb_entry(halObject->mmu1Base, &halObject->mmu1Obj.tlbs[i]);
+        if (status < 0) {
+            GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "restore_tlbs",
+                                 status,
+                                 "Error restoring the mmu1 tlbs");
             goto err;
         }
     }
@@ -257,7 +274,7 @@ static Int save_mmu_regs (VAYUDSP_HalObject * halObject, UInt32 procId)
         return -ENOMEM;
     }
 
-    if (halObject->mmuBase == 0) {
+    if (halObject->mmu0Base == 0 || halObject->mmu1Base == 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "save_mmu_regs",
@@ -267,7 +284,8 @@ static Int save_mmu_regs (VAYUDSP_HalObject * halObject, UInt32 procId)
     }
 
     for (i = 0; i < MMU_REGS_SIZE; i++) {
-        halObject->mmuObj.mmuRegs[i] = INREG32(halObject->mmuBase + (i * 4));
+        halObject->mmu0Obj.mmuRegs[i] = INREG32(halObject->mmu0Base + (i * 4));
+        halObject->mmu1Obj.mmuRegs[i] = INREG32(halObject->mmu1Base + (i * 4));
     }
 
     return 0;
@@ -287,7 +305,7 @@ static Int restore_mmu_regs (VAYUDSP_HalObject * halObject,
         return -ENOMEM;
     }
 
-    if (halObject->mmuBase == 0) {
+    if (halObject->mmu0Base == 0 || halObject->mmu1Base == 0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "restore_mmu_regs",
@@ -297,7 +315,8 @@ static Int restore_mmu_regs (VAYUDSP_HalObject * halObject,
     }
 
     for (i = 0; i < MMU_REGS_SIZE; i++) {
-        OUTREG32(halObject->mmuBase + (i * 4), halObject->mmuObj.mmuRegs[i]);
+        OUTREG32(halObject->mmu0Base + (i * 4), halObject->mmu0Obj.mmuRegs[i]);
+        OUTREG32(halObject->mmu1Base + (i * 4), halObject->mmu1Obj.mmuRegs[i]);
     }
 
     return 0;
@@ -595,7 +614,8 @@ static Int add_entry_ext (VAYUDSP_HalObject * halObject,
                 page_size = HW_PAGE_SIZE_4KB;
 
             if (status == 0) {
-                status = rproc_mem_map (halObject,
+                status = rproc_mem_map (halObject->mmu0Base,
+                                        halObject->mmu0Obj.pPtAttrs,
                                         *phys_addr,
                                         *dsp_addr,
                                         page_size,
@@ -605,7 +625,21 @@ static Int add_entry_ext (VAYUDSP_HalObject * halObject,
                                          GT_4CLASS,
                                          "add_entry_ext",
                                          status,
-                                         "benelli_mem_map failed");
+                                         "rproc_mem_map failed");
+                    break;
+                }
+                status = rproc_mem_map (halObject->mmu1Base,
+                                        halObject->mmu1Obj.pPtAttrs,
+                                        *phys_addr,
+                                        *dsp_addr,
+                                        page_size,
+                                        flags);
+                if (status < 0) {
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "add_entry_ext",
+                                         status,
+                                         "rproc_mem_map failed");
                     break;
                 }
                 mapped_size  += entry_size;
@@ -617,21 +651,20 @@ static Int add_entry_ext (VAYUDSP_HalObject * halObject,
     return status;
 }
 
-static Int __dump_tlb_entries (VAYUDSP_HalObject * halObject,
-                               struct cr_regs *crs, int num)
+static Int __dump_tlb_entries (UInt32 mmuBase, struct cr_regs *crs, int num)
 {
     int i;
     struct iotlb_lock saved;
     struct cr_regs tmp;
     struct cr_regs *p = crs;
 
-    iotlb_getLock(halObject, &saved);
+    iotlb_getLock(mmuBase, &saved);
     for_each_iotlb_cr(num, i, tmp) {
         if (!iotlb_cr_valid(&tmp))
             continue;
         *p++ = tmp;
     }
-    iotlb_setLock(halObject, &saved);
+    iotlb_setLock(mmuBase, &saved);
     return  p - crs;
 }
 
@@ -658,7 +691,8 @@ UInt32 get_DspVirtAdd(VAYUDSP_HalObject * halObject, UInt32 physAdd)
 
     memset(cr, 0, sizeof(struct cr_regs) * num);
 
-    num = __dump_tlb_entries(halObject, cr, num);
+    /* Since MMU0 and MMU1 are programmed with the same entries, can just check MMU0 */
+    num = __dump_tlb_entries(halObject->mmu0Base, cr, num);
     for (i = 0; i < num; i++)
     {
         p = cr + i;
@@ -678,8 +712,7 @@ UInt32 get_DspVirtAdd(VAYUDSP_HalObject * halObject, UInt32 physAdd)
  * @obj:    target iommu
  * @buf:    output buffer
  **/
-static UInt32 dump_tlb_entries (VAYUDSP_HalObject * halObject,
-                                char *buf, UInt32 bytes)
+static UInt32 dump_tlb_entries (UInt32 mmuBase, char *buf, UInt32 bytes)
 {
     Int i, num;
     struct cr_regs *cr;
@@ -700,7 +733,7 @@ static UInt32 dump_tlb_entries (VAYUDSP_HalObject * halObject,
     }
     memset(cr, 0, sizeof(struct cr_regs) * num);
 
-    num = __dump_tlb_entries(halObject, cr, num);
+    num = __dump_tlb_entries(mmuBase, cr, num);
     for (i = 0; i < num; i++)
         p += iotlb_dump_cr(cr + i, p);
     munmap(cr, sizeof(struct cr_regs) * num);
@@ -720,7 +753,8 @@ static Void rproc_tlb_dump (VAYUDSP_HalObject * halObject)
              0);
     if (MAP_FAILED != p)
     {
-        dump_tlb_entries(halObject, p, 1000);
+        dump_tlb_entries(halObject->mmu0Base, p, 1000);
+        dump_tlb_entries(halObject->mmu1Base, p, 1000);
         munmap(p, 1000);
     }
 
@@ -741,7 +775,8 @@ static Int rproc_mmu_init (VAYUDSP_HalObject * halObject,
     UInt32 i = 0;
     UInt32 virt_addr = 0;
     UInt32 reg;
-    VAYUDsp_MMURegs * mmuRegs = NULL;
+    VAYUDsp_MMURegs * mmuRegs0 = NULL;
+    VAYUDsp_MMURegs * mmuRegs1 = NULL;
 
     if (halObject == NULL) {
         ret_val = -ENOMEM;
@@ -753,7 +788,7 @@ static Int rproc_mmu_init (VAYUDSP_HalObject * halObject,
         goto error_exit;
     }
 
-    if (halObject->mmuBase == 0) {
+    if (halObject->mmu0Base == 0 || halObject->mmu1Base == 0) {
         ret_val = -ENOMEM;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
@@ -762,11 +797,16 @@ static Int rproc_mmu_init (VAYUDSP_HalObject * halObject,
                              "halObject->mmuBase is 0");
         goto error_exit;
     }
-    mmuRegs = (VAYUDsp_MMURegs *)halObject->mmuBase;
+    mmuRegs0 = (VAYUDsp_MMURegs *)halObject->mmu0Base;
+    mmuRegs1 = (VAYUDsp_MMURegs *)halObject->mmu1Base;
 
     /*  Disable the MMU & TWL */
-    hw_mmu_disable(halObject->mmuBase);
-    hw_mmu_twl_disable(halObject->mmuBase);
+    hw_mmu_disable(halObject->mmu0Base);
+    hw_mmu_twl_disable(halObject->mmu0Base);
+
+    /*  Disable the MMU & TWL */
+    hw_mmu_disable(halObject->mmu1Base);
+    hw_mmu_twl_disable(halObject->mmu1Base);
 
     printf("  Programming Dsp memory regions\n");
     printf("=========================================\n");
@@ -804,21 +844,30 @@ static Int rproc_mmu_init (VAYUDSP_HalObject * halObject,
     }
 
     /* Set the TTB to point to the L1 page table's physical address */
-    OUTREG32(&mmuRegs->TTB,
-           ((struct pg_table_attrs *)(halObject->mmuObj.pPtAttrs))->l1_base_pa);
+    OUTREG32(&mmuRegs0->TTB,
+           ((struct pg_table_attrs *)(halObject->mmu0Obj.pPtAttrs))->l1_base_pa);
+    OUTREG32(&mmuRegs1->TTB,
+           ((struct pg_table_attrs *)(halObject->mmu1Obj.pPtAttrs))->l1_base_pa);
 
     /* Enable the TWL */
-    hw_mmu_twl_enable(halObject->mmuBase);
+    hw_mmu_twl_enable(halObject->mmu0Base);
+    hw_mmu_twl_enable(halObject->mmu1Base);
 
-    hw_mmu_enable(halObject->mmuBase);
+    hw_mmu_enable(halObject->mmu0Base);
+    hw_mmu_enable(halObject->mmu1Base);
 
     rproc_tlb_dump(halObject);
 
     //Set the SYSCONFIG
-    reg = INREG32(halObject->mmuBase + 0x10);
+    reg = INREG32(halObject->mmu0Base + 0x10);
     reg&=0xFFFFFFEF;
     reg|=0x11;
-    OUTREG32(halObject->mmuBase+0x10, reg);
+    OUTREG32(halObject->mmu0Base+0x10, reg);
+
+    reg = INREG32(halObject->mmu1Base + 0x10);
+    reg&=0xFFFFFFEF;
+    reg|=0x11;
+    OUTREG32(halObject->mmu1Base+0x10, reg);
 
     return 0;
 error_exit:
@@ -833,30 +882,22 @@ error_exit:
 *
 *****************************************************/
 
-static Int rproc_set_twl (VAYUDSP_HalObject * halObject, Bool on)
+static Int rproc_set_twl (UInt32 mmuBase, Bool on)
 {
     Int status = 0;
     VAYUDsp_MMURegs * mmuRegs = NULL;
     ULONG reg;
 
-    if (halObject == NULL) {
+    if (mmuBase == 0) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "benelli_set_twl",
                              status,
-                             "halObject is NULL");
-    }
-    else if (halObject->mmuBase == 0) {
-        status = -ENOMEM;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "benelli_set_twl",
-                             status,
-                             "halObject->mmuBase is NULL");
+                             "mmuBase is NULL");
     }
     else {
-        mmuRegs = (VAYUDsp_MMURegs *)halObject->mmuBase;
+        mmuRegs = (VAYUDsp_MMURegs *)mmuBase;
 
         /* Setting MMU to Smart Idle Mode */
         reg = INREG32(&mmuRegs->SYSCONFIG);
@@ -1236,7 +1277,7 @@ static Int pte_update (UInt32 pa, UInt32 va, UInt32 size,
 * All address & size arguments are assumed to be page aligned (in proc.c)
  *
  */
-static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
+static Int rproc_mem_map (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
                           UInt32 mpu_addr, UInt32 ul_virt_addr,
                           UInt32 num_bytes, UInt32 map_attr)
 {
@@ -1245,27 +1286,19 @@ static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
     struct hw_mmu_map_attrs_t hw_attrs;
     Int pg_i = 0;
 
-    if (halObject == NULL) {
+    if (mmuBase == 0) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
-                             "benelli_mem_map",
+                             "rproc_mem_map",
                              status,
-                             "halObject is NULL");
-    }
-    else if (halObject->mmuBase == 0) {
-        status = -ENOMEM;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "benelli_mem_map",
-                             status,
-                             "halObject->mmuBase is 0");
+                             "mmuBase is 0");
     }
     else if (num_bytes == 0) {
         status = -EINVAL;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
-                             "benelli_mem_map",
+                             "rproc_mem_map",
                              status,
                              "num_bytes is 0");
     }
@@ -1305,7 +1338,7 @@ static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
                 status = -EINVAL;
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
-                                     "benelli_mem_map",
+                                     "rproc_mem_map",
                                      status,
                                      "MMU element size is zero");
             }
@@ -1320,7 +1353,7 @@ static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
             if ((attrs & DSP_MAPPHYSICALADDR)) {
                 status = pte_update(mpu_addr, ul_virt_addr, num_bytes,
                            &hw_attrs,
-                           (struct pg_table_attrs *)halObject->mmuObj.pPtAttrs);
+                           (struct pg_table_attrs *)p_pt_attrs);
             }
 
             /* Don't propogate Linux or HW status to upper layers */
@@ -1329,16 +1362,17 @@ static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
                  * Roll out the mapped pages incase it failed in middle of
                  * mapping
                  */
-                if (pg_i)
-                    rproc_mem_unmap(halObject, ul_virt_addr,
+                if (pg_i) {
+                    rproc_mem_unmap(mmuBase, p_pt_attrs, ul_virt_addr,
                                     (pg_i * PAGE_SIZE));
+                }
             }
 
             /* In any case, flush the TLB
              * This is called from here instead from pte_update to avoid
              * unnecessary repetition while mapping non-contiguous physical
              * regions of a virtual region */
-            hw_mmu_tlb_flushAll(halObject->mmuBase);
+            hw_mmu_tlb_flushAll(mmuBase);
         }
     }
     return status;
@@ -1354,7 +1388,7 @@ static Int rproc_mem_map (VAYUDSP_HalObject * halObject,
  *      So, instead of looking up the PTE address for every 4K block,
  *      we clear consecutive PTEs until we unmap all the bytes
  */
-static Int rproc_mem_unmap (VAYUDSP_HalObject * halObject,
+static Int rproc_mem_unmap (UInt32 mmuBase, struct pg_table_attrs * p_pt_attrs,
                             UInt32 da, UInt32 num_bytes)
 {
     UInt32 L1_base_va;
@@ -1373,34 +1407,24 @@ static Int rproc_mem_unmap (VAYUDSP_HalObject * halObject,
     UInt32 temp;
     UInt32 pAddr;
     UInt32 numof4Kpages = 0;
-    struct pg_table_attrs * p_pt_attrs = NULL;
 
-    if (halObject == NULL) {
+    if (mmuBase == 0) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "rproc_mem_unmap",
                              status,
-                             "halObject is NULL");
+                             "mmuBase is 0");
     }
-    else if (halObject->mmuBase == 0) {
+    else if (p_pt_attrs == NULL) {
         status = -ENOMEM;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "rproc_mem_unmap",
                              status,
-                             "halObject->mmuBase is 0");
-    }
-    else if (halObject->mmuObj.pPtAttrs == NULL) {
-        status = -ENOMEM;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "rproc_mem_unmap",
-                             status,
-                             "halObject->mmuObj.pPtAttrs is 0");
+                             "p_pt_attrs is NULL");
     }
     else {
-        p_pt_attrs = (struct pg_table_attrs *)halObject->mmuObj.pPtAttrs;
         vaCurr = da;
         rem_bytes = num_bytes;
         rem_bytes_l2 = 0;
@@ -1521,7 +1545,7 @@ static Int rproc_mem_unmap (VAYUDSP_HalObject * halObject,
      * get flushed
      */
 EXIT_LOOP:
-    hw_mmu_tlb_flushAll(halObject->mmuBase);
+    hw_mmu_tlb_flushAll(mmuBase);
     return status;
 }
 
@@ -1535,10 +1559,11 @@ Int rproc_dsp_setup (VAYUDSP_HalObject * halObject,
                      UInt32 numMemEntries)
 {
     Int ret_val = 0;
-    struct pg_table_attrs * p_pt_attrs = NULL;
+    struct pg_table_attrs * p_pt_attrs_0 = NULL;
+    struct pg_table_attrs * p_pt_attrs_1 = NULL;
 
-    p_pt_attrs = init_mmu_page_attribs(0x10000, 14, 128);
-    if (!p_pt_attrs) {
+    p_pt_attrs_0 = init_mmu_page_attribs(0x10000, 14, 128);
+    if (!p_pt_attrs_0) {
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "rproc_setup",
@@ -1546,42 +1571,76 @@ Int rproc_dsp_setup (VAYUDSP_HalObject * halObject,
                              "init_mmu_page_attribs failed");
     }
     else {
-        halObject->mmuObj.pPtAttrs = p_pt_attrs;
-        /* Disable TWL  */
-        ret_val = rproc_set_twl(halObject, FALSE);
-        if (ret_val < 0) {
+        halObject->mmu0Obj.pPtAttrs = p_pt_attrs_0;
+        p_pt_attrs_1 = init_mmu_page_attribs(0x10000, 14, 128);
+        if (!p_pt_attrs_1) {
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
-                                 "ipu_setup",
+                                 "rproc_setup",
                                  ret_val,
-                                 "benelli_set_twl to FALSE failed");
+                                 "init_mmu_page_attribs failed");
         }
         else {
-            ret_val = rproc_mmu_init (halObject, memEntries,
-                                      numMemEntries);
+            halObject->mmu1Obj.pPtAttrs = p_pt_attrs_1;
+
+            /* Disable TWL  */
+            ret_val = rproc_set_twl(halObject->mmu0Base, FALSE);
             if (ret_val < 0) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "ipu_setup",
                                      ret_val,
-                                     "benelli_mmu_init failed");
+                                     "benelli_set_twl to FALSE failed");
             }
             else {
-                ret_val = rproc_set_twl(halObject, TRUE);
+                ret_val = rproc_set_twl(halObject->mmu1Base, FALSE);
                 if (ret_val < 0) {
                     GT_setFailureReason (curTrace,
                                          GT_4CLASS,
                                          "ipu_setup",
                                          ret_val,
-                                         "ducati_set_twl to TRUE failed");
+                                         "benelli_set_twl to FALSE failed");
+                }
+                else {
+                    ret_val = rproc_mmu_init (halObject, memEntries,
+                                              numMemEntries);
+                    if (ret_val < 0) {
+                        GT_setFailureReason (curTrace,
+                                             GT_4CLASS,
+                                             "ipu_setup",
+                                             ret_val,
+                                             "benelli_mmu_init failed");
+                    }
+                    else {
+                        ret_val = rproc_set_twl(halObject->mmu0Base, TRUE);
+                        if (ret_val < 0) {
+                            GT_setFailureReason (curTrace,
+                                                 GT_4CLASS,
+                                                 "ipu_setup",
+                                                 ret_val,
+                                                 "ducati_set_twl to TRUE failed");
+                        }
+                        else {
+                            ret_val = rproc_set_twl(halObject->mmu1Base, TRUE);
+                            if (ret_val < 0) {
+                                GT_setFailureReason (curTrace,
+                                                     GT_4CLASS,
+                                                     "ipu_setup",
+                                                     ret_val,
+                                                     "ducati_set_twl to TRUE failed");
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
     if (ret_val < 0) {
-        deinit_mmu_page_attribs(p_pt_attrs);
-        halObject->mmuObj.pPtAttrs = NULL;
+        deinit_mmu_page_attribs(p_pt_attrs_0);
+        deinit_mmu_page_attribs(p_pt_attrs_1);
+        halObject->mmu0Obj.pPtAttrs = NULL;
+        halObject->mmu1Obj.pPtAttrs = NULL;
     }
 
     return ret_val;
@@ -1593,19 +1652,22 @@ Void rproc_dsp_destroy(VAYUDSP_HalObject * halObject)
 {
     shm_phys_addr_dsp = 0;
 
-    if (halObject->mmuObj.pPtAttrs) {
-        deinit_mmu_page_attribs(halObject->mmuObj.pPtAttrs);
-        halObject->mmuObj.pPtAttrs = NULL;
+    if (halObject->mmu0Obj.pPtAttrs) {
+        deinit_mmu_page_attribs(halObject->mmu0Obj.pPtAttrs);
+        halObject->mmu0Obj.pPtAttrs = NULL;
+    }
+
+    if (halObject->mmu1Obj.pPtAttrs) {
+        deinit_mmu_page_attribs(halObject->mmu1Obj.pPtAttrs);
+        halObject->mmu1Obj.pPtAttrs = NULL;
     }
 }
 
 
-static Void iotlb_load_cr (VAYUDSP_HalObject * halObject,
-                           struct cr_regs *cr)
+static Void iotlb_load_cr (UInt32 mmuBase, struct cr_regs *cr)
 {
     ULONG reg;
-    VAYUDsp_MMURegs * mmuRegs =
-                                  (VAYUDsp_MMURegs *)halObject->mmuBase;
+    VAYUDsp_MMURegs * mmuRegs = (VAYUDsp_MMURegs *)mmuBase;
 
     reg = cr->cam | MMU_CAM_V;
     OUTREG32(&mmuRegs->CAM, reg);
@@ -1711,30 +1773,19 @@ static struct cr_regs *iotlb_alloc_cr (struct iotlb_entry *e)
  * @obj:    target iommu
  * @e:        an iommu tlb entry info
  **/
-static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
-                             struct iotlb_entry *e)
+static Int load_iotlb_entry (UInt32 mmuBase, struct iotlb_entry *e)
 {
     Int err = 0;
     struct iotlb_lock l;
     struct cr_regs *cr;
 
-    if (halObject == NULL) {
+    if (mmuBase == NULL) {
         err = -EINVAL;
         GT_setFailureReason (curTrace,
                              GT_4CLASS,
                              "load_iotlb_entry",
                              err,
-                             "halObject is NULL");
-        goto out;
-    }
-
-    if (halObject->mmuBase == NULL) {
-        err = -EINVAL;
-        GT_setFailureReason (curTrace,
-                             GT_4CLASS,
-                             "load_iotlb_entry",
-                             err,
-                             "halObject->mmuBase is NULL");
+                             "mmuBase is NULL");
         goto out;
     }
 
@@ -1748,7 +1799,7 @@ static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
         goto out;
     }
 
-    iotlb_getLock(halObject, &l);
+    iotlb_getLock(mmuBase, &l);
 
     if (l.base == 32) {
         err = -EBUSY;
@@ -1777,10 +1828,10 @@ static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
             goto out;
         }
 
-        iotlb_getLock(halObject, &l);
+        iotlb_getLock(mmuBase, &l);
     } else {
         l.vict = l.base;
-        iotlb_setLock(halObject, &l);
+        iotlb_setLock(mmuBase, &l);
     }
 
     cr = iotlb_alloc_cr(e);
@@ -1794,7 +1845,7 @@ static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
         goto out;
     }
 
-    iotlb_load_cr(halObject, cr);
+    iotlb_load_cr(mmuBase, cr);
     munmap(cr, sizeof(struct cr_regs));
 
     if (e->prsvd)
@@ -1802,7 +1853,7 @@ static Int load_iotlb_entry (VAYUDSP_HalObject * halObject,
     /* increment victim for next tlb load */
     if (++l.vict == 32)
         l.vict = l.base;
-    iotlb_setLock(halObject, &l);
+    iotlb_setLock(mmuBase, &l);
 
 out:
     return err;
