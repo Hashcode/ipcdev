@@ -117,8 +117,6 @@ pthread_cond_t syslink_hib_cond = PTHREAD_COND_INITIALIZER;
 
 extern int rpmsg_resmgr_setup (void);
 extern void rpmsg_resmgr_destroy (void);
-extern Int rpmsg_dce_setup (Void);
-extern Void rpmsg_dce_destroy (Void);
 extern Int rpmsg_rpc_setup (Void);
 extern Void rpmsg_rpc_destroy (Void);
 extern Void GateHWSpinlock_LeaveLockForPID(int pid);
@@ -817,11 +815,6 @@ procmgropen_fail:
         if (status < 0)
             goto resmgrsetup_fail;
 
-        /* Set up rpmsg_dce */
-        status = rpmsg_dce_setup();
-        if (status < 0)
-            goto dcesetup_fail;
-
         /* Set up rpmsg_mq */
         status = ti_ipc_setup();
         if (status < 0)
@@ -838,8 +831,6 @@ procmgropen_fail:
 rpcsetup_fail:
     ti_ipc_destroy(recover);
 tiipcsetup_fail:
-    rpmsg_dce_destroy();
-dcesetup_fail:
     rpmsg_resmgr_destroy();
 resmgrsetup_fail:
     for (i-=1; i >= 0; i--) {
@@ -891,8 +882,6 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
     rpmsg_rpc_destroy();
 
     ti_ipc_destroy(recover);
-
-    rpmsg_dce_destroy();
 
     rpmsg_resmgr_destroy();
 
