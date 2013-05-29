@@ -371,6 +371,7 @@ int init_syslink_trace_device(syslink_dev_t *dev)
         }
     }
 
+    return (status);
 }
 
 int deinit_syslink_trace_device(syslink_dev_t *dev)
@@ -384,11 +385,14 @@ int deinit_syslink_trace_device(syslink_dev_t *dev)
             Osal_printf("syslink: resmgr_detach failed %d", errno);
             status = errno;
         }
-        if (proc_traces[i].va && proc_traces[i].va != MAP_DEVICE_FAILED)
+        if (proc_traces[i].va && proc_traces[i].va != MAP_DEVICE_FAILED) {
             munmap((void *)proc_traces[i].va,
                    ((proc_traces[i].len + 8 + 0x1000 - 1) / 0x1000) * 0x1000);
+        }
         proc_traces[i].va = NULL;
     }
+
+    return (status);
 }
 
 /* Initialize the syslink device */
@@ -447,7 +451,6 @@ int init_syslink_device(syslink_dev_t *dev)
 int deinit_syslink_device(syslink_dev_t *dev)
 {
     int status = EOK;
-    int i = 0;
 
     status = resmgr_detach(dev->dpp, dev->syslink.resmgr_id, 0);
     if (status < 0) {
