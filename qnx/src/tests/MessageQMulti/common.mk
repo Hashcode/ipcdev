@@ -58,3 +58,6 @@ EXTRA_INCVPATH += \
 include $(MKFILES_ROOT)/qtargets.mk
 
 LDFLAGS += -M
+
+POST_INSTALL = -$(CP_HOST) $(PROJECT_ROOT)/multi_process.sh \
+        $(INSTALL_ROOT_$(BUILD_TYPE))/$(INSTALLDIR)

@@ -1,4 +1,3 @@
-#!/bin/bash
 # Run MessageQMulti in parallel processes
 #
 if [ $# -ne 2 ]
@@ -7,10 +6,10 @@ then
     exit
 fi
 
-for i in `seq 0 $(( $1 - 1))`
-do
-	echo "MessageQMulti Test #" $i
+num=0; while [ $num -lt $1 ];  do
+    ((num = $num + 1))
+	echo "MessageQMulti Test #" $num
 	# This calls MessageQMulti with One Thread, a process #, and
 	# number of iterations per thread.
-	MessageQMulti 1 $2 $i &
+	MessageQMulti 1 $2 $num &
 done
