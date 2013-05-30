@@ -251,7 +251,7 @@ int main (int argc, char ** argv)
             printf("MessageQMulti: failed to join thread: %d, %s\n",
                     i, strerror(ret));
         }
-        printf("MessageQMulti: Joined with thread %d; returned value was %d\n",
+        printf("MessageQMulti: Joined with thread %d; returned value was %p\n",
                 threads[i].thread_num, res);
         free(res);      /* Free memory allocated by thread */
     }
