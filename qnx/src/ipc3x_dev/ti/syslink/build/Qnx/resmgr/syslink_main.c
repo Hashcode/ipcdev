@@ -1158,6 +1158,9 @@ int main(int argc, char *argv[])
     uint32_t hib_timeout = PM_HIB_DEFAULT_TIME;
     char *user_parm = NULL;
     struct stat          sbuf;
+    int i = 0;
+    long max_path_length = 0;
+    char * abs_path = NULL;
 
     if (-1 != stat(IPC_DEVICE_PATH, &sbuf)) {
         printf ("Syslink Already Running...\n");
@@ -1263,6 +1266,25 @@ int main(int argc, char *argv[])
     if (error == -1) {
         Osal_printf("Unable to obtain I/O privity");
         return (error);
+    }
+
+    /* Get the abs path for all firmware files */
+    for (i = 0; i < syslink_num_cores; i++) {
+        max_path_length = pathconf( syslink_firmware[i].firmware, _PC_PATH_MAX );
+        if(max_path_length == -1) {
+            perror("pathconf failed");
+            return -1;
+        }
+
+        abs_path = calloc(1, max_path_length + 1);
+        if (abs_path == NULL) {
+            return -1;
+        }
+        if (NULL == realpath(syslink_firmware[i].firmware, abs_path)) {
+            fprintf (stderr, "realpath failed\n");
+            return -1;
+        }
+        syslink_firmware[i].firmware = abs_path;
     }
 
     /* allocate the device structure */
