@@ -235,6 +235,8 @@ Int InterruptIpu_Module_startup(Int phase)
 Void InterruptIpu_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    Bool useMailbox = TRUE;
+    UInt8 subMbxIdx;
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
 
@@ -242,52 +244,62 @@ Void InterruptIpu_intEnable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
         if ((remoteProcId == InterruptIpu_ipu1_0ProcId) ||
             (remoteProcId == InterruptIpu_ipu1_1ProcId)) {
             Hwi_enableInterrupt(WUGENIPU);
+            useMailbox = FALSE;
         }
     }
     else {
         if ((remoteProcId == InterruptIpu_ipu2_0ProcId) ||
             (remoteProcId == InterruptIpu_ipu2_1ProcId)) {
             Hwi_enableInterrupt(WUGENIPU);
+            useMailbox = FALSE;
         }
     }
 
-    /*
-     *  If the remote processor communicates via mailboxes, we should enable
+    /*  If the remote processor communicates via mailboxes, we should enable
      *  the Mailbox IRQ instead of enabling the Hwi because multiple mailboxes
      *  share the same Hwi
      */
-    REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    if (useMailbox) {
+        subMbxIdx = SUBMBX_IDX(index);
+        REG32(MAILBOX_IRQENABLE_SET(index)) = MAILBOX_REG_VAL(subMbxIdx);
+    }
 }
 
 /*
  *  ======== InterruptIpu_intDisable ========
  *  Disables remote processor interrupt
  */
-Void InterruptIpu_intDisable(UInt16 remoteProcId,
-                             IInterrupt_IntInfo *intInfo)
+Void InterruptIpu_intDisable(UInt16 remoteProcId, IInterrupt_IntInfo *intInfo)
 {
     UInt16 index;
+    Bool useMailbox = TRUE;
+    UInt8 subMbxIdx;
 
     if (Core_ipuId == 1) {
         if ((remoteProcId == InterruptIpu_ipu1_0ProcId) ||
             (remoteProcId == InterruptIpu_ipu1_1ProcId)) {
             Hwi_disableInterrupt(WUGENIPU);
+            useMailbox = FALSE;
         }
     }
     else {
         if ((remoteProcId == InterruptIpu_ipu2_0ProcId) ||
             (remoteProcId == InterruptIpu_ipu2_1ProcId)) {
             Hwi_disableInterrupt(WUGENIPU);
+            useMailbox = FALSE;
         }
     }
 
     index = MBX_TABLE_IDX(remoteProcId, MultiProc_self());
-    /*
-     *  If the remote processor communicates via mailboxes, we should disable
+
+    /*  If the remote processor communicates via mailboxes, we should disable
      *  the Mailbox IRQ instead of disabling the Hwi because multiple mailboxes
      *  share the same Hwi
      */
-    REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(SUBMBX_IDX(index));
+    if (useMailbox) {
+        subMbxIdx = SUBMBX_IDX(index);
+        REG32(MAILBOX_IRQENABLE_CLR(index)) = MAILBOX_REG_VAL(subMbxIdx);
+    }
 }
 
 /*
@@ -660,6 +672,11 @@ Void InterruptIpu_intShmMbxStub(UArg arg)
         }
 
         index = MBX_TABLE_IDX(loopIdx, selfIdx);
+
+        /* skip mailbox if it's not being used */
+        if (InterruptIpu_mailboxTable[index] == (UInt32)(-1)) {
+            continue;
+        }
 
         if (((REG32(MAILBOX_STATUS(index)) != 0) &&
              (REG32(MAILBOX_IRQENABLE_SET(index)) &
