@@ -115,8 +115,6 @@ Bool syslink_hib_hibernating = FALSE;
 pthread_mutex_t syslink_hib_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t syslink_hib_cond = PTHREAD_COND_INITIALIZER;
 
-extern int rpmsg_resmgr_setup (void);
-extern void rpmsg_resmgr_destroy (void);
 extern Int rpmsg_rpc_setup (Void);
 extern Void rpmsg_rpc_destroy (Void);
 extern Void GateHWSpinlock_LeaveLockForPID(int pid);
@@ -397,10 +395,7 @@ int deinit_syslink_trace_device(syslink_dev_t *dev)
 int init_syslink_device(syslink_dev_t *dev)
 {
     iofunc_attr_t *  attr;
-    syslink_attr_t * trace_attr;
     resmgr_attr_t    resmgr_attr;
-    int              i;
-    char             trace_name[_POSIX_PATH_MAX];
     int              status = 0;
 
     pthread_mutex_init(&dev->lock, NULL);
@@ -808,12 +803,7 @@ procmgropen_fail:
         }
 
         if (status < 0)
-            goto resmgrsetup_fail;
-
-        /* Set up the resmgr */
-        status = rpmsg_resmgr_setup();
-        if (status < 0)
-            goto resmgrsetup_fail;
+            goto tiipcsetup_fail;
 
         /* Set up rpmsg_mq */
         status = ti_ipc_setup();
@@ -831,8 +821,6 @@ procmgropen_fail:
 rpcsetup_fail:
     ti_ipc_destroy(recover);
 tiipcsetup_fail:
-    rpmsg_resmgr_destroy();
-resmgrsetup_fail:
     for (i-=1; i >= 0; i--) {
         procId = firmware[i].proc_id;
         ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
@@ -882,8 +870,6 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
     rpmsg_rpc_destroy();
 
     ti_ipc_destroy(recover);
-
-    rpmsg_resmgr_destroy();
 
     for (i = 0; i < MultiProc_MAXPROCESSORS; i++) {
         if (procH[i]) {

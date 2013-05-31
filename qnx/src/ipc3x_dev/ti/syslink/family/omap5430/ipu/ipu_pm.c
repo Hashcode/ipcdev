@@ -1,11 +1,5 @@
 /*
- *  @file       ipu_pm.c
- *
- *  @brief      power management for remote processors.
- *
- *  ============================================================================
- *
- *  Copyright (c) 2011, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -33,15 +27,6 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
 
 /* Standard headers */
@@ -55,7 +40,7 @@
 #include <sys/netmgr.h>
 #include <sys/rsrcdbmgr.h>
 #include <sys/rsrcdbmsg.h>
-#define QNX_PM_ENABLE
+#undef QNX_PM_ENABLE
 #ifdef QNX_PM_ENABLE
 #include <sys/powman.h>
 #include <cpu_dll_msg.h>
@@ -71,20 +56,21 @@
 #include <stdbool.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/syslink/ProcMgr.h>
-#include <OMAP4430DucatiProc.h>
+#include <OMAP5430BenelliProc.h>
 #include <ArchIpcInt.h>
-#include <_Omap4430IpcInt.h>
-#include <rpmsg-resmgrdrv.h>
+#include <_Omap5430IpcInt.h>
 
-#include <OMAP4430DucatiHalReset.h>
-#include <OMAP4430DucatiEnabler.h>
+#include <OMAP5430BenelliHalReset.h>
 
-#include <camera/camdrv.h>
-#include <Omap4430IpcInt.h>
-#include <ti/syslink/utils/OsalPrint.h>
-#include <rprcfmt.h>
+//#include <camera/camdrv.h>
 #include <Bitops.h>
 #include <_rpmsg.h>
+
+#ifndef SYSLINK_SYSBIOS_SMP
+#define CORE0    "CORE0"
+#else
+#define CORE0    "IPU"
+#endif
 
 /* Defines the ipu_pm state object, which contains all the module
  * specific information. */
@@ -115,6 +101,8 @@ struct ipu_pm_module_object {
     /* ISR handle for gpt9 WDT */
     OsalIsr_Handle gpt11IsrObject;
     /* ISR handle for gpt11 WDT */
+    OsalIsr_Handle gpt6IsrObject;
+    /* ISR handle for gpt6 WDT */
     bool attached[MultiProc_MAXPROCESSORS];
     /* Indicates whether the ipu_pm module is attached. */
     bool is_setup;
@@ -127,53 +115,16 @@ static struct ipu_pm_module_object ipu_pm_state = {
     .proc_state = 0,
 } ;
 
-/*******************************************************************************
-*   Lenth of Boot code
-*******************************************************************************/
-#define LENGTH_BOOT_CODE1  14
-
-/*******************************************************************************
-*   Hex code to set for Stack setting, Interrupt vector setting
-*   and instruction to put ICONT in WFI mode.
-*   This shall be placed at TCM_BASE_ADDRESS of given IVAHD, which is
-*   0x0000 locally after reset.
-*******************************************************************************/
-
-const unsigned int IVAHD_memory_wfi1[LENGTH_BOOT_CODE1] = {
-0xEA000006,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xEAFFFFFE,
-0xE3A00000,
-0xEE070F9A,
-0xEE070F90,
-0xE3A00000,
-0xEAFFFFFE,
-0xEAFFFFF1
-};
-
-enum processor_version {
-    OMAP_4430 = 0,
-    OMAP_4460,
-    OMAP_4470,
-    ERROR_CONTROL_ID = -1,
-    INVALID_SI_VERSION = -2
-};
-
 extern Bool syslink_hib_enable;
 extern uint32_t syslink_hib_timeout;
 extern Bool syslink_hib_hibernating;
 extern pthread_mutex_t syslink_hib_mutex;
 extern pthread_cond_t syslink_hib_cond;
 
-#define DUCATI_SELF_HIBERNATION
-#define DUCATI_WATCHDOG_TIMER
+#undef BENELLI_SELF_HIBERNATION
+#define BENELLI_WATCHDOG_TIMER
 
-/* A9 state flag 0000 | 0000 Ducati internal use*/
+/* A9 state flag 0000 | 0000 Benelli internal use*/
 #define CORE0_PROC_DOWN        0x00010000
 #define CORE1_PROC_DOWN        0x00020000
 
@@ -181,13 +132,13 @@ extern pthread_cond_t syslink_hib_cond;
 #define CORE1_LOADED 0x2
 #define DSP_LOADED   0x4
 
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
 /* A9-M3 mbox status */
 #define A9_M3_MBOX 0x4A0F4000
 #define MBOX_MESSAGE_STATUS 0x000000CC
 
 /* Flag provided by BIOS */
-#define IDLE_FLAG_DUCATI_ADDR_MAP_BASE 0x9F0F0000
+#define IDLE_FLAG_BENELLI_ADDR_MAP_BASE 0x9F0F0000
 #define IDLE_FLAG_PHY_ADDR_OFFSET   0x2D8
 
 /* BIOS flags states for each core in IPU */
@@ -236,6 +187,7 @@ typedef struct GPTIMER_REGS {
     uint32_t tcar2;
 } GPTIMER_REGS;
 
+#define OMAP44XX_IRQ_GPT6 74
 #define OMAP44XX_IRQ_GPT9 77
 #define OMAP44XX_IRQ_GPT11 79
 
@@ -243,6 +195,8 @@ typedef struct GPTIMER_REGS {
 #define GPTIMER4_BASE        0x48036000
 #define GPTIMER9_BASE        0x4803E000
 #define GPTIMER11_BASE       0x48088000
+#define GPTIMER5_BASE        0x40138000
+#define GPTIMER6_BASE        0x4013A000
 
 static void *GPT3Base = 0;
 static void *GPT3ClkCtrl =0;
@@ -252,6 +206,14 @@ static void *GPT4Base = 0;
 static void *GPT4ClkCtrl =0;
 static bool GPT4Saved = FALSE;
 static bool GPT4InUse = FALSE;
+static void *GPT5Base = 0;
+static void *GPT5ClkCtrl =0;
+static bool GPT5Saved = FALSE;
+static bool GPT5InUse = FALSE;
+static void *GPT6Base = 0;
+static void *GPT6ClkCtrl =0;
+static bool GPT6Saved = FALSE;
+static bool GPT6InUse = FALSE;
 static void *GPT9Base = 0;
 static void *GPT9ClkCtrl =0;
 static bool GPT9Saved = FALSE;
@@ -263,17 +225,22 @@ static bool GPT11InUse = FALSE;
 
 static GPTIMER_REGS GPT3Reg_saved;
 static GPTIMER_REGS GPT4Reg_saved;
+static GPTIMER_REGS GPT5Reg_saved;
+static GPTIMER_REGS GPT6Reg_saved;
 static GPTIMER_REGS GPT9Reg_saved;
 static GPTIMER_REGS GPT11Reg_saved;
 
 static void *prm_base_va = NULL;
 static void *cm2_base_va = NULL;
+static void *cm_core_aon_base_va = NULL;
 
 #define MAX_DUCATI_CHANNELS   4
 #define DUCATI_CHANNEL_START 25
 #define DUCATI_CHANNEL_END   28
 static bool DMAAllocation = false;
+#ifdef QNX_PM_ENABLE
 static rsrc_request_t sdma_req;
+#endif
 
 // Note, the number of camera modes is tied to enum campower_mode_t, which can
 // be found in camera/camdrv.h
@@ -281,39 +248,96 @@ static rsrc_request_t sdma_req;
 static unsigned last_camera_req[NUM_CAM_MODES];
 static unsigned last_led_req = 0;
 
+enum processor_version {
+    OMAP_5430_es10 = 0,
+    OMAP_5430_es20,
+    ERROR_CONTROL_ID = -1,
+    INVALID_SI_VERSION = -2
+};
+
 #define PRM_SIZE                    0x2000
-#define PRM_BASE                    0x4A306000
+#define PRM_BASE                    0x4AE06000
 #define PRM_CM_SYS_CLKSEL_OFFSET    0x110
-#define PM_IVAHD_PWRSTCTRL_OFFSET   0xF00
-#define PM_IVAHD_PWRST_OFFSET       0xF04
-#define RM_IVAHD_RSTCTRL_OFFSET     0xF10
-#define RM_IVAHD_IVAHD_CONTEXT_OFFSET   0xF24
+//IVA_PRM registers for OMAP5 ES1.0
+#define PM_IVA_PWRSTCTRL_OFFSET     0xF00
+#define PM_IVA_PWRSTST_OFFSET       0xF04
+#define RM_IVA_RSTCTRL_OFFSET       0xF10
+#define RM_IVA_IVA_CONTEXT_OFFSET   0xF24
+//IVA_PRM registers for OMAP5 ES2.0
+#define PM_IVA_PWRSTCTRL_ES20_OFFSET     0x1200
+#define PM_IVA_PWRSTST_ES20_OFFSET       0x1204
+#define RM_IVA_RSTCTRL_ES20_OFFSET       0x1210
+#define RM_IVA_IVA_CONTEXT_ES20_OFFSET   0x1224
 
 #define CM2_SIZE                        0x2000
 #define CM2_BASE                        0x4A008000
 #define CM_L3_2_L3_2_CLKCTRL_OFFSET     0x820
 #define CM_MPU_M3_CLKCTRL_OFFSET        0x900
-#define CM_IVAHD_CLKSTCTRL_OFFSET       0xF00
-#define CM_IVAHD_IVAHD_CLKCTRL_OFFSET   0xF20
-#define CM_IVAHD_SL2_CLKCTRL_OFFSET     0xF28
-#define CM_L4PER_GPTIMER3_CLKCTRL_OFFSET  0x1440
-#define CM_L4PER_GPTIMER4_CLKCTRL_OFFSET  0x1448
-#define CM_L4PER_GPTIMER9_CLKCTRL_OFFSET  0x1450
-#define CM_L4PER_GPTIMER11_CLKCTRL_OFFSET 0x1430
+
+//IVA_CM_CORE registers for OMAP5 ES1.0
+#define CM_IVA_CLKSTCTRL_OFFSET       0xF00
+#define CM_IVA_IVA_CLKCTRL_OFFSET   0xF20
+#define CM_IVA_SL2_CLKCTRL_OFFSET     0xF28
+//IVA_CM_CORE registers for OMAP5 ES2.0
+#define CM_IVA_CLKSTCTRL_ES20_OFFSET       0x1200
+#define CM_IVA_IVA_CLKCTRL_ES20_OFFSET     0x1220
+#define CM_IVA_SL2_CLKCTRL_ES20_OFFSET     0x1228
+
+// CM_L4PER GPTIMER offsets for OMAP5 ES1.0
+#define CM_L4PER_GPTIMER3_CLKCTRL_ES1_0_OFFSET  0x1440
+#define CM_L4PER_GPTIMER4_CLKCTRL_ES1_0_OFFSET  0x1448
+#define CM_L4PER_GPTIMER9_CLKCTRL_ES1_0_OFFSET  0x1450
+#define CM_L4PER_GPTIMER11_CLKCTRL_ES1_0_OFFSET 0x1430
+
+// CM_L4PER GPTIMER offsets for OMAP5 ES2.0
+#define CM_L4PER_TIMER3_CLKCTRL_ES2_0_OFFSET  0x1040
+#define CM_L4PER_TIMER4_CLKCTRL_ES2_0_OFFSET  0x1048
+#define CM_L4PER_TIMER9_CLKCTRL_ES2_0_OFFSET  0x1050
+#define CM_L4PER_TIMER11_CLKCTRL_ES2_0_OFFSET 0x1030
+
+#define CM_CORE_AON_SIZE                  0x1000
+#define CM_CORE_AON_BASE                  0x4A004000
+#define CM_ABE_CLKSTCTRL_OFFSET           0x500
+#define CM_ABE_TIMER5_CLKCTRL_OFFSET      0x568
+#define CM_ABE_TIMER6_CLKCTRL_OFFSET      0x570
+
+#define IVAHD_FREQ_MAX_IN_HZ 532000000
 
 #define ID_CODE_BASE   0x4A002000
 #define ID_CODE_OFFSET 0x204
 
-#define OMAP4430_ES1_2   0xB852
-#define OMAP4430_ES21_22 0xB95C
-#define OMAP4460_ES1_11  0xB94E
-#define OMAP4470_ES1     0xB975
-#define COREOPP100 1000000
+#define OMAP5430_ES10    0x0B942
+#define OMAP5432_ES10    0x0B998
+#define OMAP5430_ES20    0x1B942
+#define OMAP5432_ES20    0x1B998
 
+#ifdef QNX_PM_ENABLE
 static dvfsMsg_t dvfsMessage;
 static int cpudll_coid = -1;
 static reply_getListOfDomainOPPs_t cpudll_iva_opp = { {0} };  /* for result of getDomainOPP (IVA)*/
 static reply_getListOfDomainOPPs_t cpudll_core_opp = { {0} };  /* for result of getDomainOPP (CORE)*/
+#endif
+
+enum {
+    RPRM_GPTIMER    = 0,
+    RPRM_IVAHD  = 1,
+    RPRM_IVASEQ0    = 2,
+    RPRM_IVASEQ1    = 3,
+    RPRM_L3BUS  = 4,
+    RPRM_ISS    = 5,
+    RPRM_FDIF   = 6,
+    RPRM_SL2IF  = 7,
+    RPRM_AUXCLK = 8,
+    RPRM_REGULATOR  = 9,
+    RPRM_GPIO   = 10,
+    RPRM_SDMA   = 11,
+    RPRM_IPU    = 12,
+    RPRM_DSP    = 13,
+    RPRM_I2C    = 14,
+    RPRM_CAMERA = 15,
+    RPRM_LED    = 16,
+    RPRM_MAX
+};
 
 enum processor_version get_omap_version (void)
 {
@@ -330,21 +354,18 @@ enum processor_version get_omap_version (void)
     }
 
     reg = in32(id_code_base + ID_CODE_OFFSET);
-    reg &= 0x0FFFF000;
+    reg &= 0xFFFFF000;
     reg = reg >> 12;
 
     switch (reg) {
-        case OMAP4430_ES1_2:
-        case OMAP4430_ES21_22:
-            omap_rev = OMAP_4430;
+        case OMAP5430_ES10:
+        case OMAP5432_ES10:
+            omap_rev = OMAP_5430_es10;
             break;
 
-        case OMAP4460_ES1_11:
-            omap_rev = OMAP_4460;
-            break;
-
-        case OMAP4470_ES1:
-            omap_rev = OMAP_4470;
+        case OMAP5430_ES20:
+        case OMAP5432_ES20:
+            omap_rev = OMAP_5430_es20;
             break;
 
         default:
@@ -364,8 +385,33 @@ enum processor_version get_omap_version (void)
 int map_gpt_regs(void)
 {
     int retval = 0;
+    enum processor_version omap_rev;
+    uint32_t cm_l4per_gpt3_offset;
+    uint32_t cm_l4per_gpt4_offset;
+    uint32_t cm_l4per_gpt9_offset;
+    uint32_t cm_l4per_gpt11_offset;
 
-    GPT3ClkCtrl = cm2_base_va + CM_L4PER_GPTIMER3_CLKCTRL_OFFSET;
+    omap_rev = get_omap_version();
+    if (omap_rev < 0) {
+        GT_setFailureReason (curTrace, GT_4CLASS, "map_gpt_regs",
+                             omap_rev, "Error while reading the OMAP REVISION");
+        return -EIO;
+    }
+
+    if (omap_rev == OMAP_5430_es20) {
+        cm_l4per_gpt3_offset = CM_L4PER_TIMER3_CLKCTRL_ES2_0_OFFSET;
+        cm_l4per_gpt4_offset = CM_L4PER_TIMER4_CLKCTRL_ES2_0_OFFSET;
+        cm_l4per_gpt9_offset = CM_L4PER_TIMER9_CLKCTRL_ES2_0_OFFSET;
+        cm_l4per_gpt11_offset = CM_L4PER_TIMER11_CLKCTRL_ES2_0_OFFSET;
+    }
+    else {
+        cm_l4per_gpt3_offset = CM_L4PER_GPTIMER3_CLKCTRL_ES1_0_OFFSET;
+        cm_l4per_gpt4_offset = CM_L4PER_GPTIMER4_CLKCTRL_ES1_0_OFFSET;
+        cm_l4per_gpt9_offset = CM_L4PER_GPTIMER9_CLKCTRL_ES1_0_OFFSET;
+        cm_l4per_gpt11_offset = CM_L4PER_GPTIMER11_CLKCTRL_ES1_0_OFFSET;
+    }
+
+    GPT3ClkCtrl = cm2_base_va + cm_l4per_gpt3_offset;
 
     GPT3Base = (void *)mmap_device_io(0x1000, GPTIMER3_BASE);
     if ((uintptr_t)GPT3Base == MAP_DEVICE_FAILED) {
@@ -374,7 +420,7 @@ int map_gpt_regs(void)
         goto exit;
     }
 
-    GPT4ClkCtrl = cm2_base_va + CM_L4PER_GPTIMER4_CLKCTRL_OFFSET;
+    GPT4ClkCtrl = cm2_base_va + cm_l4per_gpt4_offset;
 
     GPT4Base = (void *)mmap_device_io(0x1000, GPTIMER4_BASE);
     if ((uintptr_t)GPT4Base == MAP_DEVICE_FAILED) {
@@ -383,7 +429,7 @@ int map_gpt_regs(void)
         goto exit;
     }
 
-    GPT9ClkCtrl = cm2_base_va + CM_L4PER_GPTIMER9_CLKCTRL_OFFSET;
+    GPT9ClkCtrl = cm2_base_va + cm_l4per_gpt9_offset;
 
     GPT9Base = (void *)mmap_device_io(0x1000, GPTIMER9_BASE);
     if ((uintptr_t)GPT9Base == MAP_DEVICE_FAILED) {
@@ -392,7 +438,7 @@ int map_gpt_regs(void)
         goto exit;
     }
 
-    GPT11ClkCtrl = cm2_base_va + CM_L4PER_GPTIMER11_CLKCTRL_OFFSET;
+    GPT11ClkCtrl = cm2_base_va + cm_l4per_gpt11_offset;
 
     GPT11Base = (void *)mmap_device_io(0x1000, GPTIMER11_BASE);
     if ((uintptr_t)GPT11Base == MAP_DEVICE_FAILED) {
@@ -400,9 +446,38 @@ int map_gpt_regs(void)
         GPT11Base = NULL;
         goto exit;
     }
+
+    GPT5ClkCtrl = cm_core_aon_base_va + CM_ABE_TIMER5_CLKCTRL_OFFSET;
+
+    GPT5Base = (void *)mmap_device_io(0x1000, GPTIMER5_BASE);
+    if ((uintptr_t)GPT5Base == MAP_DEVICE_FAILED) {
+        retval = -ENOMEM;
+        GPT5Base = NULL;
+        goto exit;
+    }
+
+    GPT6ClkCtrl = cm_core_aon_base_va + CM_ABE_TIMER6_CLKCTRL_OFFSET;
+
+    GPT6Base = (void *)mmap_device_io(0x1000, GPTIMER6_BASE);
+    if ((uintptr_t)GPT6Base == MAP_DEVICE_FAILED) {
+        retval = -ENOMEM;
+        GPT6Base = NULL;
+        goto exit;
+    }
+
     return EOK;
 
 exit:
+    GPT6ClkCtrl = NULL;
+    if (GPT5Base) {
+        munmap(GPT5Base, 0x1000);
+        GPT5Base = NULL;
+    }
+    GPT5ClkCtrl = NULL;
+    if (GPT11Base) {
+        munmap(GPT11Base, 0x1000);
+        GPT11Base = NULL;
+    }
     GPT11ClkCtrl = NULL;
     if (GPT9Base) {
         munmap(GPT9Base, 0x1000);
@@ -451,9 +526,23 @@ void unmap_gpt_regs(void)
     GPT3Base = NULL;
 
     GPT3ClkCtrl = NULL;
+
+    if(GPT5Base != NULL)
+        munmap(GPT5Base, 0x1000);
+
+    GPT5Base = NULL;
+
+    GPT5ClkCtrl = NULL;
+
+    if(GPT6Base != NULL)
+        munmap(GPT6Base, 0x1000);
+
+    GPT6Base = NULL;
+
+    GPT6ClkCtrl = NULL;
 }
 
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
 
 /* Interrupt clear function*/
 static Bool ipu_pm_clr_gptimer_interrupt(Ptr fxnArgs)
@@ -474,6 +563,12 @@ static Bool ipu_pm_clr_gptimer_interrupt(Ptr fxnArgs)
     else if (num == GPTIMER_11) {
         GPTRegs = GPT11Base;
     }
+    else if (num == GPTIMER_5) {
+        GPTRegs = GPT5Base;
+    }
+    else if (num == GPTIMER_6) {
+        GPTRegs = GPT6Base;
+    }
     else {
         return TRUE;
     }
@@ -493,8 +588,9 @@ static Bool ipu_pm_clr_gptimer_interrupt(Ptr fxnArgs)
 static Bool ipu_pm_gptimer_interrupt(Ptr fxnArgs)
 {
     int num;
-    uint16_t core0_id = MultiProc_getId("CORE0");
+    uint16_t core0_id = MultiProc_getId(CORE0);
     uint16_t core1_id = MultiProc_getId("CORE1");
+    uint16_t dsp_id = MultiProc_getId("DSP");
 
     switch ((uint32_t)fxnArgs) {
         case GPTIMER_9:
@@ -505,6 +601,11 @@ static Bool ipu_pm_gptimer_interrupt(Ptr fxnArgs)
         case GPTIMER_11:
             num = 11;
             ProcMgr_setState(ipu_pm_state.proc_handles[core1_id],
+                             ProcMgr_State_Watchdog);
+            break;
+        case GPTIMER_6:
+            num = 6;
+            ProcMgr_setState(ipu_pm_state.proc_handles[dsp_id],
                              ProcMgr_State_Watchdog);
             break;
         default:
@@ -544,6 +645,20 @@ int ipu_pm_gpt_enable(int num)
         GPTClkCtrl = (uintptr_t)GPT11ClkCtrl;
         GPTRegs = GPT11Base;
         GPT11InUse = TRUE;
+    }
+    else if (num == GPTIMER_5) {
+        GPTClkCtrl = (uintptr_t)GPT5ClkCtrl;
+        GPTRegs = GPT5Base;
+        GPT5InUse = TRUE;
+        // make sure abe clock is enabled as it is source for gpt5
+        out32((uintptr_t)(cm_core_aon_base_va + CM_ABE_CLKSTCTRL_OFFSET), 0x2);
+    }
+    else if (num == GPTIMER_6) {
+        GPTClkCtrl = (uintptr_t)GPT6ClkCtrl;
+        GPTRegs = GPT6Base;
+        GPT6InUse = TRUE;
+        // make sure abe clock is enabled as it is source for gpt6
+        out32((uintptr_t)(cm_core_aon_base_va + CM_ABE_CLKSTCTRL_OFFSET), 0x2);
     }
     else {
         return -EINVAL;
@@ -592,6 +707,16 @@ int ipu_pm_gpt_disable(int num)
         GPTRegs = GPT11Base;
         GPT11InUse = FALSE;
     }
+    else if (num == GPTIMER_5) {
+        GPTClkCtrl = (uintptr_t)GPT5ClkCtrl;
+        GPTRegs = GPT5Base;
+        GPT5InUse = FALSE;
+    }
+    else if (num == GPTIMER_6) {
+        GPTClkCtrl = (uintptr_t)GPT6ClkCtrl;
+        GPTRegs = GPT6Base;
+        GPT6InUse = FALSE;
+    }
     else {
         return -EINVAL;
     }
@@ -635,6 +760,12 @@ int ipu_pm_gpt_start (int num)
     else if (num == GPTIMER_11) {
         GPTRegs = GPT11Base;
     }
+    else if (num == GPTIMER_5) {
+        GPTRegs = GPT5Base;
+    }
+    else if (num == GPTIMER_6) {
+        GPTRegs = GPT6Base;
+    }
     else {
         return -EINVAL;
     }
@@ -668,6 +799,14 @@ int ipu_pm_gpt_stop(int num)
     else if (num == GPTIMER_11) {
         GPTClkCtrl = (uintptr_t)GPT11ClkCtrl;
         GPTRegs = GPT11Base;
+    }
+    else if (num == GPTIMER_5) {
+        GPTClkCtrl = (uintptr_t)GPT5ClkCtrl;
+        GPTRegs = GPT5Base;
+    }
+    else if (num == GPTIMER_6) {
+        GPTClkCtrl = (uintptr_t)GPT6ClkCtrl;
+        GPTRegs = GPT6Base;
     }
     else {
         return -EINVAL;
@@ -717,6 +856,16 @@ void save_gpt_context(int num)
         GPTSaved = &GPT11Reg_saved;
         GPTRestore = &GPT11Saved;
     }
+    else if (num == GPTIMER_5) {
+        GPTRegs = GPT5Base;
+        GPTSaved = &GPT5Reg_saved;
+        GPTRestore = &GPT5Saved;
+    }
+    else if (num == GPTIMER_6) {
+        GPTRegs = GPT6Base;
+        GPTSaved = &GPT6Reg_saved;
+        GPTRestore = &GPT6Saved;
+    }
     else {
         return;
     }
@@ -761,6 +910,16 @@ void restore_gpt_context(int num)
         GPTSaved = &GPT11Reg_saved;
         GPTRestore = &GPT11Saved;
     }
+    else if (num == GPTIMER_5) {
+        GPTRegs = GPT5Base;
+        GPTSaved = &GPT5Reg_saved;
+        GPTRestore = &GPT5Saved;
+    }
+    else if (num == GPTIMER_6) {
+        GPTRegs = GPT6Base;
+        GPTSaved = &GPT6Reg_saved;
+        GPTRestore = &GPT6Saved;
+    }
     else {
         return;
     }
@@ -781,67 +940,153 @@ void restore_gpt_context(int num)
     }
 }
 
-int ipu_pm_ivahd_standby_power_on_uboot()
-{
-    unsigned int length =0;
-    volatile unsigned int *icont1_itcm_base_addr = NULL;
-    volatile unsigned int *icont2_itcm_base_addr = NULL;
-    /*--------------------------------------------------------------------------*/
-    /* Assigment of pointers                                                    */
-    /* A generic code shall take all address as input parameters                */
-    /*--------------------------------------------------------------------------*/
-    icont1_itcm_base_addr = (unsigned int *)mmap_device_io(0x1000, (L3_IVAHD_CONFIG+0x08000));
-    GT_1trace(curTrace, GT_4CLASS, "###icont1_itcm_base_addr= %u", icont1_itcm_base_addr);
-    icont2_itcm_base_addr = (unsigned int *)mmap_device_io(0x1000, (L3_IVAHD_CONFIG+0x18000));
-    GT_1trace(curTrace, GT_4CLASS, "###icont1_itcm_base_addr= %u", icont2_itcm_base_addr);
-    if((uintptr_t)icont1_itcm_base_addr == MAP_DEVICE_FAILED ||
-        (uintptr_t)icont2_itcm_base_addr == MAP_DEVICE_FAILED){
-        GT_0trace(curTrace, GT_4CLASS, "mapping l3 ivahdconfig failed");
-        if((uintptr_t)icont1_itcm_base_addr != MAP_DEVICE_FAILED )
-            munmap((void *)icont1_itcm_base_addr, 0x1000);
-        if((uintptr_t)icont2_itcm_base_addr != MAP_DEVICE_FAILED )
-            munmap((void *)icont2_itcm_base_addr, 0x1000);
-        return -1;
-    }
-
-    /*--------------------------------------------------------------------------*/
-    /* Copy boot code to ICONT1 & INCOT2 memory                                 */
-    /*--------------------------------------------------------------------------*/
-    GT_0trace(curTrace, GT_4CLASS, "###LOAD BOOT CODE");
-
-    for (length=0; length<LENGTH_BOOT_CODE1; length++) {
-        icont1_itcm_base_addr[length] = IVAHD_memory_wfi1[length];
-        icont2_itcm_base_addr[length] = IVAHD_memory_wfi1[length];
-    }
-
-    /*--------------------------------------------------------------------------*/
-    /* As ICONT goes in WFI and there are no pending VDMA transction            */
-    /* entire IVAHD will be go in standby mode and PRCM will fully control      */
-    /* further managment of IVAHD power state                                   */
-    /*--------------------------------------------------------------------------*/
-    munmap((void *)icont1_itcm_base_addr, 0x1000);
-    munmap((void *)icont2_itcm_base_addr, 0x1000);
-
-    return 0;
-}
-
 int ipu_pm_ivaseq0_disable()
 {
+    uintptr_t pm_base = 0;
+    uint32_t reg = 0;
+    enum processor_version omap_rev;
+    uint32_t rm_iva_rstctrl_offset;
+
+    pthread_mutex_lock(&ipu_pm_state.mtx);
+
+    if (ipu_pm_state.ivaseq0_use_cnt-- == 1) {
+        pm_base = (uintptr_t)prm_base_va;
+
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivaseq0_disable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
+
+        if (omap_rev == OMAP_5430_es20) {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+        }
+        else {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+        }
+
+        reg = in32(pm_base + rm_iva_rstctrl_offset);
+        reg |= 0x1;
+        out32(pm_base + rm_iva_rstctrl_offset, reg);
+    }
+    else {
+        GT_0trace(curTrace, GT_3CLASS, "ivaseq0 still in use");
+    }
+
+    pthread_mutex_unlock(&ipu_pm_state.mtx);
     return EOK;
 }
 
 int ipu_pm_ivaseq0_enable()
 {
+    uintptr_t pm_base = 0;
+    uint32_t reg = 0;
+    enum processor_version omap_rev;
+    uint32_t rm_iva_rstctrl_offset;
+
+    pthread_mutex_lock(&ipu_pm_state.mtx);
+    if (++ipu_pm_state.ivaseq0_use_cnt == 1) {
+        pm_base = (uintptr_t)prm_base_va;
+
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivaseq0_disable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
+
+        if (omap_rev == OMAP_5430_es20) {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+        }
+        else {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+        }
+
+        reg = in32(pm_base + rm_iva_rstctrl_offset);
+        reg &= 0xFFFFFFFE;
+        out32(pm_base + rm_iva_rstctrl_offset, reg);
+    }
+    else {
+        GT_0trace(curTrace, GT_3CLASS, "ivaseq0 still in use");
+    }
+
+    pthread_mutex_unlock(&ipu_pm_state.mtx);
     return EOK;
 }
 
 int ipu_pm_ivaseq1_disable()
 {
+    uintptr_t pm_base = 0;
+    uint32_t reg = 0;
+    enum processor_version omap_rev;
+    uint32_t rm_iva_rstctrl_offset;
+
+    pthread_mutex_lock(&ipu_pm_state.mtx);
+
+    if (ipu_pm_state.ivaseq1_use_cnt-- == 1) {
+        pm_base = (uintptr_t)prm_base_va;
+
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivaseq0_disable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
+
+        if (omap_rev == OMAP_5430_es20) {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+        }
+        else {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+        }
+
+        reg = in32(pm_base + rm_iva_rstctrl_offset);
+        reg |= 0x2;
+        out32(pm_base + rm_iva_rstctrl_offset, reg);
+    }
+    else {
+        GT_0trace(curTrace, GT_3CLASS, "ivaseq1 still in use");
+    }
+
+    pthread_mutex_unlock(&ipu_pm_state.mtx);
     return EOK;
 }
 
 int ipu_pm_ivaseq1_enable()
 {
+    uintptr_t pm_base = 0;
+    uint32_t reg = 0;
+    enum processor_version omap_rev;
+    uint32_t rm_iva_rstctrl_offset;
+
+    pthread_mutex_lock(&ipu_pm_state.mtx);
+    if (++ipu_pm_state.ivaseq1_use_cnt == 1) {
+        pm_base = (uintptr_t)prm_base_va;
+
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivaseq0_disable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
+
+        if (omap_rev == OMAP_5430_es20) {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+        }
+        else {
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+        }
+
+        reg = in32(pm_base + rm_iva_rstctrl_offset);
+        reg &= 0xFFFFFFFD;
+        out32(pm_base + rm_iva_rstctrl_offset, reg);
+    }
+    else {
+        GT_0trace(curTrace, GT_3CLASS, "ivaseq1 still in use");
+    }
+
+    pthread_mutex_unlock(&ipu_pm_state.mtx);
     return EOK;
 }
 
@@ -851,77 +1096,108 @@ int ipu_pm_ivahd_disable()
     uintptr_t cm_base = 0;
     uint32_t reg = 0;
     int max_tries = 100;
+    enum processor_version omap_rev;
+    uint32_t pm_iva_pwrstctrl_offset;
+    uint32_t cm_iva_clkstctrl_offset;
+    uint32_t cm_iva_iva_clkctrl_offset;
+    uint32_t cm_iva_sl2_clkctrl_offset;
+    uint32_t rm_iva_rstctrl_offset;
 
     pthread_mutex_lock(&ipu_pm_state.mtx);
 
     if (ipu_pm_state.ivahd_use_cnt-- == 1) {
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivahd_disable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
         pm_base = (uintptr_t)prm_base_va;
         cm_base = (uintptr_t)cm2_base_va;
 
-        reg = in32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET);
+        if (omap_rev == OMAP_5430_es20) {
+            pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_ES20_OFFSET;
+            cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_ES20_OFFSET;
+            cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_ES20_OFFSET;
+            cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_ES20_OFFSET;
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+        }
+        else {
+            pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_OFFSET;
+            cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_OFFSET;
+            cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_OFFSET;
+            cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_OFFSET;
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+        }
+
+        reg = in32(pm_base + pm_iva_pwrstctrl_offset);
         reg &= 0xFFFFFFFC;
         reg |= 0x00000002;
-        out32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET, reg);
+        out32(pm_base + pm_iva_pwrstctrl_offset, reg);
 
         /* Ensure that the wake up mode is set to SW_WAKEUP */
-        out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, 0x00000002);
+        out32(cm_base + cm_iva_clkstctrl_offset, 0x00000002);
 
+#ifndef OMAP5_VIRTIO
         /* Check the standby status */
         do {
-            if (((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x00040000) != 0x0))
+            if (((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00040000) != 0x0))
                 break;
         } while (--max_tries);
         if (max_tries == 0) {
             GT_0trace(curTrace, GT_4CLASS," ** Error in IVAHD standby status");
         }
+#endif
 
         // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
-        out32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET, 0x00000000);
+        out32(cm_base + cm_iva_iva_clkctrl_offset, 0x00000000);
+#ifndef OMAP5_VIRTIO
         max_tries = 100;
         do {
-            if((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x00030000) == 0x30000)
+            if((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00030000) == 0x30000)
                 break;
         } while (--max_tries);
         if (max_tries == 0) {
            GT_0trace(curTrace, GT_4CLASS," ** Error in IVAHD standby status");
         }
+#endif
 
         // IVAHD_CM2:CM_IVAHD_SL2_CLKCTRL
-        out32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET, 0x00000000);
+        out32(cm_base + cm_iva_sl2_clkctrl_offset, 0x00000000);
+#ifndef OMAP5_VIRTIO
         max_tries = 100;
         do {
-            if((in32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET) & 0x00030000) == 0x30000);
+            if((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x00030000) == 0x30000);
                 break;
         } while (--max_tries);
         if (max_tries == 0) {
             GT_0trace(curTrace, GT_4CLASS," ** Error in SL2 CLKCTRL");
         }
+#endif
 
         /* put IVA into HW Auto mode */
-        reg = in32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET);
-        reg |= 0x00000003;
-        out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, reg);
+        out32(cm_base + cm_iva_clkstctrl_offset, 0x00000003);
 
         max_tries = 100;
         /* Check CLK ACTIVITY bit */
-        while(((in32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET) & 0x00000100) != 0x0) && --max_tries);
+#ifndef OMAP5_VIRTIO
+        while(((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) != 0x0) && --max_tries);
         if (max_tries == 0)
             GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_disable: WARNING - CLK ACTIVITY bit did not go off");
+#endif
 
-        /* Modifying the previous reset sequence - the new reset sequence asserts reset on
-         * SL2/IVAHD first, wait for 1 usec and then assert reset for ICONT1 and
-         * then for ICONT2 */
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
-        reg |= 0x4;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
-        usleep(1);
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
-        reg |= 0x1;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
-        usleep(1);
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
-        reg |= 0x2;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
+        // IVA sub-system resets - Assert reset for IVA logic and SL2
+        out32(pm_base + rm_iva_rstctrl_offset, 0x00000004);
+        max_tries = 200;
+        while(--max_tries);
+
+        // IVA sub-system resets - Assert reset for IVA logic, SL2, and sequencer1
+        out32(pm_base + rm_iva_rstctrl_offset, 0x00000005);
+        max_tries = 200;
+        while(--max_tries);
+
+        // IVA sub-system resets - Assert reset for IVA logic, SL2, sequencer1 and sequencer2
+        out32(pm_base + rm_iva_rstctrl_offset, 0x00000007);
     }
     else {
         GT_0trace(curTrace, GT_3CLASS, "ivahd still in use");
@@ -937,8 +1213,15 @@ int ipu_pm_ivahd_enable()
     uintptr_t cm_base = 0;
     uint32_t reg = 0;
     unsigned int pwrst = 0;
-    int max_tries = 0;
-    int flag = 0;
+    int max_tries = 100;
+    enum processor_version omap_rev;
+    uint32_t pm_iva_pwrstctrl_offset;
+    uint32_t cm_iva_clkstctrl_offset;
+    uint32_t cm_iva_iva_clkctrl_offset;
+    uint32_t cm_iva_sl2_clkctrl_offset;
+    uint32_t rm_iva_rstctrl_offset;
+    uint32_t rm_iva_iva_context_offset;
+    uint32_t pm_iva_pwrstst_offset;
 
     pthread_mutex_lock(&ipu_pm_state.mtx);
 
@@ -946,66 +1229,81 @@ int ipu_pm_ivahd_enable()
         pm_base = (uintptr_t)prm_base_va;
         cm_base = (uintptr_t)cm2_base_va;
 
+        omap_rev = get_omap_version();
+        if (omap_rev < 0) {
+            GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivahd_enable",
+                                 omap_rev, "Error while reading the OMAP REVISION");
+            return -EIO;
+        }
+
+        if (omap_rev == OMAP_5430_es20) {
+            pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_ES20_OFFSET;
+            cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_ES20_OFFSET;
+            cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_ES20_OFFSET;
+            cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_ES20_OFFSET;
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+            rm_iva_iva_context_offset = RM_IVA_IVA_CONTEXT_ES20_OFFSET;
+            pm_iva_pwrstst_offset = PM_IVA_PWRSTST_ES20_OFFSET;
+        }
+        else {
+            pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_OFFSET;
+            cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_OFFSET;
+            cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_OFFSET;
+            cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_OFFSET;
+            rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+            rm_iva_iva_context_offset = RM_IVA_IVA_CONTEXT_OFFSET;
+            pm_iva_pwrstst_offset = PM_IVA_PWRSTST_OFFSET;
+        }
         /* Read the IVAHD Context register to check if the memory content has been lost */
-        reg = in32(pm_base + RM_IVAHD_IVAHD_CONTEXT_OFFSET);
+        reg = in32(pm_base + rm_iva_iva_context_offset);
         /* Clear the context register by writing 1 to bit 8,9 and 10 */
-        out32(pm_base + RM_IVAHD_IVAHD_CONTEXT_OFFSET, 0x700);
+        out32(pm_base + rm_iva_iva_context_offset, 0x700);
 
         /*Display power state*/
-        pwrst = in32(pm_base + PM_IVAHD_PWRST_OFFSET);
+        pwrst = in32(pm_base + pm_iva_pwrstst_offset);
         GT_1trace(curTrace, GT_4CLASS, "###: off state reg bit = 0x%x\n", (pwrst & 0x03000003));
-        /*Clear the pwer status reg by writting 1'a into the requred bits*/
-        out32(pm_base + PM_IVAHD_PWRST_OFFSET, 0x03000000);
+        /*Clear the power status reg by writting 1'a into the requred bits*/
+        out32(pm_base + pm_iva_pwrstst_offset, 0x03000000);
 
         /* Ensure power state is set to ON */
-        reg = in32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET);
+        reg = in32(pm_base + pm_iva_pwrstctrl_offset);
         reg &= 0xFFFFFFFC;
         reg |= 0x00000003;
-        out32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET, reg);
-
-        // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
-        out32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET, 0x00000001);
-
-        // IVAHD_CM2:CM_IVAHD_SL2_CLKCTRL
-        out32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET, 0x00000001);
+        out32(pm_base + pm_iva_pwrstctrl_offset, reg);
 
         /* Ensure that the wake up mode is set to SW_WAKEUP */
-        out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, 0x00000002);
-        if((pwrst & 0x03000000) == 0x00000000){
-            /* Wait until the CLK_ACTIVITY bit is set */
-            max_tries = 3;
-            while(max_tries--){
-                if(((in32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET)) & 0x00000100) != 0x0){
-                    flag = 1;
-                    break;
-                }
-                usleep(100);
-            }
-        }
+        out32(cm_base + cm_iva_clkstctrl_offset, 0x00000002);
+
+#ifndef OMAP5_VIRTIO
+        max_tries = 100;
+        while(((in32(pm_base + pm_iva_pwrstst_offset) & 0x00100000) != 0) && --max_tries);
+        if (max_tries == 0)
+            GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - PwrSt did not transition");
+#endif
+
+        // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
+        out32(cm_base + cm_iva_iva_clkctrl_offset, 0x00000001);
+
+        // IVAHD_CM2:CM_IVAHD_SL2_CLKCTRL
+        out32(cm_base + cm_iva_sl2_clkctrl_offset, 0x00000001);
+
+        /* Wait until the CLK_ACTIVITY bit is set */
+#ifndef OMAP5_VIRTIO
+        max_tries = 100;
+        while (((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) == 0x0) && --max_tries);
+        if (max_tries == 0)
+            GT_0trace(curTrace, GT_4CLASS, "SYSLINK: ivahd_enable: WARNING - Clk_ACTIVITY bit is not set");
+#endif
 
         /* Release ICONT1 and SL2/IVAHD first, wait for few usec  then release ICONT2 */
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
+        reg = in32(pm_base + rm_iva_rstctrl_offset);
         reg &= 0xFFFFFFFB;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
-        if(flag){
-            GT_0trace(curTrace, GT_4CLASS, "@@@ - CLK_ACTIVITY set");
-            GT_0trace(curTrace, GT_4CLASS, "$$ call LOAD CODE");
-            if(-1 == ipu_pm_ivahd_standby_power_on_uboot())
-                GT_0trace(curTrace, GT_4CLASS, "$$ LOAD CODE FAILED");
-        }
-        else
-            GT_0trace(curTrace, GT_4CLASS, "@@@ - CLK_ACTIVITY Not set");
-
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
-        reg &= 0xFFFFFFFE;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
-        usleep(200);
-        reg = in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET);
-        reg &= 0xFFFFFFFD;
-        out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, reg);
+        out32(pm_base + rm_iva_rstctrl_offset, reg);
+#ifndef OMAP5_VIRTIO
         max_tries = 100;
+        usleep(100);
         do {
-            if((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x00030000) == 0x0)
+            if((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00030000) == 0x0)
                 break;
         } while(--max_tries);
         if (max_tries == 0) {
@@ -1015,7 +1313,7 @@ int ipu_pm_ivahd_enable()
 
         max_tries = 100;
         do {
-            if((in32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET) & 0x00030000) == 0x00000)
+            if((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x00030000) == 0x00000)
                 break;
         } while(--max_tries);
         if (max_tries == 0) {
@@ -1036,7 +1334,7 @@ int ipu_pm_ivahd_enable()
         /* Ensure IVAHD and SL2 is functional */
         max_tries = 100;
         do {
-        if((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x00030001) == 0x00001)
+        if((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00030001) == 0x00001)
             break;
         } while(--max_tries);
         if (max_tries == 0) {
@@ -1046,13 +1344,14 @@ int ipu_pm_ivahd_enable()
 
         max_tries = 100;
         do {
-            if((in32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET) & 0x00030001) == 0x00001)
+            if((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x00030001) == 0x00001)
                 break;
         } while(--max_tries);
         if (max_tries == 0) {
             GT_0trace(curTrace, GT_4CLASS," ** SL2 is not functional");
             return -EIO;
         }
+#endif
     } else {
         GT_0trace(curTrace, GT_3CLASS, "ivahd already acquired");
     }
@@ -1070,71 +1369,94 @@ int ipu_pm_ivahd_off()
     bool ivahd_enabled = false;
     bool sl2_enabled = false;
     enum processor_version omap_rev;
+    uint32_t pm_iva_pwrstctrl_offset;
+    uint32_t cm_iva_clkstctrl_offset;
+    uint32_t cm_iva_iva_clkctrl_offset;
+    uint32_t cm_iva_sl2_clkctrl_offset;
+    uint32_t rm_iva_rstctrl_offset;
+    uint32_t pm_iva_pwrstst_offset;
 
     pm_base = (uintptr_t)prm_base_va;
     cm_base = (uintptr_t)cm2_base_va;
 
     omap_rev = get_omap_version();
     if (omap_rev < 0) {
-        GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivahd_off",
+        GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivahd_enable",
                              omap_rev, "Error while reading the OMAP REVISION");
-        return EIO;
+        return -EIO;
     }
-    else if (omap_rev != OMAP_4430) {
-        reg = in32(pm_base + PM_IVAHD_PWRST_OFFSET);
-        reg = reg & 0x00000007;
 
-        if (reg != 0x00000000) {
-            /* set IVAHD to SW_WKUP */
-            out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, 0x2);
-            max_tries = 100;
-            /* Check for ivahd module and disable if it is enabled */
-            if ((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x1) != 0) {
-                out32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET, 0x0);
-                ivahd_enabled = 1;
-            }
-            /* Check for sl2 module and disable if it is enabled */
-            if ((in32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET) & 0x1) != 0) {
-                out32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET, 0x0);
-                sl2_enabled = 1;
-            }
-            if (ivahd_enabled || sl2_enabled) {
-                while (((in32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET) & 0x00000100) == 0x0) && --max_tries);
-                if (max_tries == 0) {
-                    GT_0trace(curTrace, GT_4CLASS,"IPU_PM:IVAHD DOMAIN is Not Enabled after retries");
-                }
-            }
+    if (omap_rev == OMAP_5430_es20) {
+        pm_iva_pwrstst_offset = PM_IVA_PWRSTST_ES20_OFFSET;
+        cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_ES20_OFFSET;
+        cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_ES20_OFFSET;
+        cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_ES20_OFFSET;
+        pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_ES20_OFFSET;
+        rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_ES20_OFFSET;
+    }
+    else {
+        pm_iva_pwrstst_offset = PM_IVA_PWRSTST_OFFSET;
+        cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_OFFSET;
+        cm_iva_iva_clkctrl_offset = CM_IVA_IVA_CLKCTRL_OFFSET;
+        cm_iva_sl2_clkctrl_offset = CM_IVA_SL2_CLKCTRL_OFFSET;
+        pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_OFFSET;
+        rm_iva_rstctrl_offset = RM_IVA_RSTCTRL_OFFSET;
+    }
 
-            /* Set IVAHD PD to OFF */
-            reg = in32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET);
-            reg = (reg & 0xFFFFFFFC) | 0x0;
-            out32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET, reg);
-            max_tries = 100;
-            while (((in32(pm_base + PM_IVAHD_PWRST_OFFSET) & 0x00100000) != 0) && --max_tries);
+    reg = in32(pm_base + pm_iva_pwrstst_offset);
+    reg = reg & 0x00000007;
+
+    if (reg != 0x00000000) {
+        /* set IVAHD to SW_WKUP */
+        out32(cm_base + cm_iva_clkstctrl_offset, 0x2);
+        max_tries = 100;
+        /* Check for ivahd module and disable if it is enabled */
+        if ((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x1) != 0) {
+            out32(cm_base + cm_iva_iva_clkctrl_offset, 0x0);
+            ivahd_enabled = 1;
+        }
+        /* Check for sl2 module and disable if it is enabled */
+        if ((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x1) != 0) {
+            out32(cm_base + cm_iva_sl2_clkctrl_offset, 0x0);
+            sl2_enabled = 1;
+        }
+        if (ivahd_enabled || sl2_enabled) {
+            while (((in32(cm_base + cm_iva_clkstctrl_offset) & 0x00000100) == 0x0) && --max_tries);
             if (max_tries == 0) {
-               GT_0trace(curTrace, GT_4CLASS,"IPU_PM: IVAHD Power Domain is in transition after retries");
+                GT_0trace(curTrace, GT_4CLASS,"IPU_PM:IVAHD DOMAIN is Not Enabled after retries");
             }
+        }
 
-            if (ivahd_enabled) {
-                max_tries = 100;
-                while (((in32(cm_base + CM_IVAHD_IVAHD_CLKCTRL_OFFSET) & 0x00030000) != 0x30000) && --max_tries);
-                if (max_tries == 0) {
-                    GT_0trace(curTrace, GT_4CLASS,"IPU_PM: Stuck up in the IVAHD Module after retries");
-                }
+        /* Set IVAHD PD to OFF */
+        reg = in32(pm_base + pm_iva_pwrstctrl_offset);
+        reg = (reg & 0xFFFFFFFC) | 0x0;
+        out32(pm_base + pm_iva_pwrstctrl_offset, reg);
+
+        max_tries = 100;
+        while (((in32(pm_base + pm_iva_pwrstst_offset) & 0x00100000) != 0) && --max_tries);
+        if (max_tries == 0) {
+           GT_0trace(curTrace, GT_4CLASS,"IPU_PM: IVAHD Power Domain is in transition after retries");
+        }
+
+        if (ivahd_enabled) {
+            max_tries = 100;
+            while (((in32(cm_base + cm_iva_iva_clkctrl_offset) & 0x00030000) != 0x30000) && --max_tries);
+            if (max_tries == 0) {
+                GT_0trace(curTrace, GT_4CLASS,"IPU_PM: Stuck up in the IVAHD Module after retries");
             }
-            if (sl2_enabled) {
-                max_tries = 100;
-                while (((in32(cm_base + CM_IVAHD_SL2_CLKCTRL_OFFSET) & 0x00030000) != 0x30000) && --max_tries);
-                if (max_tries == 0) {
-                    GT_0trace(curTrace, GT_4CLASS,"IPU_PM: Stuck up in the SL2 Module after retries");
-                }
+        }
+        if (sl2_enabled) {
+            max_tries = 100;
+            while (((in32(cm_base + cm_iva_sl2_clkctrl_offset) & 0x00030000) != 0x30000) && --max_tries);
+            if (max_tries == 0) {
+                GT_0trace(curTrace, GT_4CLASS,"IPU_PM: Stuck up in the SL2 Module after retries");
             }
-            /* Set IVAHD to HW_AUTO */
-            out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, 0x3);
-            /* Check the reset states and assert resets */
-            if (in32(pm_base + RM_IVAHD_RSTCTRL_OFFSET) != 0x7) {
-                out32(pm_base + RM_IVAHD_RSTCTRL_OFFSET, 0x7);
-            }
+        }
+        /* Set IVAHD to HW_AUTO */
+        out32(cm_base + cm_iva_clkstctrl_offset, 0x3);
+        /* Check the reset states and assert resets */
+        if (in32(pm_base + rm_iva_rstctrl_offset) != 0x7) {
+            out32(pm_base + rm_iva_rstctrl_offset, 0x7);
         }
     }
 
@@ -1146,23 +1468,42 @@ int ipu_pm_ivahd_on()
     uintptr_t pm_base = 0;
     uintptr_t cm_base = 0;
     uint32_t reg = 0;
+    enum processor_version omap_rev;
+    uint32_t pm_iva_pwrstctrl_offset;
+    uint32_t cm_iva_clkstctrl_offset;
 
     pm_base = (uintptr_t)prm_base_va;
     cm_base = (uintptr_t)cm2_base_va;
 
+    omap_rev = get_omap_version();
+    if (omap_rev < 0) {
+        GT_setFailureReason (curTrace, GT_4CLASS, "ipu_pm_ivahd_enable",
+                             omap_rev, "Error while reading the OMAP REVISION");
+        return -EIO;
+    }
+
+    if (omap_rev == OMAP_5430_es20) {
+        pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_ES20_OFFSET;
+        cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_ES20_OFFSET;
+    }
+    else {
+        pm_iva_pwrstctrl_offset = PM_IVA_PWRSTCTRL_OFFSET;
+        cm_iva_clkstctrl_offset = CM_IVA_CLKSTCTRL_OFFSET;
+    }
+
     /* Set the power state to ON */
-    reg = in32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET);
+    reg = in32(pm_base + pm_iva_pwrstctrl_offset);
     reg &= 0xFFFFFFFC;
     reg |= 0x00000002;
-    out32(pm_base + PM_IVAHD_PWRSTCTRL_OFFSET, reg);
+    out32(pm_base + pm_iva_pwrstctrl_offset, reg);
 
     /* Ensure that the wake up mode is set to SW_WAKEUP */
-    out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, 0x00000002);
+    out32(cm_base + cm_iva_clkstctrl_offset, 0x00000002);
 
     /* put IVA into HW Auto mode */
-    reg = in32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET);
+    reg = in32(cm_base + cm_iva_clkstctrl_offset);
     reg |= 0x00000003;
-    out32(cm_base + CM_IVAHD_CLKSTCTRL_OFFSET, reg);
+    out32(cm_base + cm_iva_clkstctrl_offset, reg);
 
     return EOK;
 }
@@ -1171,7 +1512,7 @@ int ipu_pm_led_enable(unsigned int mode, unsigned int intensity)
 {
     int ret = 0;
 
-    ret = camflash_config(mode, intensity);
+    //ret = camflash_config(mode, intensity);
 
     if (ret != -1)
         last_led_req = mode;
@@ -1207,7 +1548,7 @@ int ipu_pm_camera_enable(unsigned int mode, unsigned int on)
 {
     int ret = 0;
 
-    ret = campower_config(mode, on);
+    //ret = campower_config(mode, on);
 
     if (mode < NUM_CAM_MODES && ret == 0)
         last_camera_req[mode] = on;
@@ -1220,14 +1561,10 @@ int ipu_pm_get_max_freq(unsigned int proc, unsigned int * freq)
     int status = EOK;
 
     switch (proc) {
-#if 0 // TODO: need a way to return the max freq
-        case RPRM_IPU:
-                *freq = IPU_FREQ_MAX;
+        case RPRM_IVAHD:
+            /* Would like to replace the below with a call to powerman */
+            *freq = IVAHD_FREQ_MAX_IN_HZ;
             break;
-        case RPRM_DSP:
-                *freq = DSP_FREQ_MAX;
-            break;
-#endif
         default:
             status = -ENOENT;
             break;
@@ -1432,9 +1769,14 @@ int ipu_pm_set_rate(struct ipu_pm_const_req * request)
 {
     return EOK;
 }
+
+int ipu_pm_set_bandwidth(unsigned int bandwidth)
+{
+    return EOK;
+}
 #endif
 
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
 
 static int configure_timer (int val, int reload)
 {
@@ -1456,8 +1798,8 @@ static int configure_timer (int val, int reload)
  * RESET:        Timer is disabed
  * OFF:            Timer is OFF
  * ON:            Timer running
- * HIBERNATE:    Waking up for ducati cores to hibernate
- * WD_RESET:    Waiting for Ducati cores to complete hibernation
+ * HIBERNATE:    Waking up for benelli cores to hibernate
+ * WD_RESET:    Waiting for Benelli cores to complete hibernation
  */
 int ipu_pm_timer_state(int event)
 {
@@ -1529,7 +1871,7 @@ int ipu_pm_save_ctx(int proc_id)
     int core0_loaded;
     int core1_loaded;
     unsigned long timeout;
-    unsigned short core0_id = MultiProc_getId("CORE0");
+    unsigned short core0_id = MultiProc_getId(CORE0);
     unsigned short core1_id = MultiProc_getId("CORE1");
     unsigned short dsp_id = MultiProc_getId("DSP");
     struct itimerspec value;
@@ -1548,7 +1890,7 @@ int ipu_pm_save_ctx(int proc_id)
 
     if (core0Idle == NULL) {
         if (proc_id == core0_id) {
-            retval = get_resource_info(RSC_SUSPENDADDR, "0", &da, &pa, &len);
+            retval = get_res_info(RSC_SUSPENDADDR, "0", &da, &pa, &len);
             if (retval == 0) {
                 /* BIOS flags to know the state of IPU cores */
                 core0Idle = (void *)mmap_device_io(0x1000, ROUND_DOWN(pa, 0x1000));
@@ -1581,24 +1923,16 @@ int ipu_pm_save_ctx(int proc_id)
             goto exit;
         }
 
-        if (rpmsg_resmgr_allow_hib(core0_id) &&
-            rpmsg_resmgr_allow_hib(core1_id) &&
-            !TESTBITREG32((uintptr_t)m3_clkstctrl,
-                          CM_MPU_M3_CLKSTCTRL_CLKACTIVITY_BIT)) {
-            retval = ArchIpcInt_sendInterrupt(core0_id,
-                                              ipu_pm_state.cfg.int_id,
-                                              RP_MBOX_HIBERNATION);
-        }
-        else {
-            /* restart timer */
-            configure_timer(syslink_hib_timeout / 1000, 0);
-            goto exit;
-        }
+        !TESTBITREG32((uintptr_t)m3_clkstctrl,
+                      CM_MPU_M3_CLKSTCTRL_CLKACTIVITY_BIT)) {
+        retval = ArchIpcInt_sendInterrupt(core0_id,
+                                          ipu_pm_state.cfg.int_id,
+                                          RP_MBOX_HIBERNATION);
 
         num_loaded_cores = core1_loaded + core0_loaded;
         flag = 1;
         timeout = WAIT_FOR_IDLE_TIMEOUT;
-        /* Wait fot Ducati to hibernate */
+        /* Wait fot Benelli to hibernate */
         do {
             /* Checking if IPU is really in idle */
             if (NUM_IDLE_CORES == num_loaded_cores) {
@@ -1610,13 +1944,13 @@ int ipu_pm_save_ctx(int proc_id)
         } while ( --timeout != 0);
 
         if (flag) {
-            GT_0trace(curTrace, GT_4CLASS, "Ducati Cores are NOT really Idle");
+            GT_0trace(curTrace, GT_4CLASS, "Benelli Cores are NOT really Idle");
             goto error;
         }
 
         ipu_pm_timer_state(PM_HIB_TIMER_OFF);
-        retval = Omap4430IpcInt_mboxSaveCtxt(core0_id);
-        if(retval != OMAP4430IPCINT_SUCCESS){
+        retval = Omap5430IpcInt_mboxSaveCtxt(core0_id);
+        if(retval != OMAP5430IPCINT_SUCCESS){
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_save_ctx",
                                 retval,
                                 "Error while saving the MailBox context");
@@ -1624,7 +1958,7 @@ int ipu_pm_save_ctx(int proc_id)
         }
 
         if (core1_loaded) {
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
             save_gpt_context(GPTIMER_11);
             ipu_pm_gpt_stop(GPTIMER_11);
             ipu_pm_gpt_disable(GPTIMER_11);
@@ -1633,7 +1967,7 @@ int ipu_pm_save_ctx(int proc_id)
                 save_gpt_context(GPTIMER_4);
 
             retval = ProcMgr_control(ipu_pm_state.proc_handles[core1_id],
-                                 Omap4430DucatiProc_CtrlCmd_Suspend, NULL);
+                                 Omap5430BenelliProc_CtrlCmd_Suspend, NULL);
             if (retval < 0) {
                 GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_save_ctx",
                                     retval, "Error while suspending CORE1");
@@ -1642,7 +1976,7 @@ int ipu_pm_save_ctx(int proc_id)
             GT_0trace(curTrace, GT_4CLASS, "Sleep CORE1");
         }
 
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
         save_gpt_context(GPTIMER_9);
         ipu_pm_gpt_stop(GPTIMER_9);
         ipu_pm_gpt_disable(GPTIMER_9);
@@ -1652,7 +1986,7 @@ int ipu_pm_save_ctx(int proc_id)
 
         ipu_pm_state.proc_state |= CORE1_PROC_DOWN;
         retval = ProcMgr_control(ipu_pm_state.proc_handles[core0_id],
-                                 Omap4430DucatiProc_CtrlCmd_Suspend, NULL);
+                                 Omap5430BenelliProc_CtrlCmd_Suspend, NULL);
         if (retval < 0) {
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_save_ctx", retval,
                                 "Error while suspending CORE0");
@@ -1713,7 +2047,7 @@ int ipu_pm_restore_ctx(int proc_id)
     int retval = 0;
     int core0_loaded;
     int core1_loaded;
-    unsigned short core0_id = MultiProc_getId("CORE0");
+    unsigned short core0_id = MultiProc_getId(CORE0);
     unsigned short core1_id = MultiProc_getId("CORE1");
     unsigned short dsp_id = MultiProc_getId("DSP");
 
@@ -1751,15 +2085,15 @@ int ipu_pm_restore_ctx(int proc_id)
             goto exit;
         }
 
-        retval = Omap4430IpcInt_mboxRestoreCtxt(core0_id);
-        if(retval != OMAP4430IPCINT_SUCCESS){
+        retval = Omap5430IpcInt_mboxRestoreCtxt(core0_id);
+        if(retval != OMAP5430IPCINT_SUCCESS){
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_restore_ctx",
                                 retval,
                                 "Not able to restore Mail Box context");
             goto error;
         }
 
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
         ipu_pm_gpt_enable(GPTIMER_9);
         restore_gpt_context(GPTIMER_9);
         ipu_pm_gpt_start(GPTIMER_9);
@@ -1772,7 +2106,7 @@ int ipu_pm_restore_ctx(int proc_id)
         GT_0trace(curTrace, GT_4CLASS, "Wakeup CORE0");
         ipu_pm_state.proc_state &= ~CORE0_PROC_DOWN;
         retval = ProcMgr_control(ipu_pm_state.proc_handles[core0_id],
-                                 Omap4430DucatiProc_CtrlCmd_Resume, NULL);
+                                 Omap5430BenelliProc_CtrlCmd_Resume, NULL);
         if (retval < 0){
             GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_restore_ctx",
                                 retval, "Not able to resume CORE0");
@@ -1780,7 +2114,7 @@ int ipu_pm_restore_ctx(int proc_id)
         }
 
         if (core1_loaded) {
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
             ipu_pm_gpt_enable(GPTIMER_11);
             restore_gpt_context(GPTIMER_11);
             ipu_pm_gpt_start(GPTIMER_11);
@@ -1793,7 +2127,7 @@ int ipu_pm_restore_ctx(int proc_id)
             GT_0trace(curTrace, GT_4CLASS, "Wakeup CORE1");
             ipu_pm_state.proc_state &= ~CORE1_PROC_DOWN;
             retval = ProcMgr_control(ipu_pm_state.proc_handles[core1_id],
-                                     Omap4430DucatiProc_CtrlCmd_Resume, NULL);
+                                     Omap5430BenelliProc_CtrlCmd_Resume, NULL);
             if (retval < 0){
                 GT_setFailureReason(curTrace, GT_4CLASS, "ipu_pm_restore_ctx",
                                     retval, "Not able to resume CORE1");
@@ -1809,7 +2143,7 @@ int ipu_pm_restore_ctx(int proc_id)
     else
         goto error;
 exit:
-    /* turn on ducati hibernation timer */
+    /* turn on benelli hibernation timer */
     if (ipu_pm_state.hib_timer_state == PM_HIB_TIMER_OFF ||
         ipu_pm_state.hib_timer_state == PM_HIB_TIMER_RESET) {
             ipu_pm_timer_state(PM_HIB_TIMER_ON);
@@ -1824,21 +2158,21 @@ error:
 /* ISR for Timer*/
 static void ipu_pm_timer_interrupt (union sigval val)
 {
-    ipu_pm_save_ctx(MultiProc_getId("CORE0"));
+    ipu_pm_save_ctx(MultiProc_getId(CORE0));
     return;
 }
-#else // DUCATI_SELF_HIBERNATION
+#else // BENELLI_SELF_HIBERNATION
 
 int ipu_pm_restore_ctx(int proc_id)
 {
     return 0;
 }
-#endif //DUCATI_SELF_HIBERNATION
+#endif // BENELLI_SELF_HIBERNATION
 
 int ipu_pm_attach(int proc_id)
 {
     int retval = EOK;
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
     OsalIsr_Params isrParams;
 #endif
 
@@ -1846,9 +2180,9 @@ int ipu_pm_attach(int proc_id)
         return -EINVAL;
     }
 
-    if (proc_id == MultiProc_getId("CORE0")) {
+    if (proc_id == MultiProc_getId(CORE0)) {
         ipu_pm_state.loaded_procs |= CORE0_LOADED;
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
         ipu_pm_gpt_enable(GPTIMER_9);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_9;
@@ -1866,10 +2200,12 @@ int ipu_pm_attach(int proc_id)
             retval = -ENOMEM;
         }
 #endif
+#ifndef SYSLINK_SYSBIOS_SMP
     }
     else if (proc_id == MultiProc_getId("CORE1")) {
+#endif
         ipu_pm_state.loaded_procs |= CORE1_LOADED;
-#ifdef DUCATI_WATCHDOG_TIMER
+#ifdef BENELLI_WATCHDOG_TIMER
         ipu_pm_gpt_enable(GPTIMER_11);
         isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
         isrParams.fxnArgs = (Ptr)GPTIMER_11;
@@ -1888,13 +2224,34 @@ int ipu_pm_attach(int proc_id)
         }
 #endif
     }
+    else if (proc_id == MultiProc_getId("DSP")) {
+        ipu_pm_state.loaded_procs |= DSP_LOADED;
+#ifdef BENELLI_WATCHDOG_TIMER
+        ipu_pm_gpt_enable(GPTIMER_6);
+        isrParams.checkAndClearFxn = ipu_pm_clr_gptimer_interrupt;
+        isrParams.fxnArgs = (Ptr)GPTIMER_6;
+        isrParams.intId = OMAP44XX_IRQ_GPT6;
+        isrParams.sharedInt = FALSE;
+        ipu_pm_state.gpt6IsrObject =
+            OsalIsr_create(&ipu_pm_gptimer_interrupt,
+                           isrParams.fxnArgs, &isrParams);
+        if(ipu_pm_state.gpt6IsrObject != NULL) {
+            if (OsalIsr_install(ipu_pm_state.gpt6IsrObject) < 0) {
+                retval = -ENOMEM;
+            }
+        }
+        else {
+            retval = -ENOMEM;
+        }
+#endif
+    }
 
     if (retval >= 0)
         retval = ProcMgr_open(&ipu_pm_state.proc_handles[proc_id], proc_id);
 
     if (retval < 0) {
-#ifdef DUCATI_WATCHDOG_TIMER
-        if (proc_id == MultiProc_getId("CORE0")) {
+#ifdef BENELLI_WATCHDOG_TIMER
+        if (proc_id == MultiProc_getId(CORE0)) {
             if (ipu_pm_state.gpt9IsrObject) {
                 OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
                 OsalIsr_delete(&ipu_pm_state.gpt9IsrObject);
@@ -1902,8 +2259,10 @@ int ipu_pm_attach(int proc_id)
             }
             ipu_pm_gpt_stop(GPTIMER_9);
             ipu_pm_gpt_disable(GPTIMER_9);
+#ifndef SYSLINK_SYSBIOS_SMP
         }
         else if (proc_id == MultiProc_getId("CORE1")) {
+#endif
             if (ipu_pm_state.gpt11IsrObject) {
                 OsalIsr_delete(&ipu_pm_state.gpt11IsrObject);
                 ipu_pm_state.gpt11IsrObject = NULL;
@@ -1911,7 +2270,17 @@ int ipu_pm_attach(int proc_id)
             ipu_pm_gpt_stop(GPTIMER_11);
             ipu_pm_gpt_disable(GPTIMER_11);
         }
+        else if (proc_id == MultiProc_getId("DSP")) {
+            if (ipu_pm_state.gpt6IsrObject) {
+                OsalIsr_uninstall(ipu_pm_state.gpt6IsrObject);
+                OsalIsr_delete(&ipu_pm_state.gpt6IsrObject);
+                ipu_pm_state.gpt6IsrObject = NULL;
+            }
+            ipu_pm_gpt_stop(GPTIMER_6);
+            ipu_pm_gpt_disable(GPTIMER_6);
+        }
 #endif
+
     }
     else {
         ipu_pm_state.attached[proc_id] = TRUE;
@@ -1930,7 +2299,7 @@ int ipu_pm_detach(int proc_id)
 
     ipu_pm_state.attached[proc_id] = FALSE;
 
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
     if (core0Idle != NULL) {
         munmap_device_io(ROUND_DOWN((uint32_t)core0Idle, 0x1000),
                          0x1000);
@@ -1939,8 +2308,8 @@ int ipu_pm_detach(int proc_id)
     }
 #endif
 
-    if (proc_id == MultiProc_getId("CORE0")) {
-#ifdef DUCATI_WATCHDOG_TIMER
+    if (proc_id == MultiProc_getId(CORE0)) {
+#ifdef BENELLI_WATCHDOG_TIMER
         OsalIsr_uninstall(ipu_pm_state.gpt9IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt9IsrObject);
         ipu_pm_state.gpt9IsrObject = NULL;
@@ -1948,9 +2317,11 @@ int ipu_pm_detach(int proc_id)
         ipu_pm_gpt_disable(GPTIMER_9);
 #endif
         ipu_pm_state.loaded_procs &= ~CORE0_LOADED;
+#ifndef SYSLINK_SYSBIOS_SMP
     }
     else if (proc_id == MultiProc_getId("CORE1")) {
-#ifdef DUCATI_WATCHDOG_TIMER
+#endif
+#ifdef BENELLI_WATCHDOG_TIMER
         OsalIsr_uninstall(ipu_pm_state.gpt11IsrObject);
         OsalIsr_delete(&ipu_pm_state.gpt11IsrObject);
         ipu_pm_state.gpt11IsrObject = NULL;
@@ -1958,6 +2329,16 @@ int ipu_pm_detach(int proc_id)
         ipu_pm_gpt_disable(GPTIMER_11);
 #endif
         ipu_pm_state.loaded_procs &= ~CORE1_LOADED;
+    }
+    else if (proc_id == MultiProc_getId("DSP")) {
+#ifdef BENELLI_WATCHDOG_TIMER
+        OsalIsr_uninstall(ipu_pm_state.gpt6IsrObject);
+        OsalIsr_delete(&ipu_pm_state.gpt6IsrObject);
+        ipu_pm_state.gpt6IsrObject = NULL;
+        ipu_pm_gpt_stop(GPTIMER_6);
+        ipu_pm_gpt_disable(GPTIMER_6);
+#endif
+        ipu_pm_state.loaded_procs &= ~DSP_LOADED;
     }
 
     if (ipu_pm_state.proc_handles[proc_id]) {
@@ -1972,7 +2353,7 @@ int ipu_pm_setup(ipu_pm_config *cfg)
 {
     int retval = EOK;
     int i = 0;
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
     struct sigevent signal_event;
 #endif
 
@@ -1990,7 +2371,7 @@ int ipu_pm_setup(ipu_pm_config *cfg)
 
         memcpy(&ipu_pm_state.cfg, cfg, sizeof(ipu_pm_config));
 
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
         /* MBOX flag to check if there are pending messages */
         a9_m3_mbox = (void *)mmap_device_io(0x1000, A9_M3_MBOX);
         if ((uintptr_t)a9_m3_mbox == MAP_DEVICE_FAILED) {
@@ -2017,13 +2398,20 @@ int ipu_pm_setup(ipu_pm_config *cfg)
             retval = -errno;
             goto exit;
         }
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
         m3_clkstctrl = cm2_base_va + CM_MPU_M3_CLKCTRL_OFFSET;
 #endif
 
         prm_base_va = (void *)mmap_device_io(PRM_SIZE, PRM_BASE);
         if ((uintptr_t)prm_base_va == MAP_DEVICE_FAILED) {
             prm_base_va = NULL;
+            retval = -errno;
+            goto exit;
+        }
+
+        cm_core_aon_base_va = (void*)mmap_device_io(CM_CORE_AON_SIZE, CM_CORE_AON_BASE);
+        if((uintptr_t)cm_core_aon_base_va == MAP_DEVICE_FAILED) {
+            cm_core_aon_base_va = NULL;
             retval = -errno;
             goto exit;
         }
@@ -2051,7 +2439,7 @@ exit:
             munmap(cm2_base_va, CM2_SIZE);
             cm2_base_va = NULL;
         }
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
         m3_clkstctrl = NULL;
 
         if (a9_m3_mbox) {
@@ -2083,7 +2471,7 @@ int ipu_pm_destroy()
 #endif
 
         unmap_gpt_regs();
-#ifdef DUCATI_SELF_HIBERNATION
+#ifdef BENELLI_SELF_HIBERNATION
         if (syslink_hib_enable) {
             /*Stop the Timer*/
             configure_timer(0, 0);

@@ -33,7 +33,6 @@
 #include <_MultiProc.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "rpmsg_resmgr.h"
 
 #ifndef _IPU_PM_H
 #define _IPU_PM_H
