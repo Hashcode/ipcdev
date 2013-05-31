@@ -89,6 +89,12 @@ enum rproc_memregion {
 };
 
 /* Common Resource Structure Types */
+struct resource_table {
+    UInt32 ver;
+    UInt32 num;
+    UInt32 reserved[2];
+};
+
 struct fw_rsc_carveout {
     UInt32  type;
     UInt32  da;

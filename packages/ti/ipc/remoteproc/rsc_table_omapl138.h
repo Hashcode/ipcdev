@@ -70,10 +70,9 @@
 /* flip up bits whose indices represent features we support */
 #define RPMSG_IPU_C0_FEATURES         1
 
-struct resource_table {
-    UInt32 version;
-    UInt32 num;
-    UInt32 reserved[2];
+struct my_resource_table {
+    struct resource_table base;
+
     UInt32 offset[13];
 
     /* rpmsg vdev entry */
@@ -94,15 +93,15 @@ struct resource_table {
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
-struct resource_table ti_ipc_remoteproc_ResourceTable = {
+struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
     3, /* number of entries in the table */
     0, 0, /* reserved, must be zero */
     /* offsets to entries */
     {
-        offsetof(struct resource_table, rpmsg_vdev),
-        offsetof(struct resource_table, data_cout),
-        offsetof(struct resource_table, trace),
+        offsetof(struct my_resource_table, rpmsg_vdev),
+        offsetof(struct my_resource_table, data_cout),
+        offsetof(struct my_resource_table, trace),
     },
 
     /* rpmsg vdev entry */

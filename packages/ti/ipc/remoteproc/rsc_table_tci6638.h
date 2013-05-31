@@ -58,23 +58,22 @@
 #define RPMSG_VQ0_SIZE          256
 #define RPMSG_VQ1_SIZE          256
 
-struct resource_table {
-        UInt32 version;
-        UInt32 num;
-        UInt32 reserved[2];
-        UInt32 offset[13];
+struct my_resource_table {
+    struct resource_table base;
+
+    UInt32 offset[13];
 
 #ifndef TRACE_RESOURCE_ONLY
-        /* rpmsg vdev entry */
-        struct fw_rsc_vdev rpmsg_vdev;
-        struct fw_rsc_vdev_vring rpmsg_vring0;
-        struct fw_rsc_vdev_vring rpmsg_vring1;
+    /* rpmsg vdev entry */
+    struct fw_rsc_vdev rpmsg_vdev;
+    struct fw_rsc_vdev_vring rpmsg_vring0;
+    struct fw_rsc_vdev_vring rpmsg_vring1;
 #endif
-        /* data carveout entry */
-        struct fw_rsc_carveout data_cout;
+    /* data carveout entry */
+    struct fw_rsc_carveout data_cout;
 
-        /* trace entry */
-        struct fw_rsc_trace trace;
+    /* trace entry */
+    struct fw_rsc_trace trace;
 };
 
 /* Add trace buffer information to the resource table */
@@ -87,7 +86,7 @@ struct resource_table {
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
-struct resource_table ti_ipc_remoteproc_ResourceTable = {
+struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1, /* we're the first version that implements this */
 #ifndef TRACE_RESOURCE_ONLY
     3, /* number of entries in the table */
@@ -98,10 +97,10 @@ struct resource_table ti_ipc_remoteproc_ResourceTable = {
     /* offsets to entries */
     {
 #ifndef TRACE_RESOURCE_ONLY
-        offsetof(struct resource_table, rpmsg_vdev),
+        offsetof(struct my_resource_table, rpmsg_vdev),
 #endif
-        offsetof(struct resource_table, data_cout),
-        offsetof(struct resource_table, trace),
+        offsetof(struct my_resource_table, data_cout),
+        offsetof(struct my_resource_table, trace),
     },
 
 #ifndef TRACE_RESOURCE_ONLY

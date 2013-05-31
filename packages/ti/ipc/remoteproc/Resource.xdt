@@ -33,6 +33,7 @@
 %%}
 
 #include <xdc/runtime/System.h>
+#include <ti/ipc/remoteproc/rsc_types.h>
 
 %var prog = xdc.om['xdc.cfg.Program'];
 
@@ -85,18 +86,19 @@
 
 Void ti_ipc_remoteproc_Resource_init__I()
 {
+    struct resource_table *pTable =
+        (struct resource_table *)&ti_ipc_remoteproc_ResourceTable;
+
 %if (prog.platformName.match(/evm6614/)) {
 // Uncomment to test for v3.3 Linux...
 //    xdc_runtime_System_printf("Resource Table: 0x%lx\n", resources);
 //  ...and comment out this:
     xdc_runtime_System_printf("%d Resource entries at 0x%x\n",
-            ti_ipc_remoteproc_ResourceTable.num,
-            &ti_ipc_remoteproc_ResourceTable);
+            pTable->num, pTable);
 %}
 %else {
     xdc_runtime_System_printf("%d Resource entries at 0x%x\n",
-            ti_ipc_remoteproc_ResourceTable.num,
-            &ti_ipc_remoteproc_ResourceTable);
+            pTable->num, pTable);
 %}
 
     return;

@@ -122,10 +122,9 @@
 /* flip up bits whose indices represent features we support */
 #define RPMSG_IPU_C0_FEATURES   1
 
-struct resource_table {
-    UInt32 version;
-    UInt32 num;
-    UInt32 reserved[2];
+struct my_resource_table {
+    struct resource_table base;
+
     UInt32 offset[16];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
@@ -184,28 +183,28 @@ struct resource_table {
 #pragma DATA_SECTION(ti_ipc_remoteproc_ResourceTable, ".resource_table")
 #pragma DATA_ALIGN(ti_ipc_remoteproc_ResourceTable, 4096)
 
-struct resource_table ti_ipc_remoteproc_ResourceTable = {
+struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
     16,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
-        offsetof(struct resource_table, rpmsg_vdev),
-        offsetof(struct resource_table, text_cout),
-        offsetof(struct resource_table, data_cout),
-        offsetof(struct resource_table, ipcdata_cout),
-        offsetof(struct resource_table, trace),
-        offsetof(struct resource_table, devmem0),
-        offsetof(struct resource_table, devmem1),
-        offsetof(struct resource_table, devmem2),
-        offsetof(struct resource_table, devmem3),
-        offsetof(struct resource_table, devmem4),
-        offsetof(struct resource_table, devmem5),
-        offsetof(struct resource_table, devmem6),
-        offsetof(struct resource_table, devmem7),
-        offsetof(struct resource_table, devmem8),
-        offsetof(struct resource_table, devmem9),
-        offsetof(struct resource_table, devmem10),
+        offsetof(struct my_resource_table, rpmsg_vdev),
+        offsetof(struct my_resource_table, text_cout),
+        offsetof(struct my_resource_table, data_cout),
+        offsetof(struct my_resource_table, ipcdata_cout),
+        offsetof(struct my_resource_table, trace),
+        offsetof(struct my_resource_table, devmem0),
+        offsetof(struct my_resource_table, devmem1),
+        offsetof(struct my_resource_table, devmem2),
+        offsetof(struct my_resource_table, devmem3),
+        offsetof(struct my_resource_table, devmem4),
+        offsetof(struct my_resource_table, devmem5),
+        offsetof(struct my_resource_table, devmem6),
+        offsetof(struct my_resource_table, devmem7),
+        offsetof(struct my_resource_table, devmem8),
+        offsetof(struct my_resource_table, devmem9),
+        offsetof(struct my_resource_table, devmem10),
     },
 
     /* rpmsg vdev entry */
