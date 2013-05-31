@@ -249,15 +249,6 @@ Int main(Int argc, Char* argv[])
 {
     Int status;
 
-#if defined(TCI6614_v33)
-    /* Reference resource table, until IpcMemory.xdt is enabled for TCI66xx */
-    System_printf("Resource Table: 0x%lx\n", resources);
-#elif defined (TCI6614) || defined(TCI6638)
-    System_printf("%d Resource Table entries at 0x%x\n",
-                  ti_ipc_remoteproc_ResourceTable.num,
-                  &ti_ipc_remoteproc_ResourceTable);
-#endif
-
     nextProcId = (MultiProc_self() + 1) % MultiProc_getNumProcessors();
 
     /* Generate queue names based on own proc ID and total number of procs */
@@ -277,6 +268,3 @@ Int main(Int argc, Char* argv[])
 
     return (0);
 }
-/*
- *  @(#) ti.sdo.ipc.examples.multicore.evm667x; 1, 0, 0, 0,2; 10-19-2011 10:53:19; /db/vtree/library/trees/ipc/ipc.git/src/ null
- */
