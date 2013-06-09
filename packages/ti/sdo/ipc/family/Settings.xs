@@ -144,6 +144,7 @@ var deviceAliases = {
                            'TMS320TCI6638',
                            'Kepler'],
     'LM3.*'             : ['LM4.*'],
+    'Vayu'              : ['DRA7XX']
 }
 
 /*
