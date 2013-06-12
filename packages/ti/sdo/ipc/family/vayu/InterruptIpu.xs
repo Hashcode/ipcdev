@@ -47,7 +47,6 @@ function module$use()
     BIOS            = xdc.useModule("ti.sysbios.BIOS");
     Hwi             = xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
     Core            = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
-    Ipc             = xdc.useModule("ti.sdo.ipc.Ipc");
     Ipu             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
     Xbar            = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
     TableInit       = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");

@@ -58,4 +58,15 @@ function close()
     if (xdc.om.$name != 'cfg') {
         return;
     }
+
+    /*
+     * Force the Build module to get used if any module
+     * in this package is used
+     */
+    for (var mod in this.$modules) {
+        if (this.$modules[mod].$used == true) {
+            xdc.useModule('ti.sdo.ipc.Build');
+            break;
+        }
+    }
 }

@@ -31,7 +31,7 @@
  */
 /*
  *  ======== InterruptIpu.c ========
- *  Ducati/TI81xx based interupt manager
+ *  Vayu IPU based interupt manager
  */
 
 #include <xdc/std.h>
@@ -44,7 +44,6 @@
 #include <ti/sysbios/family/arm/m3/Hwi.h>
 #include <ti/sysbios/family/arm/ducati/Core.h>
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
-#include <ti/sdo/ipc/_Ipc.h>
 #include <ti/sdo/utils/_MultiProc.h>
 
 #include "package/internal/InterruptIpu.xdc.h"
@@ -316,7 +315,7 @@ Void InterruptIpu_intRegister(UInt16 remoteProcId,
     InterruptIpu_FxnTable *table;
 
     Assert_isTrue(remoteProcId < ti_sdo_utils_MultiProc_numProcessors,
-            ti_sdo_ipc_Ipc_A_internal);
+            ti_sdo_utils_MultiProc_A_invalidMultiProcId);
 
     mbxIdx = MBX_BASEADDR_IDX(MBX_TABLE_IDX(remoteProcId, MultiProc_self()));
 
