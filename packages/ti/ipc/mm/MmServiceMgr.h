@@ -83,12 +83,14 @@ Void MmServiceMgr_exit(Void);
 Int MmServiceMgr_register(const String name, RcmServer_Params *params,
         MmType_FxnSigTab *fxnSigTab, MmServiceMgr_DelFxn delFxn);
 
+/*! @cond */
 /*!
  *  @brief      Start the service manager listener task
  *
  */
 Int MmServiceMgr_start(const String name, Int aryLen,
         OmapRpc_FuncSignature *sigAry);
+/*! @endcond */
 
 
 #if defined (__cplusplus)
