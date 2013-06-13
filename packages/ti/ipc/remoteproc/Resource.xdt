@@ -68,7 +68,8 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %                "resource table (" + prog.cpu.attrs.cpuCore + ")");
 %    }
 %  }
-%  else if (prog.cpu.deviceName.match(/Vayu/)) { // NOTE: This will probably change to DRA7xx
+%  else if (prog.cpu.deviceName.match(/Vayu/) ||
+%          prog.cpu.deviceName.match(/DRA7XX/)) {
 %    if (prog.cpu.attrs.cpuCore.match(/CM4/) &&
 %       (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 2)) {
 #define OMAP5

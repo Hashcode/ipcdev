@@ -64,6 +64,7 @@ function close()
             break;
 
         case "Vayu": /* Vayu */
+        case "DRA7XX": /* Vayu */
             xdc.loadPackage('ti.ipc.family.vayu');
             break;
 
@@ -128,6 +129,7 @@ function getLibs(prog)
             break;
 
         case "Vayu":
+        case "DRA7XX":
             platform = "vayu";
             break;
 

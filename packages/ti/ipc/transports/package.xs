@@ -52,6 +52,7 @@ function getLibs(prog)
         case "OMAP4430":
         case "OMAP5430":
         case "Vayu":
+        case "DRA7XX":
             special = "_rpmsg2";
             break;
 
