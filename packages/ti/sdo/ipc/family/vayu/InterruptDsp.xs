@@ -45,7 +45,7 @@ function module$use()
     EventCombiner    = xdc.useModule("ti.sysbios.family.c64p.EventCombiner");
     Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
     InterruptDsp     = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptDsp");
-    Xbar             = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
+    Xbar             = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     /* Initialize procIdTable */

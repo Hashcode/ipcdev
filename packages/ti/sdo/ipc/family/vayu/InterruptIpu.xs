@@ -48,7 +48,7 @@ function module$use()
     Hwi             = xdc.useModule("ti.sysbios.family.arm.m3.Hwi");
     Core            = xdc.useModule("ti.sysbios.family.arm.ducati.Core");
     Ipu             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptIpu");
-    Xbar            = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
+    Xbar            = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     TableInit       = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
     /* Initisalize procIdTable */

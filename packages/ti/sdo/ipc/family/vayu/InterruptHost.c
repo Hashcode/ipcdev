@@ -39,7 +39,7 @@
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Startup.h>
 
-#include <ti/sysbios/hal/vayu/IntXbar.h>
+#include <ti/sysbios/family/shared/vayu/IntXbar.h>
 #include <ti/sysbios/family/arm/gic/Hwi.h>
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
 #include <ti/sdo/ipc/_Ipc.h>

@@ -38,7 +38,7 @@
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Assert.h>
 
-#include <ti/sysbios/hal/vayu/IntXbar.h>
+#include <ti/sysbios/family/shared/vayu/IntXbar.h>
 
 #include <ti/sysbios/family/c64p/Hwi.h>
 #include <ti/sysbios/family/c64p/EventCombiner.h>

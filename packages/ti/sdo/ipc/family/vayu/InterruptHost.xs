@@ -48,7 +48,7 @@ function module$use()
     Hwi              = xdc.useModule("ti.sysbios.family.arm.gic.Hwi");
     Ipc              = xdc.useModule("ti.sdo.ipc.Ipc");
     Host             = xdc.useModule("ti.sdo.ipc.family.vayu.InterruptHost");
-    Xbar             = xdc.useModule("ti.sysbios.hal.vayu.IntXbar");
+    Xbar             = xdc.useModule("ti.sysbios.family.shared.vayu.IntXbar");
     Mmu              = xdc.useModule("ti.sysbios.family.arm.a15.Mmu");
     TableInit        = xdc.useModule("ti.sdo.ipc.family.vayu.TableInit");
 
