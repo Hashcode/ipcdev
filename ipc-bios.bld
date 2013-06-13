@@ -142,8 +142,7 @@ for (arg = 0; arg < arguments.length; arg++) {
             //"ti.platforms.simKepler"
             //"ti.platforms.evm6614:DSP"
             "ti.platforms.evmTCI6638K2K",
-            /* NOTE: This platform (from omapzoom) is local, custom: */
-            "ti.platform.evmDRA7XX:DSP1"
+            "ti.platforms.evmDRA7XX:dsp1",
         ];
     }
 
@@ -166,7 +165,7 @@ for (arg = 0; arg < arguments.length; arg++) {
 
         target.platforms =  [
             "ti.platforms.sdp5430:IPU",
-            "ti.platform.evmDRA7XX:IPU2",
+            "ti.platforms.evmDRA7XX:ipu2",
         ];
     }
 
