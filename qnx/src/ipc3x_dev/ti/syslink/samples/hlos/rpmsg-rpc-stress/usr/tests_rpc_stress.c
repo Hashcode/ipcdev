@@ -941,15 +941,20 @@ int test_errors(int core_id, int num_comps, int sub_test)
     int fd;
     struct rppc_create_instance connreq;
     test_exec_args args;
+    char serviceMgrName[20];
+    char serviceMgrPath[20];
+
+    snprintf (serviceMgrName, _POSIX_PATH_MAX, "rpc_example_%d", core_id);
+    snprintf (serviceMgrPath, _POSIX_PATH_MAX, "/dev/%s", serviceMgrName);
 
     /* Connect to the rpc_example ServiceMgr on the specified core: */
-    fd = open("/dev/rpc_example", O_RDWR);
+    fd = open(serviceMgrPath, O_RDWR);
     if (fd < 0) {
         perror("Can't open rpc_example device");
         ret = -1;
         return -1;
     }
-    strcpy(connreq.name, "rpc_example");
+    strcpy(connreq.name, serviceMgrName);
 
     /* Create an rpc_example server instance, and rebind its address to this
     * file descriptor.

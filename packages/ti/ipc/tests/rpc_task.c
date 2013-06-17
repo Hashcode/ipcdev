@@ -44,6 +44,7 @@
 #include <ti/ipc/mm/MmType.h>
 #include <ti/ipc/mm/MmServiceMgr.h>
 #include <ti/sysbios/hal/Cache.h>
+#include <ti/ipc/MultiProc.h>
 
 #include "MxServer.h"
 

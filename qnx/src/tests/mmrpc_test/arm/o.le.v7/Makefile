@@ -34,18 +34,33 @@ include ../../common.mk
 CCFLAGS += -O3
 
 $(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/mm/arm/a.le.v7/libmmrpc.a
-$(PROJECT_ROOT)/arm/o.g.le.v7/mmrpc_test_g: $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/so.le.v7/libsharedmemallocatorS.a
+$(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/so.le.v7/libsharedmemallocatorS.a
+$(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/api/arm/a.le.v7/libipc.a
+$(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/utils/arm/a.le.v7/libutils.a
+$(PROJECT_ROOT)/arm/o.le.v7/mmrpc_test: $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7/libipc_clientS.a
 
 # link with syslink static library, dynamic for others
 LIBPREF_mmrpc = -Bstatic
 LIBPOST_mmrpc = -Bdynamic
 LIBPREF_sharedmemallocatorS = -Bstatic
 LIBPOST_sharedmemallocatorS = -Bdynamic
+LIBPREF_ipc = -Bstatic
+LIBPOST_ipc = -Bdynamic
+LIBPREF_utils = -Bstatic
+LIBPOST_utils = -Bdynamic
+LIBPREF_ipc_client = -Bstatic
+LIBPOST_ipc_client = -Bdynamic
 
 # add libpath and libs
 EXTRA_LIBVPATH += \
+        $(IPC_REPO)/qnx/src/ipc3x_dev/ti/syslink/build/Qnx/lib/arm/so.le.v7 \
+        $(IPC_REPO)/qnx/src/api/arm/a.le.v7 \
+        $(IPC_REPO)/qnx/src/utils/arm/a.le.v7 \
         $(IPC_REPO)/qnx/src/mm/arm/a.le.v7 \
         $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/arm/so.le.v7
 
 LIBS += mmrpc
 LIBS += sharedmemallocatorS
+LIBS += ipc
+LIBS += utils
+LIBS += ipc_clientS

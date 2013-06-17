@@ -122,7 +122,8 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 ping_rpmsg_LDADD = -lrt
 
 # the additional libraries to link mmrpc_test
-mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
+mmrpc_test_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/mm/libmmrpc.la
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_LDADD = $(common_libraries) \

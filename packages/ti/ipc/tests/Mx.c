@@ -34,8 +34,10 @@
  *  ======== Mx.c ========
  */
 #include <stdio.h>
+#include <ti/ipc/Std.h>
 
 #include <ti/ipc/mm/MmRpc.h>
+#include <ti/ipc/MultiProc.h>
 
 #if defined(SYSLINK_BUILDOS_QNX)
 #include <ti/shmemallocator/SharedMemoryAllocatorUsr.h>
@@ -53,21 +55,27 @@ static MmRpc_Handle Mx_rpcIpu = NULL;
 
 #define Mx_OFFSET(base, member) ((uint_t)(member) - (uint_t)(base))
 
+#define SERVICE_NAME    "rpc_example"
+
 /*
  *  ======== Mx_initialize ========
  */
-int Mx_initialize(void)
+int Mx_initialize(UInt16 procId)
 {
     int status;
     MmRpc_Params args;
+    Char mmServerName[20];
 
-    /* create remote server insance */
+    /* create remote server instance */
     MmRpc_Params_init(&args);
 
-    status = MmRpc_create("rpc_example_1", &args, &Mx_rpcIpu);
+    /* Construct an MmRpc server name adorned with core name: */
+    sprintf(mmServerName, "%s_%d", SERVICE_NAME, procId);
+
+    status = MmRpc_create(mmServerName, &args, &Mx_rpcIpu);
 
     if (status < 0) {
-        printf("mmrpc_test: Error: MmRpc_create failed\n");
+        printf("mmrpc_test: Error: MmRpc_create of %s failed\n", mmServerName);
         status = -1;
     }
     else {

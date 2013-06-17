@@ -34,12 +34,19 @@
  *  ======== mmrpc_test.c ========
  */
 #include <stdio.h>
+#include <stdlib.h>
+
+/* IPC Headers */
+#include <ti/ipc/Std.h>
+#include <ti/ipc/Ipc.h>
 
 #if defined(SYSLINK_BUILDOS_QNX)
 #include <ti/shmemallocator/SharedMemoryAllocatorUsr.h>
 #endif
 
 #include "Mx.h"
+
+#define PROC_ID_DFLT 1
 
 /*
  *  ======== main ========
@@ -50,6 +57,7 @@ int main(int argc, char **argv)
     int i;
     int32_t ret;
     uint32_t val;
+    UInt16 procId = PROC_ID_DFLT;
     Mx_Compute *compute;
 #if defined(SYSLINK_BUILDOS_QNX)
     shm_buf shmCompute, shmInBuf, shmOutBuf;
@@ -57,8 +65,29 @@ int main(int argc, char **argv)
 
     printf("mmrpc_test: --> main\n");
 
+    /* Parse Args: */
+    switch (argc) {
+        case 1:
+           /* use defaults */
+           break;
+        case 2:
+           procId   = atoi(argv[1]);
+           break;
+        default:
+           printf("Usage: %s [<ProcId>]\n", argv[0]);
+           printf("\tDefaults: ProcId: %d\n", PROC_ID_DFLT);
+           exit(0);
+    }
+
+    /* Need to start IPC for MultiProc */
+    status = Ipc_start();
+    if (status < 0) {
+        printf("Ipc_start failed: status = %d\n", status);
+        return (0);
+    }
+
     /* initialize Mx module (setup rpc connection) */
-    status = Mx_initialize();
+    status = Mx_initialize(procId);
 
     if (status < 0) {
         goto leave;
@@ -197,6 +226,8 @@ int main(int argc, char **argv)
 leave:
     /* finalize Mx module (destroy rpc connection) */
     Mx_finalize();
+
+    Ipc_stop();
 
     if (status < 0) {
         printf("mmrpc_test: FAILED\n");

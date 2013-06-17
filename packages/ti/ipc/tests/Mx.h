@@ -73,7 +73,7 @@ typedef struct {
 /*!
  *  @brief      Initialize the module, must be called first
  */
-int Mx_initialize(void);
+int Mx_initialize(UInt16 procId);
 
 /*!
  *  @brief      Finalize the module, must be called last

@@ -52,6 +52,7 @@ EXCLUDE_OBJS =
 
 # include path
 EXTRA_INCVPATH += \
+        $(IPC_REPO)/qnx/include \
         $(IPC_REPO)/packages \
         $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/usr/public \
         $(IPC_REPO)/qnx/src/ipc3x_dev/sharedmemallocator/resmgr/public

@@ -92,7 +92,8 @@ NameServerApp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am_mmrpc_test_OBJECTS = Mx.$(OBJEXT) mmrpc_test.$(OBJEXT)
 mmrpc_test_OBJECTS = $(am_mmrpc_test_OBJECTS)
-mmrpc_test_DEPENDENCIES = $(top_builddir)/linux/src/mm/libmmrpc.la
+mmrpc_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(top_builddir)/linux/src/mm/libmmrpc.la
 am_nano_test_OBJECTS = $(am__objects_1) nano_test.$(OBJEXT)
 nano_test_OBJECTS = $(am_nano_test_OBJECTS)
 nano_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -286,7 +287,9 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 ping_rpmsg_LDADD = -lrt
 
 # the additional libraries to link mmrpc_test
-mmrpc_test_LDADD = $(top_builddir)/linux/src/mm/libmmrpc.la
+mmrpc_test_LDADD = $(common_libraries) \
+                $(top_builddir)/linux/src/mm/libmmrpc.la
+
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_LDADD = $(common_libraries) \
