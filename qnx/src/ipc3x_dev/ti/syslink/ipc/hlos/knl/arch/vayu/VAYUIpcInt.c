@@ -864,52 +864,6 @@ VAYUIpcInt_interruptRegister  (UInt16                     procId,
     if (status >= 0) {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         VAYUIpcInt_state.isrObjects [procId].isrHandle = elem;
-
-        /* Clear the messages in the IPU2->HOST mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX))) {
-            VAYUIpcInt_clearInterrupt(
-                             VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                             IPU2_HOST_SUB_MBOX);
-        }
-        /* Clear the messages in the HOST->IPU2 mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX))) {
-            VAYUIpcInt_clearInterrupt(
-                             VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                             HOST_IPU2_SUB_MBOX);
-        }
-        /* Clear the messages in the DSP1->HOST mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX))) {
-            VAYUIpcInt_clearInterrupt(
-                             VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                             DSP1_HOST_SUB_MBOX);
-        }
-        /* Clear the messages in the HOST->DSP1 mailbox */
-        while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                     MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX))) {
-            VAYUIpcInt_clearInterrupt(
-                             VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                             HOST_DSP1_SUB_MBOX);
-        }
-        /* The below seems to be needed for OMAP5 Virtio for
-         * slaying/restarting syslink properly
-         */
-        /* Disables interrupts from HOST->IPU2 */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + \
-                    (0x10 * VAYU_IPU2_USER_ID)),
-                ((HOST_IPU2_SUB_MBOX) << 1));
-        /* Disables interrupts from HOST->DSP1 */
-        SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                    MAILBOX_IRQENABLE_CLR_OFFSET + \
-                    (0x10 * VAYU_DSP1_USER_ID)),
-                ((HOST_DSP1_SUB_MBOX) << 1));
-
-        /* Set mailbox to smart-idle */
-        REG(VAYUIpcInt_state.mailbox5Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
-        REG(VAYUIpcInt_state.mailbox6Base + MAILBOX_SYSCONFIG_OFFSET) = 0x8;
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -1096,49 +1050,6 @@ VAYUIpcInt_interruptUnregister  (UInt16 procId)
                                      status,
                                      "OsalIsr_uninstall failed");
             }
-#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-            /* Clear the messages in the IPU2->HOST mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(IPU2_HOST_SUB_MBOX))) {
-                VAYUIpcInt_clearInterrupt(
-                                     VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                                     IPU2_HOST_SUB_MBOX);
-            }
-            /* Clear the messages in the HOST->IPU2 mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox6Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(HOST_IPU2_SUB_MBOX))) {
-                VAYUIpcInt_clearInterrupt(
-                                     VAYUIpcInt_state.procIds [VAYU_INDEX_IPU2],
-                                     HOST_IPU2_SUB_MBOX);
-            }
-            /* Clear the messages in the DSP1->HOST mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(DSP1_HOST_SUB_MBOX))) {
-                VAYUIpcInt_clearInterrupt(
-                                     VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                                     DSP1_HOST_SUB_MBOX);
-            }
-            /* Clear the messages in the HOST->DSP1 mailbox */
-            while (REG32(VAYUIpcInt_state.mailbox5Base + \
-                         MAILBOX_MSGSTATUS_m_OFFSET(HOST_DSP1_SUB_MBOX))) {
-                VAYUIpcInt_clearInterrupt(
-                                     VAYUIpcInt_state.procIds [VAYU_INDEX_DSP1],
-                                     HOST_DSP1_SUB_MBOX);
-            }
-            /* The below seems to be needed for OMAP5 Virtio for
-             * slaying/restarting syslink properly
-             */
-            /* Disables interrupts from HOST->IPU2 */
-            SET_BIT(REG(VAYUIpcInt_state.mailbox6Base + \
-                        MAILBOX_IRQENABLE_CLR_OFFSET + \
-                        (0x10 * VAYU_IPU2_USER_ID)),
-                    ((HOST_IPU2_SUB_MBOX) << 1));
-            /* Disables interrupts from HOST->DSP1 */
-            SET_BIT(REG(VAYUIpcInt_state.mailbox5Base + \
-                        MAILBOX_IRQENABLE_CLR_OFFSET + \
-                        (0x10 * VAYU_DSP1_USER_ID)),
-                    ((HOST_DSP1_SUB_MBOX) << 1));
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
             tmpStatus =
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
                 OsalIsr_delete (&(isrHandleElem->isrHandle));
