@@ -63,6 +63,7 @@
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
 #include <sys/netmgr.h>
+#include <sys/mman.h>
 #include <devctl.h>
 
 /* Module headers */
@@ -73,9 +74,6 @@
 #include "OsalSemaphore.h"
 #include "std_qnx.h"
 #include <pthread.h>
-
-#include <memmgr/tilermem.h>
-#include <memmgr/tiler.h>
 
 #include "rpmsg-rpc.h"
 #include <rpmsg.h>

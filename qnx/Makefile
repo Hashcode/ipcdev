@@ -32,10 +32,8 @@
 
 ifeq ("$(PLATFORM)","omap5432")
     SYSLINK_PLATFORM=omap5430
-    TILER_PLATFORM=omap5430
 else ifeq ("$(PLATFORM)","vayu")
     SYSLINK_PLATFORM=$(PLATFORM)
-    TILER_PLATFORM=$(PLATFORM)
 endif
 
 all:  utils ipc3x_dev libs tests
@@ -52,11 +50,11 @@ tests: libs
 
 ipc3x_dev: utils
 	@cd src/ipc3x_dev; \
-            make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) TILER_PLATFORM=$(TILER_PLATFORM) SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO)
+            make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO)
 
 install:
 	@cd src/ipc3x_dev; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \
-		TILER_PLATFORM=$(TILER_PLATFORM) SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO) USE_INSTALL_ROOT=1 \
+		SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO) USE_INSTALL_ROOT=1 \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 	@cd src/tests; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
 		INSTALL_ROOT_nto=$(DESTDIR) install
@@ -67,4 +65,4 @@ clean:
 	@cd src/utils; make clean
 	@cd src/tests; make clean
 	@cd src/ipc3x_dev; \
-            make clean SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) TILER_PLATFORM=$(TILER_PLATFORM) SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO)
+	make clean SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO)

@@ -42,6 +42,8 @@ endef
 NAME=ipc
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX -DSYSLINK_BUILD_DEBUG -DSYSLINK_BUILD_HLOS
+
+# TODO: Is this macro used anymore?  If not, remove it.
 USE_MEMMGR=false
 ifeq ("$(SYSLINK_DEBUG)", "1")
 #enable debug build
@@ -54,8 +56,7 @@ SYSLINK_PLATFORM=omap4430
 endif # ifeq ("$(SYSLINK_PLATFORM)", "")
 
 ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
-CCOPTS += -DSYSLINK_PLATFORM_OMAP4430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM -DUSE_MEMMGR
-USE_MEMMGR=true
+CCOPTS += -DSYSLINK_PLATFORM_OMAP4430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
 
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
@@ -65,8 +66,7 @@ endif # ifeq ("$(VIRTIO)", "true")
 ifeq ("$(SMP)", "1")
 CCOPTS += -DSYSLINK_SYSBIOS_SMP
 endif # ifeq ("$(SMP)", "1")
-CCOPTS += -DSYSLINK_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM -DUSE_MEMMGR
-USE_MEMMGR=true
+CCOPTS += -DSYSLINK_PLATFORM_OMAP5430 -DARM_TARGET -DC60_TARGET -DSYSLINK_USE_IPU_PM
 endif # ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 
 ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
@@ -117,8 +117,6 @@ EXTRA_INCVPATH = $(SYSLINK_ROOT)	\
 		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/DLOAD/DLOAD_SYM	\
 		  $(SYSLINK_ROOT)/ti/syslink/procMgr/hlos/knl/loaders/Elf/$(SYSLINK_BUILDOS)/dlw_client	\
 		  $(SYSLINK_ROOT)/ti/syslink/rpmsg-resmgr/hlos/knl/$(SYSLINK_BUILDOS)/family	\
-		  $(SYSLINK_ROOT)/tiler/usr/memmgr/public	\
-		  $(SYSLINK_ROOT)/tiler/resmgr/tiler/public	\
 		  $(SYSLINK_ROOT)/ti/syslink/resources	\
                   $(SYSLINK_ROOT)/ti/syslink/family/common \
 		  $(IPC_REPO)/qnx/include \
@@ -189,21 +187,11 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1
 endif
 
-ifeq ("$(USE_MEMMGR)", "false")
-EXCLUDE_OBJS = SysLinkMemUtils.o
-endif
-
-ifeq ("$(USE_MEMMGR)", "false")
-EXCLUDE_OBJS = SysLinkMemUtils.o
-endif
-
 include $(MKFILES_ROOT)/qtargets.mk
 
 LDFLAGS += -M
 
 EXTRA_LIBVPATH += $(INSTALL_ROOT_nto)/usr/lib
-
-EXTRA_LIBVPATH += $(SYSLINK_ROOT)/tiler/usr/memmgr/arm/so.le.v7
 
 ifeq ("$(SYSLINK_DEBUG)", "1")
 EXTRA_LIBVPATH += $(IPC_REPO)/qnx/src/utils/arm/a.g.le.v7
@@ -215,7 +203,4 @@ endif # ifeq ("$(SYSLINK_DEBUG)", "1")
 
 ifeq ("$(SYSLINK_PLATFORM)", "omap4430")
 LIBS += powman camdrv login slog2
-endif
-ifeq ("$(USE_MEMMGR)", "true")
-LIBS += memmgr
 endif
