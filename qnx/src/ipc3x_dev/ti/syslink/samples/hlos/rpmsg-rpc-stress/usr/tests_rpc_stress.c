@@ -497,38 +497,24 @@ int test_rpc_stress_select(int core_id, int num_comps, int func_idx)
     int               packet_len;
     char              packet_buf[512] = {0};
     test_exec_args args[num_comps];
+    char serviceMgrName[20];
+    char serviceMgrPath[20];
+
+    snprintf (serviceMgrName, _POSIX_PATH_MAX, "rpc_example_%d", core_id);
+    snprintf (serviceMgrPath, _POSIX_PATH_MAX, "/dev/%s", serviceMgrName);
 
     fds = malloc (sizeof(int) * num_comps);
     if (!fds) {
         return -1;
     }
     for (i = 0; i < num_comps; i++) {
-        /* Connect to the rpc_example ServiceMgr on the specified core: */
-        if (core_id == 0) {
-            fds[i] = open("/dev/rpmsg-omx0", O_RDWR);
-            if (fds[i] < 0) {
-                perror("Can't open OMX device");
-                ret = -1;
-                break;
-            }
-            strcpy(connreq.name, "rpmsg-omx0");
+        fds[i] = open(serviceMgrPath, O_RDWR);
+        if (fds[i] < 0) {
+            perror("Can't open rpc_example device");
+            break;
         }
-        else if (core_id == 1) {
-            fds[i] = open("/dev/rpc_example", O_RDWR);
-            if (fds[i] < 0) {
-                perror("Can't open rpc_example device");
-                break;
-            }
-            strcpy(connreq.name, "rpc_example");
-        }
-        else if (core_id == 2) {
-            fds[i] = open("/dev/rpmsg-omx2", O_RDWR);
-            if (fds[i] < 0) {
-                perror("Can't open OMX device");
-                break;
-            }
-            strcpy(connreq.name, "rpmsg-omx2");
-        }
+        strcpy(connreq.name, serviceMgrName);
+
         /* Create an rpc_example server instance, and rebind its address to this
         * file descriptor.
         */
@@ -708,33 +694,20 @@ int test_rpc_stress_multi_threads(int core_id, int num_threads, int func_idx)
     struct rppc_create_instance connreq;
     struct rppc_function *function;
     test_exec_args args[num_threads];
+    char serviceMgrName[20];
+    char serviceMgrPath[20];
+
+    snprintf (serviceMgrName, _POSIX_PATH_MAX, "rpc_example_%d", core_id);
+    snprintf (serviceMgrPath, _POSIX_PATH_MAX, "/dev/%s", serviceMgrName);
 
     /* Connect to the rpc_example ServiceMgr on the specified core: */
-    if (core_id == 0) {
-        fd = open("/dev/rpmsg-omx0", O_RDWR);
-        if (fd < 0) {
-            perror("Can't open OMX device");
-            return -1;
-        }
-            strcpy(connreq.name, "rpmsg-omx0");
+    fd = open(serviceMgrPath, O_RDWR);
+    if (fd < 0) {
+        perror("Can't open rpc_example device");
+        return -1;
+    }
+    strcpy(connreq.name, serviceMgrName);
 
-    }
-    else if (core_id == 1) {
-        fd = open("/dev/rpc_example", O_RDWR);
-        if (fd < 0) {
-            perror("Can't open rpc_example device");
-            return -1;
-        }
-            strcpy(connreq.name, "rpc_example");
-    }
-    else if (core_id == 2) {
-        fd = open("/dev/rpmsg-omx2", O_RDWR);
-        if (fd < 0) {
-            perror("Can't open OMX device");
-            return -1;
-        }
-            strcpy(connreq.name, "rpmsg-omx2");
-    }
     /* Create an rpc_example server instance, and rebind its address to this
     * file descriptor.
     */
@@ -875,36 +848,22 @@ int test_rpc_stress_multi_srvmgr(int core_id, int num_comps, int func_idx)
     int fd[num_comps];
     struct rppc_create_instance connreq;
     test_exec_args args[num_comps];
+    char serviceMgrName[20];
+    char serviceMgrPath[20];
+
+    snprintf (serviceMgrName, _POSIX_PATH_MAX, "rpc_example_%d", core_id);
+    snprintf (serviceMgrPath, _POSIX_PATH_MAX, "/dev/%s", serviceMgrName);
 
     for (i = 0; i < num_comps; i++) {
         /* Connect to the rpc_example ServiceMgr on the specified core: */
-        if (core_id == 0) {
-            fd[i] = open("/dev/rpmsg-omx0", O_RDWR);
-            if (fd[i] < 0) {
-                perror("Can't open OMX device");
-                ret = -1;
-                break;
-            }
-            strcpy(connreq.name, "rpmsg-omx0");
+        fd[i] = open(serviceMgrPath, O_RDWR);
+        if (fd[i] < 0) {
+            perror("Can't open rpc_example device");
+            ret = -1;
+            break;
         }
-        else if (core_id == 1) {
-            fd[i] = open("/dev/rpc_example", O_RDWR);
-            if (fd[i] < 0) {
-                perror("Can't open rpc_example device");
-                ret = -1;
-                break;
-            }
-            strcpy(connreq.name, "rpc_example");
-        }
-        else if (core_id == 2) {
-            fd[i] = open("/dev/rpmsg-omx2", O_RDWR);
-            if (fd[i] < 0) {
-                perror("Can't open OMX device");
-                ret = -1;
-                break;
-            }
-            strcpy(connreq.name, "rpmsg-omx2");
-        }
+        strcpy(connreq.name, serviceMgrName);
+
         /* Create an rpc_example server instance, and rebind its address to this
         * file descriptor.
         */
@@ -1110,7 +1069,7 @@ int main(int argc, char *argv[])
     switch (test_id) {
         case 1:
             /* multiple threads each with an RPMSG-RPC ServiceMgr instance */
-            if (core_id < 0 || core_id > 2) {
+            if (core_id < 0 || core_id > 4) {
                 printf("Invalid core id\n");
                 return 1;
             }
@@ -1122,7 +1081,7 @@ int main(int argc, char *argv[])
             break;
         case 2:
             /* Multiple threads, 1 RPMSG-RPC ServiceMgr instances */
-            if (core_id < 0 || core_id > 2) {
+            if (core_id < 0 || core_id > 4) {
                 printf("Invalid core id\n");
                 return 1;
             }
@@ -1134,7 +1093,7 @@ int main(int argc, char *argv[])
             break;
         case 3:
             /* 1 thread using multiple RPMSG-RPC ServiceMgr instances */
-            if (core_id < 0 || core_id > 2) {
+            if (core_id < 0 || core_id > 4) {
                 printf("Invalid core id\n");
                 return 1;
             }

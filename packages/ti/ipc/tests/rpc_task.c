@@ -327,6 +327,7 @@ Int32 fxnFault(UInt32 size, UInt32 *data)
 void register_MxServer(void)
 {
     Int status = MmServiceMgr_S_SUCCESS;
+    Char mMServerName[20];
 
     System_printf("register_MxServer: -->\n");
 
@@ -341,8 +342,12 @@ void register_MxServer(void)
     rpc_Params.fxns.length = rpc_fxnTab.length;
     rpc_Params.fxns.elem = rpc_fxnTab.elem;
 
+    /* Construct an MMServiceMgr name adorned with core name: */
+    System_sprintf(mMServerName, "%s_%d", SERVICE_NAME,
+                   MultiProc_self());
+
     /* register an example service */
-    status = MmServiceMgr_register(SERVICE_NAME, &rpc_Params, &rpc_fxnSigTab,
+    status = MmServiceMgr_register(mMServerName, &rpc_Params, &rpc_fxnSigTab,
             RPC_SKEL_SrvDelNotification);
 
     if (status < 0) {

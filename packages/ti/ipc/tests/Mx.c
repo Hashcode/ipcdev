@@ -64,7 +64,7 @@ int Mx_initialize(void)
     /* create remote server insance */
     MmRpc_Params_init(&args);
 
-    status = MmRpc_create("rpc_example", &args, &Mx_rpcIpu);
+    status = MmRpc_create("rpc_example_1", &args, &Mx_rpcIpu);
 
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_create failed\n");
