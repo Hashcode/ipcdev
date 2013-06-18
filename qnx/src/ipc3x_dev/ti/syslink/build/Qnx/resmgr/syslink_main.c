@@ -1159,7 +1159,6 @@ int main(int argc, char *argv[])
     char *user_parm = NULL;
     struct stat          sbuf;
     int i = 0;
-    long max_path_length = 0;
     char * abs_path = NULL;
 
     if (-1 != stat(IPC_DEVICE_PATH, &sbuf)) {
@@ -1270,13 +1269,7 @@ int main(int argc, char *argv[])
 
     /* Get the abs path for all firmware files */
     for (i = 0; i < syslink_num_cores; i++) {
-        max_path_length = pathconf( syslink_firmware[i].firmware, _PC_PATH_MAX );
-        if(max_path_length == -1) {
-            perror("pathconf failed");
-            return -1;
-        }
-
-        abs_path = calloc(1, max_path_length + 1);
+        abs_path = calloc(1, PATH_MAX + 1);
         if (abs_path == NULL) {
             return -1;
         }
