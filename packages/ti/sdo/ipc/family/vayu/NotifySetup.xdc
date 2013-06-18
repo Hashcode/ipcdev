@@ -47,7 +47,7 @@ import ti.sdo.utils.MultiProc;
 module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
 {
     /* Total number of cores on Vayu SoC */
-    const UInt8 NUM_CORES = 9;
+    const UInt8 NUM_CORES = 11;
 
     /*!
      *  Interrupt vector id for Vayu/DSP.
