@@ -139,7 +139,6 @@ typedef struct {
 typedef struct {
     uint32_t    index;  /*!< parameter index to base pointer */
     ptrdiff_t   offset; /*!< offset from the base address to pointer */
-    size_t      base;   /*!< user virtual address */
     size_t      handle; /*!< memory allocator handle */
 } MmRpc_Xlt;
 

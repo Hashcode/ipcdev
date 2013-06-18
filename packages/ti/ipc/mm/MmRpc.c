@@ -240,9 +240,17 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     rpfxn->num_translations = ctx->num_xlts;
 
     for (i = 0; i < ctx->num_xlts; i++) {
-        rpfxn->translations[i].index    = ctx->xltAry[i].index;
+        uint32_t index;
+        size_t ptr;
+
+        /* compute base value */
+        index = ctx->xltAry[i].index;
+        ptr = rpfxn->params[index].base + ctx->xltAry[i].offset;
+
+        /* pack the pointer translation entry */
+        rpfxn->translations[i].index    = index;
         rpfxn->translations[i].offset   = ctx->xltAry[i].offset;
-        rpfxn->translations[i].base     = ctx->xltAry[i].base;
+        rpfxn->translations[i].base     = (size_t)(*(void **)ptr);
         rpfxn->translations[i].reserved = ctx->xltAry[i].handle;
     }
 
