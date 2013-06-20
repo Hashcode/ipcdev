@@ -56,6 +56,8 @@ install:
 	@cd src/ipc3x_dev; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \
 		SMP=1 VIRTIO=$(BUILD_FOR_VIRTIO) USE_INSTALL_ROOT=1 \
 		INSTALL_ROOT_nto=$(DESTDIR) install
+	@cd src/mm; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
+		INSTALL_ROOT_nto=$(DESTDIR) install
 	@cd src/tests; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 
