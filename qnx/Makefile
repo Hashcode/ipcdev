@@ -39,11 +39,11 @@ endif
 all:  utils ipc3x_dev libs tests
 
 libs: ipc3x_dev
-	@cd src/api; make install
-	@cd src/mm; make install
+	@cd src/api; make
+	@cd src/mm; make
 
 utils:
-	@cd src/utils; make install
+	@cd src/utils; make
 
 tests: libs
 	@cd src/tests; make
