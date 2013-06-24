@@ -34,8 +34,8 @@
  *  Proxy Interrupt Manager
  */
 
-#ifndef ti_ipc_rpmsg_InterruptProxy__include
-#define ti_ipc_rpmsg_InterruptProxy__include
+#ifndef ti_ipc_family_vayu_InterruptProxy__include
+#define ti_ipc_family_vayu_InterruptProxy__include
 
 #if defined(__cplusplus)
 extern "C" {
@@ -88,4 +88,4 @@ extern "C" {
 }
 #endif /* defined (__cplusplus) */
 
-#endif /* ti_ipc_rpmsg_InterruptProxy__include */
+#endif /* ti_ipc_family_vayu_InterruptProxy__include */

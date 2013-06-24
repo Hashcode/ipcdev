@@ -63,7 +63,7 @@ extern "C" {
  *              The given array must be the actual array buffer,
  *              not a pointer to it.
  */
-#define MmType_NumElem(x) (sizeof(x)/sizeof(x[0]))
+#define MmType_NumElem(x) (sizeof(x)/sizeof((x)[0]))
 
 /*!
  *  @brief      Parameter Direction
@@ -97,7 +97,7 @@ typedef enum {
     MmType_Param_MAX
 } MmType_ParamType;
 
-#define MmType_PtrType(type)    (type | MmType_Param_PTR)
+#define MmType_PtrType(type)    ((type) | MmType_Param_PTR)
 
 /*!
  *  @brief      Parameter Signature

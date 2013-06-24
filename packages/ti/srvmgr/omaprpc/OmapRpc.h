@@ -61,16 +61,16 @@ extern "C" {
 #define OmapRpc_E_FAIL                 -1
 
 #define OmapRpc_NUM_PARAMETERS(size) \
-    (size/sizeof(struct OmapRpc_Parameter))
+    ((size)/sizeof(struct OmapRpc_Parameter))
 
 #define OmapRpc_PAYLOAD(ptr, type) \
     ((struct type *)&(ptr)[sizeof(struct OmapRpc_MsgHeader)])
 
-#define OmapRpc_PARAM(param, type) (param.size == sizeof(type) ? (type)param.data : 0)
+#define OmapRpc_PARAM(param, type) ((param).size == sizeof(type) ? (type)(param).data : 0)
 
 #define OmapRpc_Stringerize(func)   #func
 
-#define OmapRpc_dimof(x)    (sizeof(x)/sizeof(x[0]))
+#define OmapRpc_dimof(x)    (sizeof(x)/sizeof((x)[0]))
 
 #define OmapRpc_DESC_EXEC_SYNC  (0x0100)
 #define OmapRpc_DESC_EXEC_ASYNC (0x0200)
@@ -81,8 +81,8 @@ extern "C" {
 #define OmapRpc_JOBID_DISCRETE  (0)
 #define OmapRpc_POOLID_DEFAULT  (0x8000)
 
-#define OmapRpc_SET_FXN_IDX(idx)    (idx | 0x80000000)
-#define OmapRpc_FXN_MASK(idx)       (idx & 0x7FFFFFFF)
+#define OmapRpc_SET_FXN_IDX(idx)    ((idx) | 0x80000000)
+#define OmapRpc_FXN_MASK(idx)       ((idx) & 0x7FFFFFFF)
 
 #define OMAPRPC_MAX_CHANNEL_NAMELEN (64)
 #define OMAPRPC_MAX_FUNC_NAMELEN    (64)
@@ -192,7 +192,7 @@ typedef enum OmapRpc_Param_Type {
     OmapRpc_Param_MAX
 } OmapRpc_Param_Type;
 
-#define OmapRpc_PtrType(type)   (type | OmapRpc_Param_PTR)
+#define OmapRpc_PtrType(type)   ((type) | OmapRpc_Param_PTR)
 
 typedef struct OmapRpc_ParamSignature {
     UInt32 direction;   /**< @see OmapRpc_Direction */

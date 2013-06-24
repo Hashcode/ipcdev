@@ -31,8 +31,15 @@
  */
 /*
  *  ======== InterruptIpu.h ========
- *  OMAP4430/Ducati Interrupt Manger
+ *  OMAP54xx IPU Interrupt Manger
  */
+
+#ifndef ti_ipc_family_omap54xx_InterruptIpu__include
+#define ti_ipc_family_omap54xx_InterruptIpu__include
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 #include <ti/sysbios/hal/Hwi.h>
 
@@ -66,3 +73,10 @@ Void InterruptIpu_intSend(UInt16 remoteProcId,  UArg arg);
  *  Clear interrupt
  */
 UInt InterruptIpu_intClear();
+
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif /* ti_ipc_family_omap54xx_InterruptIpu__include */
