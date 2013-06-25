@@ -51,19 +51,19 @@ extern "C" {
  *  @def    IpcPower_S_SUCCESS
  *  @brief  Operation is successful.
  */
-#define IpcPower_S_SUCCESS               0
+#define IpcPower_S_SUCCESS               (0)
 
 /*!
  *  @def    IpcPower_E_FAIL
  *  @brief  Operation is not successful.
  */
-#define IpcPower_E_FAIL                  -1
+#define IpcPower_E_FAIL                  (-1)
 
 /*!
  *  @def    IpcPower_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
-#define IpcPower_E_MEMORY                -2
+#define IpcPower_E_MEMORY                (-2)
 
 /*!
  *  @brief  Event types for power management callbacks

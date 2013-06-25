@@ -87,55 +87,55 @@ extern "C" {
 /*!
  *  @brief      Used as the timeout value to specify wait forever
  */
-#define RPMessage_FOREVER                ~(0)
+#define RPMessage_FOREVER                (~(0))
 
 /*!
    *  @def    RPMessage_S_SUCCESS
  *  @brief  Operation is successful.
  */
-#define RPMessage_S_SUCCESS              0
+#define RPMessage_S_SUCCESS              (0)
 
 /*!
  *  @def    RPMessage_E_FAIL
  *  @brief  Operation is not successful.
  */
-#define RPMessage_E_FAIL                 -1
+#define RPMessage_E_FAIL                 (-1)
 
 /*!
  *  @def    RPMessage_E_MEMORY
  *  @brief  Operation resulted in memory failure.
  */
-#define RPMessage_E_MEMORY               -3
+#define RPMessage_E_MEMORY               (-3)
 
 /*!
  *  @def    RPMessage_E_TIMEOUT
  *  @brief  Operation timed out.
  */
-#define RPMessage_E_TIMEOUT              -6
+#define RPMessage_E_TIMEOUT              (-6)
 
 /*!
  *  @def    RPMessage_E_NOENDPT
  *  @brief  No endpoint for a message.
  */
-#define RPMessage_E_NOENDPT              -7
+#define RPMessage_E_NOENDPT              (-7)
 
 /*!
  *  @def    MessageQ_E_UNBLOCKED
  *  @brief  RPMessage was unblocked
  */
-#define RPMessage_E_UNBLOCKED            -19
+#define RPMessage_E_UNBLOCKED            (-19)
 
 /*!
  *  @def    RPMessage_MAX_RESERVED_ENDPOINT
  *  @brief  Maximum Value for System Reserved Endpoints.
  */
-#define RPMessage_MAX_RESERVED_ENDPOINT  100
+#define RPMessage_MAX_RESERVED_ENDPOINT  (100)
 
 /*!
  *  @def    RPMessage_MAX_RESERVED_ENDPOINT
  *  @brief  Maximum Value for System Reserved Endpoints.
  */
-#define RPMessage_ASSIGN_ANY             0xFFFFFFFF
+#define RPMessage_ASSIGN_ANY             (0xFFFFFFFF)
 /*!
  *  @brief  RPMessage_Handle type
  */

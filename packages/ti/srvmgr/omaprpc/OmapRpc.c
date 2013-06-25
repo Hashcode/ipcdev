@@ -42,7 +42,6 @@
 #include <ti/grcm/RcmTypes.h>
 #include <ti/grcm/RcmServer.h>
 
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 

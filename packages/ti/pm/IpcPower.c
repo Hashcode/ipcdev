@@ -67,9 +67,9 @@
 #include <ti/pm/IpcPower.h>
 #include "_IpcPower.h"
 
-#define MASTERCORE                      1
-#define NO_MASTERCORE                   0
-#define CPU_COPY                       -1
+#define MASTERCORE                      (1)
+#define NO_MASTERCORE                   (0)
+#define CPU_COPY                       (-1)
 #define REG32(A)   (*(volatile UInt32 *) (A))
 
 #define SET_DEEPSLEEP (REG32(M3_SCR_REG) | (1 << DEEPSLEEP_BIT))

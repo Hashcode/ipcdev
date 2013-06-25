@@ -110,102 +110,102 @@ extern "C" {
 /*!
  *  @brief  The resource is still in use
  */
-#define Notify_S_BUSY                    2
+#define Notify_S_BUSY                    (2)
 
 /*!
  *  @brief  Module already set up
  */
-#define Notify_S_ALREADYSETUP            1
+#define Notify_S_ALREADYSETUP            (1)
 
 /*!
  *  @brief  Operation is successful.
  */
-#define Notify_S_SUCCESS                 0
+#define Notify_S_SUCCESS                 (0)
 
 /*!
  *  @brief  Generic failure.
  */
-#define Notify_E_FAIL                   -1
+#define Notify_E_FAIL                   (-1)
 
 /*!
  *  @brief  Argument passed to function is invalid.
  */
-#define Notify_E_INVALIDARG             -2
+#define Notify_E_INVALIDARG             (-2)
 
 /*!
  *  @brief  Operation resulted in memory failure.
  */
-#define Notify_E_MEMORY                 -3
+#define Notify_E_MEMORY                 (-3)
 
 /*!
  *  @brief  The specified entity already exists.
  */
-#define Notify_E_ALREADYEXISTS          -4
+#define Notify_E_ALREADYEXISTS          (-4)
 
 /*!
  *  @brief  Unable to find the specified entity.
  */
-#define Notify_E_NOTFOUND               -5
+#define Notify_E_NOTFOUND               (-5)
 
 /*!
  *  @brief  Operation timed out.
  */
-#define Notify_E_TIMEOUT                -6
+#define Notify_E_TIMEOUT                (-6)
 
 /*!
  *  @brief  Module is not initialized.
  */
-#define Notify_E_INVALIDSTATE           -7
+#define Notify_E_INVALIDSTATE           (-7)
 
 /*!
  *  @brief  A failure occurred in an OS-specific call
  */
-#define Notify_E_OSFAILURE              -8
+#define Notify_E_OSFAILURE              (-8)
 
 /*!
  *  @brief  The module has been already setup
  */
-#define Notify_E_ALREADYSETUP           -9
+#define Notify_E_ALREADYSETUP           (-9)
 
 /*!
  *  @brief  Specified resource is not available
  */
-#define Notify_E_RESOURCE               -10
+#define Notify_E_RESOURCE               (-10)
 
 /*!
  *  @brief  Operation was interrupted. Please restart the operation
  */
-#define Notify_E_RESTART                -11
+#define Notify_E_RESTART                (-11)
 
 /*!
  *  @brief  The resource is still in use
  */
-#define Notify_E_BUSY                   -12
+#define Notify_E_BUSY                   (-12)
 
 /*!
  *  @brief  Driver corresponding to the specified eventId is not registered
  */
-#define Notify_E_DRIVERNOTREGISTERED    -13
+#define Notify_E_DRIVERNOTREGISTERED    (-13)
 
 /*!
  *  @brief  Event not registered
  */
-#define Notify_E_EVTNOTREGISTERED       -14
+#define Notify_E_EVTNOTREGISTERED       (-14)
 
 /*!
  *  @brief  Event is disabled
  */
-#define Notify_E_EVTDISABLED            -15
+#define Notify_E_EVTDISABLED            (-15)
 
 /*!
  *  @brief  Remote notification is not initialized
  */
-#define Notify_E_NOTINITIALIZED         -16
+#define Notify_E_NOTINITIALIZED         (-16)
 
 /*!
  *  @brief  Trying to illegally use a reserved event
  */
-#define Notify_E_EVTRESERVED            -17
+#define Notify_E_EVTRESERVED            (-17)
 
 /* =============================================================================
  *  Macros

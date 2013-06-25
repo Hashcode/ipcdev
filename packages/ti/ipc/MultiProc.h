@@ -67,67 +67,67 @@ extern "C" {
 /*!
  *  @brief  The resource is still in use
  */
-#define MultiProc_S_BUSY                 2
+#define MultiProc_S_BUSY                 (2)
 
 /*!
  *  @brief  The module has been already setup
  */
-#define MultiProc_S_ALREADYSETUP         1
+#define MultiProc_S_ALREADYSETUP         (1)
 
 /*!
  *  @brief  Operation is successful.
  */
-#define MultiProc_S_SUCCESS              0
+#define MultiProc_S_SUCCESS              (0)
 
 /*!
  *  @brief  Generic failure.
  */
-#define MultiProc_E_FAIL                -1
+#define MultiProc_E_FAIL                (-1)
 
 /*!
  *  @brief  Argument passed to function is invalid.
  */
-#define MultiProc_E_INVALIDARG          -2
+#define MultiProc_E_INVALIDARG          (-2)
 
 /*!
  *  @brief  Operation resulted in memory failure.
  */
-#define MultiProc_E_MEMORY              -3
+#define MultiProc_E_MEMORY              (-3)
 
 /*!
  *  @brief  The specified entity already exists.
  */
-#define MultiProc_E_ALREADYEXISTS       -4
+#define MultiProc_E_ALREADYEXISTS       (-4)
 
 /*!
  *  @brief  Unable to find the specified entity.
  */
-#define MultiProc_E_NOTFOUND            -5
+#define MultiProc_E_NOTFOUND            (-5)
 
 /*!
  *  @brief  Operation timed out.
  */
-#define MultiProc_E_TIMEOUT             -6
+#define MultiProc_E_TIMEOUT             (-6)
 
 /*!
  *  @brief  Module is not initialized.
  */
-#define MultiProc_E_INVALIDSTATE        -7
+#define MultiProc_E_INVALIDSTATE        (-7)
 
 /*!
  *  @brief  A failure occurred in an OS-specific call
  */
-#define MultiProc_E_OSFAILURE           -8
+#define MultiProc_E_OSFAILURE           (-8)
 
 /*!
  *  @brief  Specified resource is not available
  */
-#define MultiProc_E_RESOURCE            -9
+#define MultiProc_E_RESOURCE            (-9)
 
 /*!
  *  @brief  Operation was interrupted. Please restart the operation
  */
-#define MultiProc_E_RESTART             -10
+#define MultiProc_E_RESTART             (-10)
 
 /* =============================================================================
  *  Macros

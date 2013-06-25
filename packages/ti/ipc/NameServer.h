@@ -94,67 +94,67 @@ extern "C" {
 /*!
  *  @brief  The resource is still in use
  */
-#define NameServer_S_BUSY                2
+#define NameServer_S_BUSY                (2)
 
 /*!
  *  @brief  The module has been already setup
  */
-#define NameServer_S_ALREADYSETUP        1
+#define NameServer_S_ALREADYSETUP        (1)
 
 /*!
  *  @brief  Operation is successful.
  */
-#define NameServer_S_SUCCESS             0
+#define NameServer_S_SUCCESS             (0)
 
 /*!
  *  @brief  Generic failure.
  */
-#define NameServer_E_FAIL               -1
+#define NameServer_E_FAIL               (-1)
 
 /*!
  *  @brief  Argument passed to function is invalid.
  */
-#define NameServer_E_INVALIDARG         -2
+#define NameServer_E_INVALIDARG         (-2)
 
 /*!
  *  @brief  Operation resulted in memory failure.
  */
-#define NameServer_E_MEMORY             -3
+#define NameServer_E_MEMORY             (-3)
 
 /*!
  *  @brief  The specified entity already exists.
  */
-#define NameServer_E_ALREADYEXISTS      -4
+#define NameServer_E_ALREADYEXISTS      (-4)
 
 /*!
  *  @brief  Unable to find the specified entity.
  */
-#define NameServer_E_NOTFOUND           -5
+#define NameServer_E_NOTFOUND           (-5)
 
 /*!
  *  @brief  Operation timed out.
  */
-#define NameServer_E_TIMEOUT            -6
+#define NameServer_E_TIMEOUT            (-6)
 
 /*!
  *  @brief  Module is not initialized.
  */
-#define NameServer_E_INVALIDSTATE       -7
+#define NameServer_E_INVALIDSTATE       (-7)
 
 /*!
  *  @brief  A failure occurred in an OS-specific call
  */
-#define NameServer_E_OSFAILURE          -8
+#define NameServer_E_OSFAILURE          (-8)
 
 /*!
  *  @brief  Specified resource is not available
  */
-#define NameServer_E_RESOURCE           -9
+#define NameServer_E_RESOURCE           (-9)
 
 /*!
  *  @brief  Operation was interrupted. Please restart the operation
  */
-#define NameServer_E_RESTART            -10
+#define NameServer_E_RESTART            (-10)
 
 /* =============================================================================
  *  Macros
@@ -169,7 +169,7 @@ extern "C" {
 /*!
  *  @brief  The default maximum length of the name for the name/value pair
  */
-#define NameServer_Params_MAXNAMELEN    16
+#define NameServer_Params_MAXNAMELEN    (16)
 
 /* =============================================================================
  *  Structures & Enums

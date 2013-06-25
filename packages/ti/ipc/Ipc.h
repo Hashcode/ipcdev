@@ -62,72 +62,72 @@ extern "C" {
 /*!
  *  @brief  The resource is still in use
  */
-#define Ipc_S_BUSY              2
+#define Ipc_S_BUSY              (2)
 
 /*!
  *  @brief  The module has been already setup
  */
-#define Ipc_S_ALREADYSETUP      1
+#define Ipc_S_ALREADYSETUP      (1)
 
 /*!
  *  @brief  Operation is successful.
  */
-#define Ipc_S_SUCCESS           0
+#define Ipc_S_SUCCESS           (0)
 
 /*!
  *  @brief  Generic failure.
  */
-#define Ipc_E_FAIL             -1
+#define Ipc_E_FAIL             (-1)
 
 /*!
  *  @brief  Argument passed to function is invalid.
  */
-#define Ipc_E_INVALIDARG       -2
+#define Ipc_E_INVALIDARG       (-2)
 
 /*!
  *  @brief  Operation resulted in memory failure.
  */
-#define Ipc_E_MEMORY           -3
+#define Ipc_E_MEMORY           (-3)
 
 /*!
  *  @brief  The specified entity already exists.
  */
-#define Ipc_E_ALREADYEXISTS    -4
+#define Ipc_E_ALREADYEXISTS    (-4)
 
 /*!
  *  @brief  Unable to find the specified entity.
  */
-#define Ipc_E_NOTFOUND         -5
+#define Ipc_E_NOTFOUND         (-5)
 
 /*!
  *  @brief  Operation timed out.
  */
-#define Ipc_E_TIMEOUT          -6
+#define Ipc_E_TIMEOUT          (-6)
 
 /*!
  *  @brief  Module is not initialized or in an invalid state.
  */
-#define Ipc_E_INVALIDSTATE     -7
+#define Ipc_E_INVALIDSTATE     (-7)
 
 /*!
  *  @brief  A failure occurred in an OS-specific call
  */
-#define Ipc_E_OSFAILURE        -8
+#define Ipc_E_OSFAILURE        (-8)
 
 /*!
  *  @brief  Specified resource is not available
  */
-#define Ipc_E_RESOURCE         -9
+#define Ipc_E_RESOURCE         (-9)
 
 /*!
  *  @brief  Operation was interrupted. Please restart the operation
  */
-#define Ipc_E_RESTART          -10
+#define Ipc_E_RESTART          (-10)
 
 /*!
  *  @brief  Operation was not ready.
  */
-#define Ipc_E_NOTREADY         -11
+#define Ipc_E_NOTREADY         (-11)
 
 
 /* =============================================================================

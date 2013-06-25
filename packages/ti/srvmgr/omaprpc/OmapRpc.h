@@ -52,13 +52,13 @@ extern "C" {
  *  @def    OmapRpc_S_SUCCESS
  *  @brief  Operation is successful.
  */
-#define OmapRpc_S_SUCCESS              0
+#define OmapRpc_S_SUCCESS              (0)
 
 /*!
  *  @def    OmapRpc_E_FAIL
  *  @brief  Operation is not successful.
  */
-#define OmapRpc_E_FAIL                 -1
+#define OmapRpc_E_FAIL                 (-1)
 
 #define OmapRpc_NUM_PARAMETERS(size) \
     ((size)/sizeof(struct OmapRpc_Parameter))

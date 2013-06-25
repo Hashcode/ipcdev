@@ -147,112 +147,112 @@ extern "C" {
 /*!
  *  @brief  The resource is still in use
  */
-#define MessageQ_S_BUSY                  2
+#define MessageQ_S_BUSY                  (2)
 
 /*!
  *  @brief  The module has been already setup
  */
-#define MessageQ_S_ALREADYSETUP          1
+#define MessageQ_S_ALREADYSETUP          (1)
 
 /*!
  *  @brief  Operation is successful.
  */
-#define MessageQ_S_SUCCESS               0
+#define MessageQ_S_SUCCESS               (0)
 
 /*!
  *  @brief  Operation is not successful.
  */
-#define MessageQ_E_FAIL                 -1
+#define MessageQ_E_FAIL                 (-1)
 
 /*!
  *  @brief  There is an invalid argument.
  */
-#define MessageQ_E_INVALIDARG           -2
+#define MessageQ_E_INVALIDARG           (-2)
 
 /*!
  *  @brief  Operation resulted in memory failure.
  */
-#define MessageQ_E_MEMORY               -3
+#define MessageQ_E_MEMORY               (-3)
 
 /*!
  *  @brief  The specified entity already exists.
  */
-#define MessageQ_E_ALREADYEXISTS        -4
+#define MessageQ_E_ALREADYEXISTS        (-4)
 
 /*!
  *  @brief  Unable to find the specified entity.
  */
-#define MessageQ_E_NOTFOUND             -5
+#define MessageQ_E_NOTFOUND             (-5)
 
 /*!
  *  @brief  Operation timed out.
  */
-#define MessageQ_E_TIMEOUT              -6
+#define MessageQ_E_TIMEOUT              (-6)
 
 /*!
  *  @brief  Module is not initialized.
  */
-#define MessageQ_E_INVALIDSTATE         -7
+#define MessageQ_E_INVALIDSTATE         (-7)
 
 /*!
  *  @brief  A failure occurred in an OS-specific call
  */
-#define MessageQ_E_OSFAILURE            -8
+#define MessageQ_E_OSFAILURE            (-8)
 
 /*!
  *  @brief  Specified resource is not available
  */
-#define MessageQ_E_RESOURCE             -9
+#define MessageQ_E_RESOURCE             (-9)
 
 /*!
  *  @brief  Operation was interrupted. Please restart the operation
  */
-#define MessageQ_E_RESTART              -10
+#define MessageQ_E_RESTART              (-10)
 
 /*!
  *  @brief  An invalid message was encountered
  */
-#define MessageQ_E_INVALIDMSG           -11
+#define MessageQ_E_INVALIDMSG           (-11)
 
 /*!
  *  @brief  Not the owner
  */
-#define MessageQ_E_NOTOWNER             -12
+#define MessageQ_E_NOTOWNER             (-12)
 
 /*!
  *  @brief  Operation resulted in error
  */
-#define MessageQ_E_REMOTEACTIVE         -13
+#define MessageQ_E_REMOTEACTIVE         (-13)
 
 /*!
  *  @brief  An invalid heap id was encountered
  */
-#define MessageQ_E_INVALIDHEAPID        -14
+#define MessageQ_E_INVALIDHEAPID        (-14)
 
 /*!
  *  @brief  An invalid MultiProc id was encountered
  */
-#define MessageQ_E_INVALIDPROCID        -15
+#define MessageQ_E_INVALIDPROCID        (-15)
 
 /*!
  *  @brief  The max has been reached.
  */
-#define MessageQ_E_MAXREACHED           -16
+#define MessageQ_E_MAXREACHED           (-16)
 
 /*!
  *  @brief  Attempting to use an unregistered heap id.
  */
-#define MessageQ_E_UNREGISTEREDHEAPID   -17
+#define MessageQ_E_UNREGISTEREDHEAPID   (-17)
 
 /*!
  *  @brief  Trying to free a statically initialized message
  */
-#define MessageQ_E_CANNOTFREESTATICMSG  -18
+#define MessageQ_E_CANNOTFREESTATICMSG  (-18)
 
 /*!
  *  @brief  MessageQ was unblocked
  */
-#define MessageQ_E_UNBLOCKED            -19
+#define MessageQ_E_UNBLOCKED            (-19)
 
 /* =============================================================================
  *  Macros
@@ -262,22 +262,22 @@ extern "C" {
 /*!
  *  @brief      Used as the timeout value to specify wait forever
  */
-#define MessageQ_FOREVER                ~(0)
+#define MessageQ_FOREVER                (~(0))
 
 /*!
  *  @brief      Invalid message id
  */
-#define MessageQ_INVALIDMSGID           0xffff
+#define MessageQ_INVALIDMSGID           (0xffff)
 
 /*!
  *  @brief      Invalid message queue
  */
-#define MessageQ_INVALIDMESSAGEQ        0xffff
+#define MessageQ_INVALIDMESSAGEQ        (0xffff)
 
 /*!
  *  @brief      Mask to extract priority setting
  */
-#define MessageQ_PRIORITYMASK           0x3
+#define MessageQ_PRIORITYMASK           (0x3)
 
 /*!
  *  @brief      Extract the destination queue ID from a message.
