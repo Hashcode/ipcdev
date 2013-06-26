@@ -65,7 +65,6 @@
 
 /* Internal stuff: */
 #include <_MessageQCopy.h>
-#include <_MessageQCopyDefs.h>
 #include <_NameServer.h>
 #include <_NameServerRemoteRpmsg.h>
 #include <_IpcLog.h>
