@@ -1,7 +1,5 @@
 /*
- * MessageQCopy messaging defs
- *
- * Copyright (c) 2011-2013 Texas Instruments. All rights reserved.
+ * Copyright (c) 2011-2013 Texas Instruments Incorporated
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,19 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-
 #if !defined (_MESSAGEQCOPYDEFS_H_0x5f84)
 #define _MESSAGEQCOPYDEFS_H_0x5f84
 
-
-/* Osal And Utils  headers */
-#include <ti/syslink/utils/List.h>
-#include <Bitops.h>
-
 /* Module headers */
-#include <ti/syslink/ProcMgr.h>
-#include <_MultiProc.h>
 #include <VirtQueue.h>
 #include "virtio_ring.h"
 #include <rpmsg.h>

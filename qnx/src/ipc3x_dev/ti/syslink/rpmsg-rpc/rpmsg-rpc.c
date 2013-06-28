@@ -1,10 +1,4 @@
 /*
- *  @file       rpmsg-rpc.c
- *
- *  @brief      devctl handler for RPC component.
- *
- *  ============================================================================
- *
  *  Copyright (c) 2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -33,15 +27,6 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
 
 
@@ -67,6 +52,7 @@
 #include <devctl.h>
 
 /* Module headers */
+#include <ti/syslink/ProcMgr.h>
 #include <ti/ipc/rpmsg_rpc.h>
 #include <ti/ipc/MessageQCopy.h>
 #include <_MessageQCopy.h>

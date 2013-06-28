@@ -1,15 +1,5 @@
 /*
- *  @file   Ipc.c
- *
- *  @brief  This module is primarily used to configure IPC-wide settings and
- *           initialize IPC at runtime
- *
- *
- *  @ver        02.00.00.46_alpha1
- *
- *  ============================================================================
- *
- *  Copyright (c) 2008-2009, Texas Instruments Incorporated
+ *  Copyright (c) 2008-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -37,15 +27,6 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
 
 
@@ -61,17 +42,18 @@
 #include <RscTable.h>
 #include <_MessageQCopy.h>
 #include <ti/ipc/MessageQCopy.h>
-#include <_MessageQCopyDefs.h>
 
 /*  ----------------------------------- SysLink utils Headers   */
-#include <_MultiProc.h>
+#include <ti/syslink/inc/_MultiProc.h>
 #include <ti/ipc/MultiProc.h>
 #include <ti/syslink/utils/Gate.h>
 #include <ti/syslink/utils/Trace.h>
 #include <ti/syslink/utils/Cache.h>
 #include <ti/syslink/utils/Memory.h>
 
+#if defined(SYSLINK_USE_IPU_PM)
 #include <ipu_pm.h>
+#endif
 
 #if defined  (__cplusplus)
 extern "C" {
@@ -425,4 +407,3 @@ Ipc_destroy (Void)
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-

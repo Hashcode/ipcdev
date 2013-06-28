@@ -1,11 +1,5 @@
 /*
- *  @file   MessageqCopy.c
- *
- *  @brief      Implementation of MessageQCopy module.
- *
- *  ============================================================================
- *
- *  Copyright (c) 2011, Texas Instruments Incorporated
+ *  Copyright (c) 2011-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -33,15 +27,6 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
  */
 
 
@@ -56,15 +41,13 @@
 #include <ti/syslink/utils/GateSpinlock.h>
 #include <ti/syslink/utils/Memory.h>
 #include <ti/syslink/utils/List.h>
+#include <ti/syslink/inc/Bitops.h>
 #include <ti/ipc/MultiProc.h>
 #include <OsalSemaphore.h>
-#ifdef SYSLINK_BUILDOS_LINUX
-#include <atomic_linux.h>
-#elif SYSLINK_BUILDOS_QNX
 #include <atomic_qnx.h>
-#endif
 
 /* Module headers */
+#include <ti/syslink/ProcMgr.h>
 #include <ti/ipc/MessageQCopy.h>
 #include <_MessageQCopyDefs.h>
 #include <_MessageQCopy.h>
@@ -1578,4 +1561,3 @@ _MessageQCopy_callback_bufReady (VirtQueue_Handle vq, void *arg)
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-
