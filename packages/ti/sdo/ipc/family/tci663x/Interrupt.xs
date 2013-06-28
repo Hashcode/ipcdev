@@ -34,12 +34,8 @@
  */
 
 var deviceSettings = {
-    'Kepler' : {
-        IPCGR0:         0x02620240,
-        IPCAR0:         0x02620280,
-        INTERDSPINT:    105,
-    },
-    'TMS320TCI6638' : {
+    /* all TCI663x devices inherit from TCI6634 according to Settings.xs */
+    'TMS320TCI6634' : {
         IPCGR0:         0x02620240,
         IPCAR0:         0x02620280,
         INTERDSPINT:    105,
