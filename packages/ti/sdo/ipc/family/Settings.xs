@@ -164,14 +164,13 @@ var procNames = {
     'TMS320TCI6614'     : ["CORE0", "CORE1", "CORE2", "CORE3", "HOST"],
     'TMS320TCI6634'     : ["CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
-    'TMS320TCI6636'     : ["CORE0", "CORE1", "CORE2", "CORE3",
-                           "CORE4", "CORE5", "CORE6", "CORE7",
-                            "HOST0", "HOST1", "HOST2", "HOST3"],
 
     /*
      *  Note, the name "HOST" was intentionally chosen as a proc name to
      *  accomodate TransportRpmsg, a common transport on these platforms.
      */
+    'TMS320TCI6636'     : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
+                           "CORE4", "CORE5", "CORE6", "CORE7"],
     'TMS320TCI6638'     : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
                            "CORE4", "CORE5", "CORE6", "CORE7"],
     'Kepler'            : ["HOST", "CORE0", "CORE1", "CORE2", "CORE3",
