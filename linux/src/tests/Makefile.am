@@ -44,7 +44,7 @@ VPATH = ../../../packages/ti/ipc/tests
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
                 NameServerApp
-               
+
 
 if OMAP54XX_SMP
 # Add platform specific bin application's here
@@ -64,16 +64,21 @@ if TCI6614
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 else
+if TCI6636
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+else
 if TCI6638
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 else
-# Add platform independent apps here or above in bin_PROGRMAS
+# Add platform independent apps here or above in bin_PROGRAMS
 if CMEM
   bin_PROGRAMS += nano_test
 endif
 if KDIR
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

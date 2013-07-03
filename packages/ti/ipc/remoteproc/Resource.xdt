@@ -49,7 +49,7 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 //#include <ti/ipc/remoteproc/rsc_table_tci6614_v3.3.h> // Test with v3.3 Linux.
 %  }
 %  else if (prog.platformName.match(/Kepler/) ||
-%         prog.platformName.match(/TCI6638/)) {
+%         prog.cpu.deviceName.match(/^TMS320TCI663[6|8]$/)) {
 %    if (this.traceOnly) {
 #define TRACE_RESOURCE_ONLY
 %    }

@@ -141,6 +141,7 @@ for (arg = 0; arg < arguments.length; arg++) {
         target.platforms = [
             //"ti.platforms.simKepler"
             //"ti.platforms.evm6614:DSP"
+            "ti.platforms.evmTCI6636K2H",
             "ti.platforms.evmTCI6638K2K",
             "ti.platforms.evmDRA7XX:dsp1",
         ];
