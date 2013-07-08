@@ -155,7 +155,7 @@ else if (Program.platformName.match(/6614/)) {
     */
 }
 else if (Program.platformName.match(/simKepler/) ||
-        Program.cpu.deviceName.match(/^TMS320TCI6638$/)) {
+        Program.cpu.deviceName.match(/^TMS320TCI663[6|8]$/)) {
     var VirtQueue = xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
     var Interrupt = xdc.useModule('ti.ipc.family.tci6638.Interrupt');
 

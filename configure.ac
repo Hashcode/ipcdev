@@ -35,7 +35,7 @@
 AC_PREREQ(2.59)
 
 # Initilize autoconf
-AC_INIT(TI IPC, 3.0.0, ) 
+AC_INIT(TI IPC, 3.0.0, )
 
 # Check common src files to ensure integrity of the package
 AC_CONFIG_SRCDIR([packages/ti/ipc/MessageQ.h])
@@ -66,7 +66,8 @@ AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 # Add config variables/options and check them
-AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6614' and 'tci6638'. If not defined all platforms will be built.)
+# Note that 6614 isn't documented and, though it may work, is planned for removal
+AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6636' and 'tci6638'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
 AC_ARG_VAR(KERNEL_INSTALL_DIR, Installation path to the Linux kernel.)
 
@@ -75,13 +76,15 @@ AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xtci6614"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
+  [AS_IF([test "x$PLATFORM" = "xtci6636"],
+  [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xtci6638"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "x"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
-  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])
+  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])
 
 # Test platform for omap5 variable and require a KERNEL path
 AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
@@ -89,7 +92,7 @@ AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
    [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])])
 
 # Ignore KERNEL path when no platform is set
-AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=]) 
+AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
 
 # Export optional user variable to Makefile(s)
 AC_SUBST([PLATFORM])
@@ -97,12 +100,13 @@ AC_SUBST([CMEM_INSTALL_DIR])
 AC_SUBST([KERNEL_INSTALL_DIR])
 
 # Define specific variables to be used in Makefile.am
-AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xomapl138"]) 
-AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xtci6614"]) 
-AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xtci6638"]) 
+AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xomapl138"])
+AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xtci6614"])
+AM_CONDITIONAL([TCI6636], [test "x$PLATFORM" = "xtci6636"])
+AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xtci6638"])
 AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xomap54xx_smp"])
-AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"]) 
-AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"]) 
+AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"])
+AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"])
 
 # Generate Makefile(s)
 AC_CONFIG_FILES([Makefile])

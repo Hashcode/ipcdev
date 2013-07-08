@@ -59,6 +59,7 @@ function close()
             break;
 
         case "Kepler":
+        case "TMS320TCI6636":
         case "TMS320TCI6638":
             xdc.useModule('ti.ipc.family.tci6638.VirtQueue');
             break;
@@ -124,6 +125,7 @@ function getLibs(prog)
             break;
 
         case "Kepler":
+        case "TMS320TCI6636":
         case "TMS320TCI6638":
             platform = "tci6638";
             break;

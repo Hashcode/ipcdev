@@ -41,6 +41,9 @@ DEPOT ?= _your_depot_folder_
 TOOLCHAIN_LONGNAME ?= arm-none-linux-gnueabi
 TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
 TOOLCHAIN_PREFIX ?= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
+
+# Linux Kernel install path needed to build the mmRpc user libaries 
+# for devices that support RPMSG_RPC (optional)
 KERNEL_INSTALL_DIR ?=
 
 # Linux platform to build (optional)

@@ -373,6 +373,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (!((platform.match(/^ti\.platforms\.evm6614\:DSP/)) ||
               (platform.match(/^ti\.platforms\.simKepler/)) ||
               (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
+              (platform.match(/^ti.platforms.evmTCI6636K2H/)) ||
               (platform.match(/^ti\.platform\.omap54xx/)) ||
               (platform.match(/^ti\.platforms\.sdp5430/)) ||
               (platform.match(/^ti\.platform\.vayu/)) ||
@@ -405,6 +406,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* messageq_multicore - only for our homogeneous multicore platforms */
         if (platform.match(/^ti\.platforms\.simKepler/) ||
                 (platform.match(/^ti.platforms.evmTCI6638K2K/)) ||
+                (platform.match(/^ti.platforms.evmTCI6636K2H/)) ||
                 (platform.match(/^ti\.platforms\.evm6614\:DSP/))) {
             Pkg.addExecutable(name + "/messageq_multicore", targ, platform, {
                 cfgScript: "messageq_multicore",

@@ -37,7 +37,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@KDIR_TRUE@am__append_1 = libmmrpc.la
+@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_1 = libmmrpc.la
 subdir = linux/src/mm
 DIST_COMMON = $(am__libmmrpc_la_HEADERS_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -63,7 +63,7 @@ am__libmmrpc_la_SOURCES_DIST =  \
 am__objects_1 =
 am_libmmrpc_la_OBJECTS = $(am__objects_1) MmRpc.lo
 libmmrpc_la_OBJECTS = $(am_libmmrpc_la_OBJECTS)
-@KDIR_TRUE@am_libmmrpc_la_rpath = -rpath $(libdir)
+@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am_libmmrpc_la_rpath = -rpath $(libdir)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/linux/build-aux/depcomp
 am__depfiles_maybe = depfiles
@@ -154,6 +154,8 @@ SHELL = @SHELL@
 STRIP = @STRIP@
 TCI6614_FALSE = @TCI6614_FALSE@
 TCI6614_TRUE = @TCI6614_TRUE@
+TCI6636_FALSE = @TCI6636_FALSE@
+TCI6636_TRUE = @TCI6636_TRUE@
 TCI6638_FALSE = @TCI6638_FALSE@
 TCI6638_TRUE = @TCI6638_TRUE@
 VERSION = @VERSION@
@@ -208,10 +210,10 @@ target_alias = @target_alias@
 lib_LTLIBRARIES = $(am__append_1)
 
 # where to install the headers on the system
-@KDIR_TRUE@libmmrpc_ladir = $(includedir)/ti/ipc/mm
+@KDIR_TRUE@@OMAP54XX_SMP_TRUE@libmmrpc_ladir = $(includedir)/ti/ipc/mm
 
 # the list of header files that belong to the library (to be installed later)
-@KDIR_TRUE@libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
+@KDIR_TRUE@@OMAP54XX_SMP_TRUE@libmmrpc_la_HEADERS = $(top_srcdir)/packages/ti/ipc/mm/MmRpc.h
 
 # the sources to add to the library and to add to the source distribution
 libmmrpc_la_SOURCES = \
