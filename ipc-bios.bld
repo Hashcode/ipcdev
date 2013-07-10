@@ -51,17 +51,20 @@
  *
  *  These settings may be a function of the following global variables:
  *
- *	environment a hash table of environment strings
+ *      environment a hash table of environment strings
  *
- *	arguments   an array of string arguments to the _config.bld script
- *		    initialized as follows:
- *		        arguments[0] - the file name of the _config.bld script
- *		        arguments[1] - the first argument specified in XDCARGS
- *		            :
- *		        arguments[n] - the n'th argument in XDCARGS
+ *      arguments   an array of string arguments to the script
+ *                  initialized as follows:
+ *                      arguments[0] - the file name of the script
+ *                      arguments[1] - the first argument specified in XDCARGS
+ *                          :
+ *                      arguments[n] - the n'th argument in XDCARGS
  *
- *	Build	    an alias for xdc.om.xdc.bld.BuildEnvironment
+ *      Build       an alias for xdc.om.xdc.bld.BuildEnvironment
  */
+
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
 /* Common ccopts suffix used for all C6x targets */
 var c6xOpts = " -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 -g ";
@@ -104,6 +107,14 @@ var ccOpts = {
     "gnu.targets.arm.A15F"            : " -g "
 };
 
+var lnkOpts = {
+    "ti.targets.elf.C66"              : " -e=ti_sysbios_family_c64p_Hwi0" +
+                                        " --cinit_compression=off",
+    "ti.targets.elf.C64T"             : " -e=ti_sysbios_family_c64p_Hwi0",
+    "ti.targets.arm.elf.M4"           : " --retain=.resource_table" +
+                                        " --cinit_compression=off"
+};
+
 /* Enable building SMP-BIOS enabled libraries for targets that support it */
 if (Pkg.name.match(/^ti\.sdo\.(ipc|utils)/)) {
     xdc.module("ti.targets.arm.elf.M3").profiles["smp"] =
@@ -112,57 +123,105 @@ if (Pkg.name.match(/^ti\.sdo\.(ipc|utils)/)) {
             xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
 }
 
+var platform = "";
+
 /* initialize local vars with those set in xdcpaths.mak (via XDCARGS) */
 for (arg = 0; arg < arguments.length; arg++) {
+    /* split each arg into its '+' separated parts */
+    var configParts = arguments[arg].split(";");
+    // print("arg " + arg + " has " + configParts.length + " parts");
+
+    /* if "known args come in, filter them... else they're targets */
+    if (configParts[0].split("=")[0] == "PLATFORM") {
+        // print("FOUND PLATFORM ARG - " + configParts[0]);
+        platform = configParts[0].split("=")[1];
+        continue;
+    }
     /*
      * Get the compiler's installation directory.
      * For "ti.targets.elf.C674=/vendors/c6x/7.2.0", we get "/vendors/c6x/7.2.0"
      */
-    var targetName = arguments[arg].split("=")[0];
-    var rootDir = arguments[arg].split("=")[1];
+    var targetName = configParts[0].split("=")[0];
+    var rootDir = configParts[0].split("=")[1];
 
     /* only build for the specified compilers */
     if (rootDir == "" || rootDir == undefined) {
         continue;
     }
 
+//    print("Building '" + targetName + "' using '" + rootDir + "' ...");
+
     var target = xdc.useModule(targetName);
     target.rootDir = rootDir;
-    target.ccOpts.suffix += ccOpts[targetName];
+    if (ccOpts[targetName] != undefined) {
+        target.ccOpts.suffix += ccOpts[targetName];
+    }
+    if (lnkOpts[targetName] != undefined) {
+        target.lnkOpts.suffix += lnkOpts[targetName];
+    }
+
+    /* for all the other parts, assign target.<left> = <right> */
+    for (var i = 1; i < configParts.length; i++) {
+        var modCfgParam = configParts[i].split("=")[0];
+        var modCfgValue = configParts[i].split("=")[1];
+        var modCfgIndex = modCfgParam.split(".");
+        var element = target;
+
+//        print("Configuring target." + modCfgParam + " = " + modCfgValue);
+
+        for (j = 0; j < (modCfgIndex.length -1); j++) {
+                element = element[modCfgIndex[j]];
+        }
+        element[modCfgIndex[j]] = modCfgValue;
+    }
 
     /* Add appropriate platforms to build for based on target name */
     if (targetName.match(/elf\.C674/)) {
-        target.platforms = [ "ti.platforms.evmOMAPL138:DSP" ];
+        if (platform == 'omapl138') {
+            target.platforms.$add("ti.platforms.evmOMAPL138:DSP");
+        }
     }
 
     if (targetName.match(/elf\.C66$/)) {
-        target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
-        target.lnkOpts.prefix += " --cinit_compression=off";
-        target.platforms = [
-            //"ti.platforms.simKepler"
-            //"ti.platforms.evm6614:DSP"
-            "ti.platforms.evmTCI6636K2H",
-            "ti.platforms.evmTCI6638K2K",
-            "ti.platforms.evmDRA7XX:dsp1",
-        ];
+        switch (platform) {
+            case 'tci6636':
+                target.platforms.$add("ti.platforms.evmTCI6636K2H");
+                break;
+
+            case 'tci6638':
+                target.platforms.$add("ti.platforms.evmTCI6638K2K");
+                break;
+
+            case 'dra7xx':
+                target.platforms.$add("ti.platforms.evmDRA7XX:dsp1");
+                break;
+
+            default:
+                print("Unknown platform, skipping " + platform);
+                break;
+        }
     }
 
     if (targetName.match(/elf\.C64T/)) {
-        target.lnkOpts.prefix += " -e=ti_sysbios_family_c64p_Hwi0";
-
-        target.platforms = [
-            "ti.platforms.sdp5430:DSP",
-        ];
+        if (platform == 'omap54xx_smp') {
+            target.platforms.$add("ti.platforms.sdp5430:DSP");
+        }
     }
 
     if (targetName.match(/elf\.M4$/)) {
-        target.lnkOpts.prefix += " --retain=.resource_table";
-        target.lnkOpts.prefix += " --cinit_compression=off";
+        switch (platform) {
+            case 'omap54xx_smp':
+                target.platforms.$add("ti.platforms.sdp5430:IPU");
+                break;
 
-        target.platforms =  [
-            "ti.platforms.sdp5430:IPU",
-            "ti.platforms.evmDRA7XX:ipu2",
-        ];
+            case 'dra7xx':
+                target.platforms.$add("ti.platforms.evmDRA7XX:ipu2");
+                break;
+
+            default:
+                print("Unknown platform, skipping " + platform);
+                break;
+        }
     }
 
     Build.targets.$add(target);
@@ -170,7 +229,6 @@ for (arg = 0; arg < arguments.length; arg++) {
 
 
 /* lib/ is a generated directory that 'xdc clean' should remove */
-var Pkg = xdc.useModule('xdc.bld.PackageContents');
 Pkg.generatedFiles.$add("lib/");
 
 /*

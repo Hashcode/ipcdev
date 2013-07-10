@@ -72,6 +72,7 @@ include ./products.mak
 #     http://rtsc.eclipse.org/docs-tip/Command_-_xdc#Environment_Variables
 #
 XDCARGS= \
+    PLATFORM=\"$(PLATFORM)\" \
     ti.targets.C28_large=\"$(ti.targets.C28_large)\" \
     ti.targets.C28_float=\"$(ti.targets.C28_float)\" \
     ti.targets.C64P=\"$(ti.targets.C64P)\" \
