@@ -53,7 +53,7 @@
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
-#include <ti/sdo/linuxutils/cmem/include/cmem.h>
+#include <ti/cmem.h>
 
 typedef struct MyMsg {
     MessageQ_MsgHeader header;

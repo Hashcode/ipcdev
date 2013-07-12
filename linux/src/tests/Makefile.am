@@ -33,7 +33,7 @@
 
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
+        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
         -D_GNU_SOURCE -Wall @AM_CFLAGS@
 VPATH = ../../../packages/ti/ipc/tests
 
@@ -148,7 +148,7 @@ NameServerApp_LDADD = $(common_libraries) \
 
 # the additional libraries needed to link nano_test
 nano_test_LDADD = $(common_libraries) \
-                $(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
+                $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
                 $(AM_LDFLAGS)
 
 ###############################################################################
