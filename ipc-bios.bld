@@ -88,7 +88,7 @@ var ccOpts = {
 
     "ti.targets.elf.C64P"             : c6xOpts,
     "ti.targets.elf.C64P_big_endian"  : c6xOpts,
-    "ti.targets.elf.C64T"             : " -mi10 -mo -pds=71",
+    "ti.targets.elf.C64T"             : c6xOpts,
     "ti.targets.elf.C66"              : c6xOpts,
     "ti.targets.elf.C66_big_endian"   : c6xOpts,
     "ti.targets.elf.C674"             : c6xOpts,
