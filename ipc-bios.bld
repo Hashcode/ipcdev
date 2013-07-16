@@ -108,9 +108,7 @@ var ccOpts = {
 };
 
 var lnkOpts = {
-    "ti.targets.elf.C66"              : " -e=ti_sysbios_family_c64p_Hwi0" +
-                                        " --cinit_compression=off",
-    "ti.targets.elf.C64T"             : " -e=ti_sysbios_family_c64p_Hwi0",
+    "ti.targets.elf.C66"              : " --cinit_compression=off",
     "ti.targets.arm.elf.M4"           : " --retain=.resource_table" +
                                         " --cinit_compression=off"
 };

@@ -44,6 +44,7 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
 Pkg.attrs.exportSrc = true;
 
 Pkg.otherFiles = ["package.bld", "rsc_types.h",
+        "linkcmd.xdt",
         "rsc_table_omapl138.h",
         "rsc_table_tci6614.h",
         "rsc_table_tci6614_v3.3.h",

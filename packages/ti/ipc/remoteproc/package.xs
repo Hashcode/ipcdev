@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Texas Instruments Incorporated
+ * Copyright (c) 2011-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,4 +63,12 @@ function getLibs(prog)
     }
 
     return (lib);
+}
+
+/*
+ *  ======== Package.getSects ========
+ */
+function getSects()
+{
+    return "ti/ipc/remoteproc/linkcmd.xdt";
 }
