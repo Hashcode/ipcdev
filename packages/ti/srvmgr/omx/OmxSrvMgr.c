@@ -82,7 +82,12 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     System_printf("OmxSrvMgr: started on port: %d\n", OMX_MGR_PORT);
 
 #ifdef SMP
-    NameMap_register("rpmsg-omx", "rpmsg-omx1", OMX_MGR_PORT);
+    if (MultiProc_self() == MultiProc_getId("IPU1")) {
+        NameMap_register("rpmsg-omx", "rpmsg-omx3", OMX_MGR_PORT);
+    }
+    else {
+        NameMap_register("rpmsg-omx", "rpmsg-omx1", OMX_MGR_PORT);
+    }
     System_printf("OmxSrvMgr: Proc#%d sending BOOTINIT_DONE\n",
                         MultiProc_self());
 #else
@@ -95,6 +100,9 @@ Void OmxSrvMgr_taskFxn(UArg arg0, UArg arg1)
     if (MultiProc_self() == MultiProc_getId("DSP") ||
         MultiProc_self() == MultiProc_getId("DSP1")) {
         NameMap_register("rpmsg-omx", "rpmsg-omx2", OMX_MGR_PORT);
+    }
+    if (MultiProc_self() == MultiProc_getId("DSP2")) {
+        NameMap_register("rpmsg-omx", "rpmsg-omx4", OMX_MGR_PORT);
     }
 #endif
 
