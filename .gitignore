@@ -1,3 +1,6 @@
+# General
+*.patch
+
 # BIOS stuff
 package/
 lib/
