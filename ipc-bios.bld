@@ -192,6 +192,7 @@ for (arg = 0; arg < arguments.length; arg++) {
 
             case 'dra7xx':
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp1");
+                target.platforms.$add("ti.platforms.evmDRA7XX:dsp2");
                 break;
 
             default:
@@ -214,6 +215,7 @@ for (arg = 0; arg < arguments.length; arg++) {
 
             case 'dra7xx':
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu2");
+                target.platforms.$add("ti.platforms.evmDRA7XX:ipu1");
                 break;
 
             default:

@@ -70,13 +70,26 @@ extern struct resource_table ti_ipc_remoteproc_ResourceTable;
 %  }
 %  else if (prog.cpu.deviceName.match(/Vayu/) ||
 %          prog.cpu.deviceName.match(/DRA7XX/)) {
-%    if (prog.cpu.attrs.cpuCore.match(/CM4/) &&
-%       (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 2)) {
-#define OMAP5
+%    if (prog.cpu.attrs.cpuCore.match(/CM4/)) {
+%       if (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 1) {
+#define VAYU_IPU_1
+%           //print("ti.ipc.remoteproc.Resource.xdt : VAYU_IPU_1");
+%       }
+%       if (xdc.om["ti.sysbios.family.arm.ducati.Core"].ipuId == 2) {
+#define VAYU_IPU_2
+%           //print("ti.ipc.remoteproc.Resource.xdt : VAYU_IPU_2");
+%       }
 #include <ti/ipc/remoteproc/rsc_table_vayu_ipu.h>
 %    }
 %    else if (prog.cpu.attrs.cpuCore.match(/6600/)) {
-#define OMAP5
+%       if (prog.platformName.match(/DRA7XX:dsp1$/)) {
+#define VAYU_DSP_1
+%           //print("ti.ipc.remoteproc.Resource.xdt : VAYU_DSP_1");
+%       }
+%       if (prog.platformName.match(/DRA7XX:dsp2$/)) {
+#define VAYU_DSP_2
+%           //print("ti.ipc.remoteproc.Resource.xdt : VAYU_DSP_2");
+%       }
 #include <ti/ipc/remoteproc/rsc_table_vayu_dsp.h>
 %    }
 %    else {

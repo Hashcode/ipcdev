@@ -94,9 +94,13 @@
 /*
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  */
-/* This address is derived from current IPU & ION carveouts */
+/* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #ifdef OMAP5
 #define PHYS_MEM_IPC_VRING      0x95000000
+#elif defined (VAYU_DSP_1)
+#define PHYS_MEM_IPC_VRING      0x95000000
+#elif defined (VAYU_DSP_2)
+#define PHYS_MEM_IPC_VRING      0x94800000
 #else
 #define PHYS_MEM_IPC_VRING      0x98800000
 #endif

@@ -77,7 +77,7 @@
 #define IPU_MEM_TEXT            0x0
 #define IPU_MEM_DATA            0x80000000
 
-#ifdef OMAP5
+#if defined(OMAP5) || defined(VAYU_IPU_1) || defined(VAYU_IPU_2)
 #define IPU_MEM_IOBUFS          0x90000000
 #else
 #define IPU_MEM_IOBUFS          0x88000000
@@ -92,19 +92,33 @@
 
 #define IPU_MEM_IPC_VRING_SIZE  SZ_1M
 #define IPU_MEM_IPC_DATA_SIZE   SZ_1M
+
+#ifdef VAYU_IPU_1
+#define IPU_MEM_TEXT_SIZE       (SZ_1M)
+#else
 #define IPU_MEM_TEXT_SIZE       (SZ_1M * 6)
-#ifdef OMAP5
+#endif
+
+#if defined(OMAP5) || defined(VAYU_IPU_2)
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 156)
+#elif defined(VAYU_IPU_1)
+#define IPU_MEM_DATA_SIZE       (SZ_1M * 5)
 #else
 #define IPU_MEM_DATA_SIZE       (SZ_1M * 100)
 #endif
+
 #define IPU_MEM_IOBUFS_SIZE     (SZ_1M * 90)
 
 /*
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  * PHYS_MEM_IPC_VRING & PHYS_MEM_IPC_DATA MUST be together.
  */
+/* See CMA BASE addresses in Linux side: arch/arm/mach-omap2/remoteproc.c */
 #ifdef OMAP5
+#define PHYS_MEM_IPC_VRING      0x95800000
+#elif defined(VAYU_IPU_1)
+#define PHYS_MEM_IPC_VRING      0x94000000
+#elif defined (VAYU_IPU_2)
 #define PHYS_MEM_IPC_VRING      0x95800000
 #else
 #define PHYS_MEM_IPC_VRING      0x99000000
