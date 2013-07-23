@@ -74,20 +74,6 @@
 #define TYPE_VDEV        3
 #define TYPE_CRASHDUMP   4
 
-/*
- * Use flags to define memory access for each resource
- * Must match include/linux/rproc_drm.h
- */
-enum rproc_memregion {
-    RPROC_MEMREGION_UNKNOWN,
-    RPROC_MEMREGION_2D,
-    RPROC_MEMREGION_SMEM,
-    RPROC_MEMREGION_CODE,
-    RPROC_MEMREGION_DATA,
-    RPROC_MEMREGION_1D,
-    RPROC_MEMREGION_VRING
-};
-
 /* Common Resource Structure Types */
 struct resource_table {
     UInt32 ver;
@@ -111,7 +97,7 @@ struct fw_rsc_devmem {
     UInt32  pa;
     UInt32  len;
     UInt32  flags;
-    UInt32  memregion;
+    UInt32  reserved;
     Char    name[32];
 };
 

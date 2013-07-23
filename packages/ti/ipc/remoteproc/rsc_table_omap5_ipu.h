@@ -220,19 +220,19 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     {
         TYPE_CARVEOUT,
         IPU_MEM_TEXT, 0,
-        IPU_MEM_TEXT_SIZE, 0, RPROC_MEMREGION_CODE, "IPU_MEM_TEXT",
+        IPU_MEM_TEXT_SIZE, 0, 0, "IPU_MEM_TEXT",
     },
 
     {
         TYPE_CARVEOUT,
         IPU_MEM_DATA, 0,
-        IPU_MEM_DATA_SIZE, 0, RPROC_MEMREGION_DATA, "IPU_MEM_DATA",
+        IPU_MEM_DATA_SIZE, 0, 0, "IPU_MEM_DATA",
     },
 
     {
         TYPE_CARVEOUT,
         IPU_MEM_IPC_DATA, 0,
-        IPU_MEM_IPC_DATA_SIZE, 0, RPROC_MEMREGION_SMEM, "IPU_MEM_IPC_DATA",
+        IPU_MEM_IPC_DATA_SIZE, 0, 0, "IPU_MEM_IPC_DATA",
     },
 
     {
@@ -242,13 +242,13 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     {
         TYPE_DEVMEM,
         IPU_MEM_IPC_VRING, PHYS_MEM_IPC_VRING,
-        IPU_MEM_IPC_VRING_SIZE, 0, RPROC_MEMREGION_VRING, "IPU_MEM_IPC_VRING",
+        IPU_MEM_IPC_VRING_SIZE, 0, 0, "IPU_MEM_IPC_VRING",
     },
 
     {
         TYPE_DEVMEM,
         IPU_MEM_IOBUFS, PHYS_MEM_IOBUFS,
-        IPU_MEM_IOBUFS_SIZE, 0, RPROC_MEMREGION_1D, "IPU_MEM_IOBUFS",
+        IPU_MEM_IOBUFS_SIZE, 0, 0, "IPU_MEM_IOBUFS",
     },
 
     {
