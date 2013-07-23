@@ -53,6 +53,13 @@ if KDIR
   bin_PROGRAMS += mmrpc_test
 endif
 else
+if DRA7XX
+# Add platform specific bin application's here
+  bin_PROGRAMS +=
+if KDIR
+  bin_PROGRAMS += mmrpc_test
+endif
+else
 if OMAPL138
 # Add platform specific bin application's here
   bin_PROGRAMS +=
@@ -78,6 +85,7 @@ if CMEM
 endif
 if KDIR
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif

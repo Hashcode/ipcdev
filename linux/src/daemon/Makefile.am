@@ -45,6 +45,9 @@ bin_PROGRAMS =
 if OMAP54XX_SMP
   bin_PROGRAMS += lad_omap54xx_smp
 else
+if DRA7XX
+  bin_PROGRAMS += lad_dra7xx
+else
 if OMAPL138
   bin_PROGRAMS += lad_omapl138
 else
@@ -57,7 +60,8 @@ else
 if TCI6636
   bin_PROGRAMS += lad_tci6636
 else
-  bin_PROGRAMS += lad_omap54xx_smp lad_omapl138 lad_tci6614 lad_tci6636 lad_tci6638
+  bin_PROGRAMS += lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_tci6614 lad_tci6636 lad_tci6638
+endif
 endif
 endif
 endif
@@ -87,6 +91,7 @@ common_sources = \
 # NOTE:  6636_SOURCES using 6638.c is not a typo!  6636 has the same
 # MultiProc config as 6638, so we reuse that source file.
 lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
+lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
 lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
 lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
@@ -97,6 +102,8 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 # the additional libraries needed to link program
 lad_omap54xx_smp_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+lad_dra7xx_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 lad_omapl138_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)

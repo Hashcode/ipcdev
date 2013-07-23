@@ -37,13 +37,15 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
-	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6)
+	$(am__EXEEXT_4) $(am__EXEEXT_5) $(am__EXEEXT_6) \
+	$(am__EXEEXT_7)
 @OMAP54XX_SMP_TRUE@am__append_1 = lad_omap54xx_smp
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_2 = lad_omapl138
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_3 = lad_tci6614
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_4 = lad_tci6638
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@@TCI6638_FALSE@am__append_5 = lad_tci6636
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_6 = lad_omap54xx_smp lad_omapl138 lad_tci6614 lad_tci6636 lad_tci6638
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_2 = lad_dra7xx
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_3 = lad_omapl138
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_4 = lad_tci6614
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__append_5 = lad_tci6638
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@@TCI6638_FALSE@am__append_6 = lad_tci6636
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_7 = lad_omap54xx_smp lad_dra7xx lad_omapl138 lad_tci6614 lad_tci6636 lad_tci6638
 subdir = linux/src/daemon
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -53,27 +55,31 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 @OMAP54XX_SMP_TRUE@am__EXEEXT_1 = lad_omap54xx_smp$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_2 =  \
-@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@	lad_omapl138$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_3 = lad_tci6614$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_4 = lad_tci6638$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@@TCI6638_FALSE@am__EXEEXT_5 = lad_tci6636$(EXEEXT)
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_6 = lad_omap54xx_smp$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_omapl138$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6614$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6636$(EXEEXT) \
-@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6638$(EXEEXT)
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__EXEEXT_2 = lad_dra7xx$(EXEEXT)
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__EXEEXT_3 = lad_omapl138$(EXEEXT)
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__EXEEXT_4 = lad_tci6614$(EXEEXT)
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6638_TRUE@am__EXEEXT_5 = lad_tci6638$(EXEEXT)
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@@TCI6638_FALSE@am__EXEEXT_6 = lad_tci6636$(EXEEXT)
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__EXEEXT_7 = lad_omap54xx_smp$(EXEEXT) \
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_dra7xx$(EXEEXT) \
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_omapl138$(EXEEXT) \
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6614$(EXEEXT) \
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6636$(EXEEXT) \
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@	lad_tci6638$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
 	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT)
-am_lad_omap54xx_smp_OBJECTS = $(am__objects_1) \
-	MultiProcCfg_omap54xx_smp.$(OBJEXT)
-lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
+am_lad_dra7xx_OBJECTS = $(am__objects_1) MultiProcCfg_dra7xx.$(OBJEXT)
+lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
 	$(top_builddir)/linux/src/utils/libtiipcutils.la
 am__DEPENDENCIES_2 =
+lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
+am_lad_omap54xx_smp_OBJECTS = $(am__objects_1) \
+	MultiProcCfg_omap54xx_smp.$(OBJEXT)
+lad_omap54xx_smp_OBJECTS = $(am_lad_omap54xx_smp_OBJECTS)
 lad_omap54xx_smp_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
 am_lad_omapl138_OBJECTS = $(am__objects_1) \
@@ -104,12 +110,12 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
-	$(lad_tci6614_SOURCES) $(lad_tci6636_SOURCES) \
-	$(lad_tci6638_SOURCES)
-DIST_SOURCES = $(lad_omap54xx_smp_SOURCES) $(lad_omapl138_SOURCES) \
-	$(lad_tci6614_SOURCES) $(lad_tci6636_SOURCES) \
-	$(lad_tci6638_SOURCES)
+SOURCES = $(lad_dra7xx_SOURCES) $(lad_omap54xx_smp_SOURCES) \
+	$(lad_omapl138_SOURCES) $(lad_tci6614_SOURCES) \
+	$(lad_tci6636_SOURCES) $(lad_tci6638_SOURCES)
+DIST_SOURCES = $(lad_dra7xx_SOURCES) $(lad_omap54xx_smp_SOURCES) \
+	$(lad_omapl138_SOURCES) $(lad_tci6614_SOURCES) \
+	$(lad_tci6636_SOURCES) $(lad_tci6638_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -143,6 +149,8 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DRA7XX_FALSE = @DRA7XX_FALSE@
+DRA7XX_TRUE = @DRA7XX_TRUE@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -256,6 +264,7 @@ common_sources = \
 # NOTE:  6636_SOURCES using 6638.c is not a typo!  6636 has the same
 # MultiProc config as 6638, so we reuse that source file.
 lad_omap54xx_smp_SOURCES = $(common_sources) MultiProcCfg_omap54xx_smp.c
+lad_dra7xx_SOURCES = $(common_sources) MultiProcCfg_dra7xx.c
 lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
 lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
@@ -266,6 +275,9 @@ common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
 
 # the additional libraries needed to link program
 lad_omap54xx_smp_LDADD = $(common_libraries) \
+                $(AM_LDFLAGS)
+
+lad_dra7xx_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 lad_omapl138_LDADD = $(common_libraries) \
@@ -341,6 +353,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
+lad_dra7xx$(EXEEXT): $(lad_dra7xx_OBJECTS) $(lad_dra7xx_DEPENDENCIES)
+	@rm -f lad_dra7xx$(EXEEXT)
+	$(LINK) $(lad_dra7xx_LDFLAGS) $(lad_dra7xx_OBJECTS) $(lad_dra7xx_LDADD) $(LIBS)
 lad_omap54xx_smp$(EXEEXT): $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_DEPENDENCIES) 
 	@rm -f lad_omap54xx_smp$(EXEEXT)
 	$(LINK) $(lad_omap54xx_smp_LDFLAGS) $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_LDADD) $(LIBS)
@@ -364,6 +379,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQ_daemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_dra7xx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omap54xx_smp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_omapl138.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MultiProcCfg_tci6614.Po@am__quote@

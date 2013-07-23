@@ -82,9 +82,11 @@ AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
   [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
+  [AS_IF([test "x$PLATFORM" = "xdra7xx"],
+  [AC_MSG_NOTICE([PLATFORM is set to ${PLATFORM}])],
   [AS_IF([test "x$PLATFORM" = "x"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
-  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])
+  [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])
 
 # Test platform for omap5 variable and require a KERNEL path
 AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
@@ -105,6 +107,7 @@ AM_CONDITIONAL([TCI6614], [test "x$PLATFORM" = "xtci6614"])
 AM_CONDITIONAL([TCI6636], [test "x$PLATFORM" = "xtci6636"])
 AM_CONDITIONAL([TCI6638], [test "x$PLATFORM" = "xtci6638"])
 AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xomap54xx_smp"])
+AM_CONDITIONAL([DRA7XX], [test "x$PLATFORM" = "xdra7xx"])
 AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"])
 AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"])
 
