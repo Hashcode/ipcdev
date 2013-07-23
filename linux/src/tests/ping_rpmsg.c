@@ -49,9 +49,8 @@
 /* Ipc Socket Protocol Family */
 #include <net/rpmsg.h>
 
-#define CORE0 (0)  /* This should be MultiProc_getId("CORE0") - 1 */
-
-#define NUMLOOPS 100
+#define NUM_LOOPS_DFLT 100
+#define CORE_ID_DFLT   0 /* CORE ID should be (MultiProc ID - 1) */
 
 long diff(struct timespec start, struct timespec end)
 {
@@ -68,8 +67,11 @@ long diff(struct timespec start, struct timespec end)
     return (temp.tv_sec * 1000000UL + temp.tv_nsec / 1000);
 }
 
-int main(void)
+int main (int argc, char ** argv)
 {
+    int status = 0;
+    unsigned int numLoops = NUM_LOOPS_DFLT;
+    short coreId = CORE_ID_DFLT;
     int sock, err;
     struct sockaddr_rpmsg src_addr, dst_addr;
     socklen_t len;
@@ -79,8 +81,26 @@ int main(void)
     long              elapsed=0,delta;
     int i;
 
+    /* Parse Args: */
+    switch (argc) {
+        case 1:
+           /* use defaults */
+           break;
+        case 2:
+           numLoops = atoi(argv[1]);
+           break;
+        case 3:
+           numLoops   = atoi(argv[1]);
+           coreId     = atoi(argv[2]);
+           break;
+        default:
+           printf("Usage: %s [<numLoops>] [<CoreId>]\n", argv[0]);
+           printf("\tDefaults: numLoops: %d; CoreId: %d\n",
+                   NUM_LOOPS_DFLT, CORE_ID_DFLT);
+           exit(0);
+    }
+
     /* create an RPMSG socket */
-    /* QNX PORTING NOTE:  call fd = open("/dev/????", ...); */
     sock = socket(AF_RPMSG, SOCK_SEQPACKET, 0);
     if (sock < 0) {
         printf("socket failed: %s (%d)\n", strerror(errno), errno);
@@ -90,7 +110,7 @@ int main(void)
     /* connect to remote service */
     memset(&dst_addr, 0, sizeof(dst_addr));
     dst_addr.family = AF_RPMSG;
-    dst_addr.vproc_id = CORE0;
+    dst_addr.vproc_id = coreId;
     dst_addr.addr = 51; // use 51 for ping_tasks;
     //dst_addr.addr = 61; // use 61 for messageQ transport;
 
@@ -98,7 +118,6 @@ int main(void)
             dst_addr.addr, dst_addr.vproc_id);
 
     len = sizeof(struct sockaddr_rpmsg);
-    /* QNX PORTING NOTE:  call ioctl(fd, CONNECT_IOTL, *args)*/
     err = connect(sock, (struct sockaddr *)&dst_addr, len);
     if (err < 0) {
         printf("connect failed: %s (%d)\n", strerror(errno), errno);
@@ -106,7 +125,6 @@ int main(void)
     }
 
     /* let's see what local address we got */
-    /* QNX PORTING NOTE:  call ioctl(fd, GETLOCALENDPOINT_IOTL, *args)*/
     err = getsockname(sock, (struct sockaddr *)&src_addr, &len);
     if (err < 0) {
         printf("getpeername failed: %s (%d)\n", strerror(errno), errno);
@@ -118,10 +136,9 @@ int main(void)
 
     printf("Sending \"%s\" in a loop.\n", msg);
 
-    for (i = 0; i < NUMLOOPS; i++) {
+    for (i = 0; i < numLoops; i++) {
         clock_gettime(CLOCK_REALTIME, &start);
 
-        /* QNX PORTING NOTE:  call write(fd, msg,len); */
         err = send(sock, msg, strlen(msg) + 1, 0);
         if (err < 0) {
             printf("sendto failed: %s (%d)\n", strerror(errno), errno);
@@ -132,7 +149,6 @@ int main(void)
 
         len = sizeof(src_addr);
 
-        /* QNX PORTING NOTE:  len = read(fd, buf, len); */
         err = recvfrom(sock, buf, sizeof(buf), 0,
                        (struct sockaddr *)&src_addr, &len);
 
@@ -160,7 +176,6 @@ int main(void)
     }
     printf ("Avg time: %ld usecs over %d iterations\n", elapsed / i, i);
 
-    /* QNX PORTING NOTE:  close(fd); */
     close(sock);
 
     return 0;
