@@ -53,10 +53,16 @@
  *
  */
 
+/* this define must precede inclusion of any xdc header file */
+#define Registry_CURDESC ti_ipc_family_vayu__Desc
+#define MODULE_NAME "ti.ipc.family.vayu.VirtQueue"
+
 #include <xdc/std.h>
 #include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
 #include <xdc/runtime/Error.h>
 #include <xdc/runtime/Memory.h>
+#include <xdc/runtime/Registry.h>
 #include <xdc/runtime/Log.h>
 #include <xdc/runtime/Diags.h>
 
@@ -203,6 +209,9 @@ typedef struct VirtQueue_Object {
     GateHwi_Handle       gateH;
 } VirtQueue_Object;
 
+/* module diags mask */
+Registry_Desc Registry_CURDESC;
+
 static struct VirtQueue_Object *queueRegistry[NUM_QUEUES] = {NULL};
 
 static UInt16 hostProcId;
@@ -220,6 +229,28 @@ extern Void OffloadM3_init();
 extern Int OffloadM3_processSysM3Tasks(UArg msg);
 #endif
 
+/*!
+ * ======== _VirtQueue_init ========
+ *
+ * This function adds the VirtQueue "module" to the Registry so that
+ * DIAGS will work with this non-XDC module.
+ * Since VirtQueue_init is not called by XDC-VirtQueue module clients, this
+ * function is called in the first VirtQueue fxn called: VirtQueue_create.
+ */
+static Void _VirtQueue_init()
+{
+    static int initialized = 0;
+
+    if (!initialized) {
+        Registry_Result result;
+
+        /* register with xdc.runtime to get a diags mask */
+        result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);
+        Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
+
+        initialized = 1;
+    }
+}
 static inline Void * mapPAtoVA(UInt pa)
 {
     return (Void *)((pa & 0x000fffffU) | IPC_MEM_VRING0);
@@ -497,6 +528,9 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
 {
     VirtQueue_Object *vq;
     Void *vringAddr;
+
+    /* Perform initialization we can't do in Instance_init (being non-XDC): */
+    _VirtQueue_init();
 
     vq = Memory_alloc(NULL, sizeof(VirtQueue_Object), 0, eb);
     if (NULL == vq) {
