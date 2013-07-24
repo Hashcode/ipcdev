@@ -45,13 +45,20 @@
 #include "rsc_types.h"
 
 /* IPU Memory Map */
-#define L4_44XX_BASE            0x4a000000
+#define L4_DRA7XX_BASE          0x4A000000
 
-#define L4_PERIPHERAL_L4CFG     (L4_44XX_BASE)
+/* L4_CFG & L4_WKUP */
+#define L4_PERIPHERAL_L4CFG     (L4_DRA7XX_BASE)
 #define IPU_PERIPHERAL_L4CFG    0x6A000000
 
-#define L4_PERIPHERAL_L4PER     0x48000000
-#define IPU_PERIPHERAL_L4PER    0x68000000
+#define L4_PERIPHERAL_L4PER1    0x48000000
+#define IPU_PERIPHERAL_L4PER1   0x68000000
+
+#define L4_PERIPHERAL_L4PER2    0x48400000
+#define IPU_PERIPHERAL_L4PER2   0x68400000
+
+#define L4_PERIPHERAL_L4PER3    0x48800000
+#define IPU_PERIPHERAL_L4PER3   0x68800000
 
 #define L4_PERIPHERAL_L4EMU     0x54000000
 #define IPU_PERIPHERAL_L4EMU    0x74000000
@@ -139,7 +146,7 @@
 struct my_resource_table {
     struct resource_table base;
 
-    UInt32 offset[16];  /* Should match 'num' in actual definition */
+    UInt32 offset[18];  /* Should match 'num' in actual definition */
 
     /* rpmsg vdev entry */
     struct fw_rsc_vdev rpmsg_vdev;
@@ -190,6 +197,12 @@ struct my_resource_table {
 
     /* devmem entry */
     struct fw_rsc_devmem devmem10;
+
+    /* devmem entry */
+    struct fw_rsc_devmem devmem11;
+
+    /* devmem entry */
+    struct fw_rsc_devmem devmem12;
 };
 
 #define TRACEBUFADDR (UInt32)&ti_trace_SysMin_Module_State_0_outbuf__A
@@ -199,7 +212,7 @@ struct my_resource_table {
 
 struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
     1,      /* we're the first version that implements this */
-    16,     /* number of entries in the table */
+    18,     /* number of entries in the table */
     0, 0,   /* reserved, must be zero */
     /* offsets to entries */
     {
@@ -219,6 +232,8 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
         offsetof(struct my_resource_table, devmem8),
         offsetof(struct my_resource_table, devmem9),
         offsetof(struct my_resource_table, devmem10),
+        offsetof(struct my_resource_table, devmem11),
+        offsetof(struct my_resource_table, devmem12),
     },
 
     /* rpmsg vdev entry */
@@ -291,8 +306,20 @@ struct my_resource_table ti_ipc_remoteproc_ResourceTable = {
 
     {
         TYPE_DEVMEM,
-        IPU_PERIPHERAL_L4PER, L4_PERIPHERAL_L4PER,
-        SZ_16M, 0, 0, "IPU_PERIPHERAL_L4PER",
+        IPU_PERIPHERAL_L4PER1, L4_PERIPHERAL_L4PER1,
+        SZ_2M, 0, 0, "IPU_PERIPHERAL_L4PER1",
+    },
+
+    {
+        TYPE_DEVMEM,
+        IPU_PERIPHERAL_L4PER2, L4_PERIPHERAL_L4PER2,
+        SZ_4M, 0, 0, "IPU_PERIPHERAL_L4PER2",
+    },
+
+    {
+        TYPE_DEVMEM,
+        IPU_PERIPHERAL_L4PER3, L4_PERIPHERAL_L4PER3,
+        SZ_8M, 0, 0, "IPU_PERIPHERAL_L4PER3",
     },
 
     {
