@@ -115,14 +115,38 @@ var StackDbg = xdc.useModule('ti.trace.StackDbg');
 */
 
 var dmTimer = xdc.useModule('ti.sysbios.timers.dmtimer.Timer');
-/* dmTimer 0 mapped to GPT3 */
+/* dmTimer 0 mapped to GPT1 */
+dmTimer.timerSettings[0].baseAddr = 0x6AE18000;
+/* dmTimer 1 mapped to GPT2 */
+dmTimer.timerSettings[1].baseAddr = 0x68032000;
+/* dmTimer 2 mapped to GPT3 */
 dmTimer.timerSettings[2].baseAddr = 0x68034000;
-/* dmTimer 1 mapped to GPT4 */
+/* dmTimer 3 mapped to GPT4 */
 dmTimer.timerSettings[3].baseAddr = 0x68036000;
-/* dmTimer 2 mapped to GPT9 */
+/* dmTimer 4 mapped to GPT5 */
+dmTimer.timerSettings[4].baseAddr = 0x68820000;
+/* dmTimer 5 mapped to GPT6 */
+dmTimer.timerSettings[5].baseAddr = 0x68822000;
+/* dmTimer 6 mapped to GPT7 */
+dmTimer.timerSettings[6].baseAddr = 0x68034000;
+/* dmTimer 7 mapped to GPT8 */
+dmTimer.timerSettings[7].baseAddr = 0x68036000;
+/* dmTimer 8 mapped to GPT9 */
 dmTimer.timerSettings[8].baseAddr = 0x6803E000;
-/* dmTimer 3 mapped to GPT11 */
+/* dmTimer 9 mapped to GPT10 */
+dmTimer.timerSettings[9].baseAddr = 0x68086000;
+/* dmTimer 10 mapped to GPT11 */
 dmTimer.timerSettings[10].baseAddr = 0x68088000;
+/* dmTimer 11 mapped to GPT12 */
+dmTimer.timerSettings[11].baseAddr = 0x6AE20000;
+/* dmTimer 12 mapped to GPT13 */
+dmTimer.timerSettings[12].baseAddr = 0x68828000;
+/* dmTimer 13 mapped to GPT14 */
+dmTimer.timerSettings[13].baseAddr = 0x6882A000;
+/* dmTimer 14 mapped to GPT15 */
+dmTimer.timerSettings[14].baseAddr = 0x6882C000;
+/* dmTimer 15 mapped to GPT16 */
+dmTimer.timerSettings[15].baseAddr = 0x6882E000;
 
 /* Skip the Timer frequency verification check. Need to remove this later */
 dmTimer.checkFrequency = false;
