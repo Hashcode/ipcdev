@@ -140,6 +140,14 @@ module Resource {
     Ptr getTraceBufPtr();
 
     /*!
+     *  @brief      Get the status field of the VDEV, given the fw_rsc_vdev id.
+     *
+     *  @return     status value which is set by Virtio device on HLOS.
+     */
+    @DirectCall
+    Char getVdevStatus(UInt32 id);
+
+    /*!
      *  @brief      Get the nth (vqId) vring address from the VDEV struct.
      *
      *  @return     NULL if no VDEV found, or vqId is not found.

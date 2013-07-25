@@ -37,6 +37,7 @@
 
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Startup.h>
+#include <ti/sysbios/hal/Cache.h>
 
 #include "rsc_types.h"
 #include "package/internal/Resource.xdc.h"
@@ -64,6 +65,36 @@ Ptr Resource_getTraceBufPtr()
     }
 
     return (NULL);
+}
+
+/*
+ *  ======== getVdevStatus ========
+ */
+Char Resource_getVdevStatus(UInt32 id)
+{
+    UInt32 i;
+    UInt32 offset;
+    UInt32 type;
+    Char status = 0;
+    struct fw_rsc_vdev *vdev= NULL;
+    Resource_RscTable *table = (Resource_RscTable *)
+                                            (Resource_module->pTable);
+
+    for (i = 0; i < module->pTable->num; i++) {
+        offset = (UInt32)((Char *)table + table->offset[i]);
+        type = *(UInt32 *)offset;
+        if (type == TYPE_VDEV) {
+            vdev = (struct fw_rsc_vdev *)offset;
+            if (vdev->id == id) {
+                /* invalidate memory as host will update the status field */
+                Cache_inv(vdev, sizeof(*vdev), Cache_Type_ALL, TRUE);
+                status = vdev->status;
+                break;
+            }
+        }
+    }
+
+    return (status);
 }
 
 /*
