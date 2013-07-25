@@ -80,6 +80,8 @@
 #endif
 #include <string.h>
 
+#include <ti/ipc/remoteproc/Resource.h>
+#include <ti/ipc/remoteproc/rsc_types.h>
 #include <ti/ipc/rpmsg/_VirtQueue.h>
 
 #include <ti/sdo/ipc/notifyDrivers/IInterrupt.h>
@@ -605,6 +607,17 @@ VirtQueue_Handle VirtQueue_create(UInt16 remoteProcId, VirtQueue_Params *params,
     return (vq);
 }
 
+/*
+ *  The following three VIRTIO_* defines must match those in
+ *  <Linux_kernel>/include/uapi/linux/virtio_config.h
+ */
+#define VIRTIO_CONFIG_S_ACKNOWLEDGE     1
+#define VIRTIO_CONFIG_S_DRIVER          2
+#define VIRTIO_CONFIG_S_DRIVER_OK       4
+
+#define VRING_BUFS_PRIMED  (VIRTIO_CONFIG_S_ACKNOWLEDGE | \
+                            VIRTIO_CONFIG_S_DRIVER | VIRTIO_CONFIG_S_DRIVER_OK)
+
 /*!
  * ======== VirtQueue_startup ========
  */
@@ -624,7 +637,22 @@ Void VirtQueue_startup()
     IpcPower_init();
 #endif
 
+    /*
+     * Wait for HLOS (Virtio device) to indicate that priming of host's receive
+     * buffers is complete, indicating that host is ready to send.
+     *
+     * Though this is a Linux Virtio configuration status, it must be
+     * implemented by each non-Linux HLOS as well.
+     */
+    Log_print1(Diags_USER1, "VirtQueue_startup: VDEV status: 0x%x\n",
+              Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+    Log_print0(Diags_USER1, "VirtQueue_startup: Polling VDEV status...\n");
+    while (Resource_getVdevStatus(VIRTIO_ID_RPMSG) != VRING_BUFS_PRIMED);
+    Log_print1(Diags_USER1, "VirtQueue_startup: VDEV status: 0x%x\n",
+              Resource_getVdevStatus(VIRTIO_ID_RPMSG));
+
     InterruptProxy_intRegister(hostProcId, &intInfo, (Fxn)VirtQueue_isr, NULL);
+    Log_print0(Diags_USER1, "Passed VirtQueue_startup\n");
 }
 
 /*!
