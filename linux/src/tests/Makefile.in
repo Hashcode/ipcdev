@@ -104,7 +104,7 @@ mmrpc_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 am_nano_test_OBJECTS = $(am__objects_1) nano_test.$(OBJEXT)
 nano_test_OBJECTS = $(am_nano_test_OBJECTS)
 nano_test_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
+	$(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
 	$(am__DEPENDENCIES_2)
 am_ping_rpmsg_OBJECTS = ping_rpmsg.$(OBJEXT)
 ping_rpmsg_OBJECTS = $(am_ping_rpmsg_OBJECTS)
@@ -139,7 +139,7 @@ AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
+        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
         -D_GNU_SOURCE -Wall @AM_CFLAGS@
 
 AM_LDFLAGS = @AM_LDFLAGS@
@@ -324,7 +324,7 @@ NameServerApp_LDADD = $(common_libraries) \
 
 # the additional libraries needed to link nano_test
 nano_test_LDADD = $(common_libraries) \
-                $(CMEM_INSTALL_DIR)/packages/ti/sdo/linuxutils/cmem/lib/cmem.a470MV \
+                $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
                 $(AM_LDFLAGS)
 
 all: all-am
