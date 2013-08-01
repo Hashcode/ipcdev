@@ -124,7 +124,7 @@ static MmType_FxnSig rpc_sigAry[] = {
             { MmType_Dir_In,  MmType_PtrType(MmType_Param_U32), 1 }
         }
     },
-    { "MxServer_compute", 1,
+    { "MxServer_compute", 2,
         {
             { MmType_Dir_Out, MmType_Param_S32, 1 }, /* return */
             { MmType_Dir_In,  MmType_PtrType(MmType_Param_VOID), 1 }
