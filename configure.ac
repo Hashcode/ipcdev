@@ -67,9 +67,10 @@ AC_SUBST([AM_LDFLAGS])
 
 # Add config variables/options and check them
 # Note that 6614 isn't documented and, though it may work, is planned for removal
-AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6636' and 'tci6638'. If not defined all platforms will be built.)
+AC_ARG_VAR(PLATFORM, Platform to build. Options are: 'omapl138' 'omap54xx_smp' 'tci6636' 'tci6638' and 'dra7xx'. If not defined all platforms will be built.)
 AC_ARG_VAR(CMEM_INSTALL_DIR, Installation path directory to the CMEM libraries)
 AC_ARG_VAR(KERNEL_INSTALL_DIR, Installation path to the Linux kernel.)
+AC_ARG_VAR(DRMLIB_PREFIX, Installation location to the DRM library.)
 
 # Test platform variable for setting
 AS_IF([test "x$PLATFORM" = "xomapl138"],
@@ -88,18 +89,32 @@ AS_IF([test "x$PLATFORM" = "xomapl138"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
   [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])
 
-# Test platform for omap5 variable and require a KERNEL path
+# Test platform for omap5 and dra7xx variable and require a KERNEL path
 AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
    [AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
    [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])])
+AS_IF([test "x$PLATFORM" = "xdra7xx"],
+   [AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
+   [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])])
+
+# Test platform for omap5 and dra7xx variable and require a DRM path
+AS_IF([test "x$PLATFORM" = "xomap54xx_smp"],
+   [AS_IF([test "x$DRM_PREFIX" = "x"],
+   [AC_MSG_ERROR([DRM PREFIX path for ${PLATFORM} is not set])])])
+AS_IF([test "x$PLATFORM" = "xdra7xx"],
+   [AS_IF([test "x$DRM_PREFIX" = "x"],
+   [AC_MSG_ERROR([DRM PREFIX path for ${PLATFORM} is not set])])])
+
 
 # Ignore KERNEL path when no platform is set
 AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
+AS_IF([test "x$PLATFORM" = "x"], [DRM_PREFIX=])
 
 # Export optional user variable to Makefile(s)
 AC_SUBST([PLATFORM])
 AC_SUBST([CMEM_INSTALL_DIR])
 AC_SUBST([KERNEL_INSTALL_DIR])
+AC_SUBST([DRM_PREFIX])
 
 # Define specific variables to be used in Makefile.am
 AM_CONDITIONAL([OMAPL138], [test "x$PLATFORM" = "xomapl138"])
@@ -110,6 +125,7 @@ AM_CONDITIONAL([OMAP54XX_SMP], [test "x$PLATFORM" = "xomap54xx_smp"])
 AM_CONDITIONAL([DRA7XX], [test "x$PLATFORM" = "xdra7xx"])
 AM_CONDITIONAL([CMEM], [test "x$CMEM_INSTALL_DIR" != "x"])
 AM_CONDITIONAL([KDIR], [test "x$KERNEL_INSTALL_DIR" != "x"])
+AM_CONDITIONAL([DRM], [test "x$DRM_PREFIX" != "x"])
 
 # Generate Makefile(s)
 AC_CONFIG_FILES([Makefile])
