@@ -34,7 +34,6 @@
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
         -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
-        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
         -I$(DRM_PREFIX)/usr/include \
         -I$(DRM_PREFIX)/usr/include/libdrm \
         -I$(DRM_PREFIX)/usr/include/omap \
@@ -133,16 +132,16 @@ NameServerApp_SOURCES = $(nameServer_common_sources)
 nano_test_SOURCES = $(common_sources) nano_test.c
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la \
-                $(DRM_PREFIX)/usr/lib/libdrm.la \
-                $(DRM_PREFIX)/usr/lib/libdrm_omap.la
+                $(top_builddir)/linux/src/utils/libtiipcutils.la
 
 # the additional libraries to link ping_rpmsg
 ping_rpmsg_LDADD = -lrt
 
 # the additional libraries to link mmrpc_test
 mmrpc_test_LDADD = $(common_libraries) \
-                $(top_builddir)/linux/src/mm/libmmrpc.la
+                $(top_builddir)/linux/src/mm/libmmrpc.la \
+                $(DRM_PREFIX)/usr/lib/libdrm.la \
+                $(DRM_PREFIX)/usr/lib/libdrm_omap.la
 
 # the additional libraries needed to link MessageQApp
 MessageQApp_LDADD = $(common_libraries) \
