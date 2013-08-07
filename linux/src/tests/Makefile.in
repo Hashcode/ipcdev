@@ -46,17 +46,17 @@ bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 @OMAP54XX_SMP_TRUE@am__append_1 = 
 @KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_2 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 =
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 = 
 @DRA7XX_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_4 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_5 =
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_5 = 
 @CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_6 = nano_test
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_7 =
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_7 = 
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@am__append_8 =
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@am__append_8 = 
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 =
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 = 
 # Add platform independent apps here or above in bin_PROGRAMS
 @CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = nano_test
 @DRA7XX_FALSE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_11 = mmrpc_test
@@ -81,7 +81,9 @@ am__objects_1 =
 am_MessageQApp_OBJECTS = $(am__objects_1) MessageQApp.$(OBJEXT)
 MessageQApp_OBJECTS = $(am_MessageQApp_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
-	$(top_builddir)/linux/src/utils/libtiipcutils.la
+	$(top_builddir)/linux/src/utils/libtiipcutils.la \
+	$(DRM_PREFIX)/usr/lib/libdrm.la \
+	$(DRM_PREFIX)/usr/lib/libdrm_omap.la
 am__DEPENDENCIES_2 =
 MessageQApp_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am_MessageQBench_OBJECTS = $(am__objects_1) MessageQBench.$(OBJEXT)
@@ -140,6 +142,10 @@ AMTAR = @AMTAR@
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
         -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
+        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
+        -I$(DRM_PREFIX)/usr/include \
+        -I$(DRM_PREFIX)/usr/include/libdrm \
+        -I$(DRM_PREFIX)/usr/include/omap \
         -D_GNU_SOURCE -Wall @AM_CFLAGS@
 
 AM_LDFLAGS = @AM_LDFLAGS@
@@ -165,6 +171,10 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DRA7XX_FALSE = @DRA7XX_FALSE@
 DRA7XX_TRUE = @DRA7XX_TRUE@
+DRMLIB_PREFIX = @DRMLIB_PREFIX@
+DRM_FALSE = @DRM_FALSE@
+DRM_PREFIX = @DRM_PREFIX@
+DRM_TRUE = @DRM_TRUE@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -291,7 +301,9 @@ NameServerApp_SOURCES = $(nameServer_common_sources)
 # list of sources for the 'nano_test' binary
 nano_test_SOURCES = $(common_sources) nano_test.c
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+                $(top_builddir)/linux/src/utils/libtiipcutils.la \
+                $(DRM_PREFIX)/usr/lib/libdrm.la \
+                $(DRM_PREFIX)/usr/lib/libdrm_omap.la
 
 
 # the additional libraries to link ping_rpmsg

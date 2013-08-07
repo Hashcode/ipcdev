@@ -151,6 +151,10 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DRA7XX_FALSE = @DRA7XX_FALSE@
 DRA7XX_TRUE = @DRA7XX_TRUE@
+DRMLIB_PREFIX = @DRMLIB_PREFIX@
+DRM_FALSE = @DRM_FALSE@
+DRM_PREFIX = @DRM_PREFIX@
+DRM_TRUE = @DRM_TRUE@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -353,7 +357,7 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-lad_dra7xx$(EXEEXT): $(lad_dra7xx_OBJECTS) $(lad_dra7xx_DEPENDENCIES)
+lad_dra7xx$(EXEEXT): $(lad_dra7xx_OBJECTS) $(lad_dra7xx_DEPENDENCIES) 
 	@rm -f lad_dra7xx$(EXEEXT)
 	$(LINK) $(lad_dra7xx_LDFLAGS) $(lad_dra7xx_OBJECTS) $(lad_dra7xx_LDADD) $(LIBS)
 lad_omap54xx_smp$(EXEEXT): $(lad_omap54xx_smp_OBJECTS) $(lad_omap54xx_smp_DEPENDENCIES) 
