@@ -53,6 +53,9 @@ PLATFORM ?=
 # Path to TI Linux Utils package to locate the pre-built CMEM libraries (optional):
 CMEM_INSTALL_DIR ?=
 
+# Path to DRM Library
+DRM_PREFIX ?=/
+
 #################### IPC QNX ####################
 
 # Set up path to QNX tools installation
