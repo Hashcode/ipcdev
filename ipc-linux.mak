@@ -41,7 +41,9 @@ config:
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
-            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
+            DRM_PREFIX=$(DRM_PREFIX)
+
 
 config-static:
 	@echo "Configuring Linux Ipc static only libaries ..."
@@ -49,7 +51,8 @@ config-static:
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
-            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
+            DRM_PREFIX=$(DRM_PREFIX)
 
 
 config-shared:
@@ -58,4 +61,5 @@ config-shared:
             CC=$(TOOLCHAIN_PREFIX)gcc \
             PLATFORM=$(PLATFORM) \
             CMEM_INSTALL_DIR=$(CMEM_INSTALL_DIR) \
-            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR)
+            KERNEL_INSTALL_DIR=$(KERNEL_INSTALL_DIR) \
+            DRM_PREFIX=$(DRM_PREFIX)

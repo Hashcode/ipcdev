@@ -34,6 +34,10 @@
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
         -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
+        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/packages \
+        -I$(DRM_PREFIX)/usr/include \
+        -I$(DRM_PREFIX)/usr/include/libdrm \
+        -I$(DRM_PREFIX)/usr/include/omap \
         -D_GNU_SOURCE -Wall @AM_CFLAGS@
 VPATH = ../../../packages/ti/ipc/tests
 
@@ -129,7 +133,9 @@ NameServerApp_SOURCES = $(nameServer_common_sources)
 nano_test_SOURCES = $(common_sources) nano_test.c
 
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+                $(top_builddir)/linux/src/utils/libtiipcutils.la \
+                $(DRM_PREFIX)/usr/lib/libdrm.la \
+                $(DRM_PREFIX)/usr/lib/libdrm_omap.la
 
 # the additional libraries to link ping_rpmsg
 ping_rpmsg_LDADD = -lrt
