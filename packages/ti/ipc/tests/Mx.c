@@ -165,7 +165,11 @@ int32_t Mx_add(int32_t a, int32_t b)
 /*
  *  ======== Mx_compute ========
  */
-int32_t Mx_compute(Mx_Compute *compute)
+#if defined(SYSLINK_BUILDOS_QNX)
+int32_t Mx_compute_QnX(Mx_Compute *compute)
+#else
+int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
+#endif
 {
     MmRpc_FxnCtx *fxnCtx;
     MmRpc_Xlt xltAry[2];
@@ -184,7 +188,7 @@ int32_t Mx_compute(Mx_Compute *compute)
 #if defined(SYSLINK_BUILDOS_QNX)
     fxnCtx->params[0].param.ptr.handle = NULL;
 #else
-/*  fxnCtx->params[0].param.ptr.handle = ...; */
+    fxnCtx->params[0].param.ptr.handle = fd;
 #endif
 
     fxnCtx->num_xlts = 2;
@@ -195,7 +199,7 @@ int32_t Mx_compute(Mx_Compute *compute)
 #if defined(SYSLINK_BUILDOS_QNX)
     fxnCtx->xltAry[0].handle = NULL;
 #else
-/*  fxnCtx->xltAry[0].handle = ...; */
+    fxnCtx->xltAry[0].handle = fdIn;
 #endif
 
     fxnCtx->xltAry[1].index = 0;
@@ -203,7 +207,7 @@ int32_t Mx_compute(Mx_Compute *compute)
 #if defined(SYSLINK_BUILDOS_QNX)
     fxnCtx->xltAry[1].handle = NULL;
 #else
-/*  fxnCtx->xltAry[1].handle = ...; */
+    fxnCtx->xltAry[1].handle = fdOut;
 #endif
 
     /* invoke the remote function call */

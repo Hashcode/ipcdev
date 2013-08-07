@@ -90,12 +90,24 @@ int32_t Mx_triple(uint32_t a);
  */
 int32_t Mx_add(int32_t a, int32_t b);
 
+#if defined(SYSLINK_BUILDOS_QNX)
 /*!
  *  @brief      Sample function which has pointer parameter to
  *              a structure with two embedded pointers.
+ *              QnX version.
  */
-int32_t Mx_compute(Mx_Compute *compute);
+int32_t Mx_compute_QnX(Mx_Compute *compute);
 
+#else /* Linux */
+
+/*!
+ *  @brief      Sample function which has pointer parameter (DMA_BUF) to
+ *              a structure with two embedded pointers.
+ *              Linux version.
+ */
+int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut);
+
+#endif
 
 #if defined(__cplusplus)
 }
