@@ -179,19 +179,23 @@ Int Ipc_attach (UInt16 remoteProcId)
 
         status = ProcMgr_open(&procHandle, remoteProcId);
         if (status >= 0) {
-            status = RscTable_update(remoteProcId, procHandle);
+            /* get IPC VRING information */
+            status = RscTable_getInfo(remoteProcId, TYPE_VDEV, 0, NULL,
+                                      NULL, &numVrings);
             if (status >= 0) {
-                /* get IPC VRING information */
-                status = RscTable_getInfo(remoteProcId, TYPE_VDEV, 0, NULL,
-                                          NULL,&numVrings);
+                status = RscTable_getInfo(remoteProcId, TYPE_VDEV, 1,
+                                          &vringAddr, NULL, NULL);
                 if (status >= 0) {
-                    status = RscTable_getInfo(remoteProcId, TYPE_VDEV, 1,
-                                              &vringAddr, NULL, NULL);
+                    status = MessageQCopy_attach(remoteProcId,
+                                                 (Ptr)vringAddr, 0);
                     if (status >= 0) {
-                        status = MessageQCopy_attach(remoteProcId,
-                                                     (Ptr)vringAddr, 0);
+                        status = RscTable_setStatus(remoteProcId, 7);
                     }
                 }
+            }
+
+            if (status >= 0) {
+                status = RscTable_update(remoteProcId, procHandle);
             }
             ProcMgr_close(&procHandle);
         }

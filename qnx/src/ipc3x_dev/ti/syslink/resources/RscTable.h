@@ -146,6 +146,8 @@ Int RscTable_update (UInt16 procId, ProcMgr_Handle procHandle);
 
 Int RscTable_free (RscTable_Handle * handle);
 
+Int RscTable_setStatus (UInt16 procId, UInt32 value);
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */

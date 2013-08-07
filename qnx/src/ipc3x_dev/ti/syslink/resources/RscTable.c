@@ -1090,6 +1090,32 @@ RscTable_free (RscTable_Handle * handle)
     return status;
 }
 
+Int RscTable_setStatus(UInt16 procId, UInt32 value)
+{
+    Int i;
+    Int status = 0;
+
+    RscTable_Object * obj = (RscTable_Object *)RscTable_state.handles[procId];
+    RscTable_Header * table = (RscTable_Header *)obj->rscTable;
+
+    /* Look for the vdev entry and update the status */
+    for (i = 0; i < table->num; i++) {
+        RscTable_MemEntry * entry =
+                (RscTable_MemEntry *)((UInt32)table + table->offset[i]);
+        if (entry->type == TYPE_VDEV) {
+            struct fw_rsc_vdev *vdev = (struct fw_rsc_vdev *)entry;
+            vdev->status = value;
+            break;
+        }
+    }
+
+    if (i == table->num) {
+        status = RSCTABLE_E_FAIL;
+    }
+
+    return status;
+}
+
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
