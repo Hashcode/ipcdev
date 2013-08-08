@@ -104,6 +104,7 @@ typedef struct MmRpc_Object *MmRpc_Handle;
 typedef enum {
     MmRpc_ParamType_Scalar = 1, /*!< pass by value */
     MmRpc_ParamType_Ptr,        /*!< data pointer */
+    MmRpc_ParamType_OffPtr,     /*!< buffer at offset in memory block */
     MmRpc_ParamType_Elem        /*!< array element */
 } MmRpc_ParamType;
 
@@ -124,6 +125,13 @@ typedef struct {
             size_t      addr;   /*!< pointer value */
             size_t      handle; /*!< memory allocator handle */
         } ptr;
+
+        struct {
+            size_t      size;   /*!< size (bytes) of memory block */
+            size_t      base;   /*!< base address of memory block */
+            size_t      offset; /*!< offset (bytes) from base to data */
+            size_t      handle; /*!< memory allocator handle */
+        } offPtr;
 
 #if 0 /* TBD */
         struct {

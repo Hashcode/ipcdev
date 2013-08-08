@@ -219,6 +219,15 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].reserved = param->param.ptr.handle;
                 break;
 
+            case MmRpc_ParamType_OffPtr:
+                rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
+                rpfxn->params[i].size = param->param.offPtr.size;
+                rpfxn->params[i].data = param->param.offPtr.base +
+                        param->param.offPtr.offset;
+                rpfxn->params[i].base = param->param.offPtr.base;
+                rpfxn->params[i].reserved = param->param.offPtr.handle;
+                break;
+
 #if 0 /* TBD */
             case MmRpc_ParamType_Elem:
                 rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
