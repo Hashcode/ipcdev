@@ -16879,6 +16879,10 @@ if test "x$PLATFORM" = "x"; then
   DRM_PREFIX=
 fi
 
+if test "x$PLATFORM" = "x"; then
+  CMEM_INSTALL_DIR=
+fi
+
 
 # Export optional user variable to Makefile(s)
 

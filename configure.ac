@@ -109,6 +109,7 @@ AS_IF([test "x$PLATFORM" = "xdra7xx"],
 # Ignore KERNEL path when no platform is set
 AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
 AS_IF([test "x$PLATFORM" = "x"], [DRM_PREFIX=])
+AS_IF([test "x$PLATFORM" = "x"], [CMEM_INSTALL_DIR=])
 
 # Export optional user variable to Makefile(s)
 AC_SUBST([PLATFORM])
