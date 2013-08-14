@@ -269,6 +269,8 @@ Int32 MxServer_skel_compute(UInt32 size, UInt32 *data)
     payload = (MmType_Param *)data;
     compute = (MxServer_Compute *)payload[0].data;
 
+    Cache_inv(compute, sizeof(MxServer_Compute), Cache_Type_ALL, TRUE);
+
 #if CHATTER
     System_printf("skel_compute: compute=0x%x\n", compute);
     System_printf("skel_compute: compute size=%d\n", (Int)payload[0].size);
@@ -283,6 +285,11 @@ Int32 MxServer_skel_compute(UInt32 size, UInt32 *data)
             Cache_Type_ALL, TRUE);
     Cache_inv(compute->outBuf, compute->size * sizeof(uint32_t),
             Cache_Type_ALL, TRUE);
+
+#if CHATTER
+    System_printf("skel_compute: outBuf[0]=0x%x\n", compute->outBuf[0]);
+    System_printf("skel_compute: inBuf[0]=0x%x\n", compute->inBuf[0]);
+#endif
 
     /* invoke the implementation function */
     result = MxServer_compute(compute);
