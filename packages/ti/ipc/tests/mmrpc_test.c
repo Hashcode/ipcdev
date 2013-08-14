@@ -270,9 +270,6 @@ static int callCompute_Linux()
     printf("mmrpc_test: compute->inBuf=0x%x\n", (unsigned int)compute->inBuf);
     printf("mmrpc_test: compute->outBuf=0x%x\n", (unsigned int)compute->outBuf);
 
-    printf("^Z, check compute struct w/ omapconf, hit return \n");
-    getchar();
-
     /* process the buffer */
     ret = Mx_compute_Linux(compute, omap_bo_dmabuf(compute_bo),
                                     omap_bo_dmabuf(inBuf_bo),
