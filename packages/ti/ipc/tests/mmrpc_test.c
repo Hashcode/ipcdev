@@ -64,7 +64,7 @@ static int callCompute_QnX()
 {
     Mx_Compute *compute;
     shm_buf shmCompute, shmInBuf, shmOutBuf;
-    int status;
+    int status = 0;
     int size;
     int32_t ret;
     uint32_t val;
@@ -176,7 +176,7 @@ static int callCompute_Linux()
     struct omap_bo *outBuf_bo = NULL;
     uint32_t * inBufPtr = NULL;
     uint32_t * outBufPtr = NULL;
-    int status;
+    int status = 0;
     int size;
     uint32_t val;
     int i;
