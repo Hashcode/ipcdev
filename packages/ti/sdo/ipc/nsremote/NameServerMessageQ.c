@@ -63,6 +63,8 @@
                         (xdc_target__bitsPerChar / 8))
 #define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
 
+#define MESSAGEQ_INDEX 0
+
 /* message sent to remote procId */
 typedef struct NameServerMsg {
     MessageQ_MsgHeader header;  /* message header                   */
@@ -117,7 +119,7 @@ Void NameServerMessageQ_Instance_finalize(NameServerMessageQ_Object *obj)
  */
 Int NameServerMessageQ_Module_startup(Int phase)
 {
-    MessageQ_Params  messageQParams;
+    MessageQ_Params2  messageQParams;
 
     /* Ensure MessageQ and SyncSwi Module_startup() have completed */
     if ((ti_sdo_ipc_MessageQ_Module_startupDone() == FALSE) ||
@@ -126,10 +128,11 @@ Int NameServerMessageQ_Module_startup(Int phase)
     }
 
     /* Create the message queue for NameServer using SyncSwi */
-    MessageQ_Params_init(&messageQParams);
+    MessageQ_Params2_init(&messageQParams);
     messageQParams.synchronizer = NameServerMessageQ_module->syncSwiHandle;
+    messageQParams.queueIndex = MESSAGEQ_INDEX;
     NameServerMessageQ_module->msgHandle =
-        (ti_sdo_ipc_MessageQ_Handle)MessageQ_create(NULL, &messageQParams);
+        (ti_sdo_ipc_MessageQ_Handle)MessageQ_create2(NULL, &messageQParams);
 
     /* assert msgHandle is not null */
     Assert_isTrue(NameServerMessageQ_module->msgHandle != NULL,
@@ -137,7 +140,7 @@ Int NameServerMessageQ_Module_startup(Int phase)
 
     /* assert this is the first MessageQ created */
     Assert_isTrue((MessageQ_getQueueId((MessageQ_Handle)
-        NameServerMessageQ_module->msgHandle) & 0xffff) == 0,
+        NameServerMessageQ_module->msgHandle) & 0xffff) == MESSAGEQ_INDEX,
         NameServerMessageQ_A_reservedMsgQueueId);
 
     return (Startup_DONE);
@@ -252,7 +255,7 @@ Int NameServerMessageQ_get(NameServerMessageQ_Object *obj,
     strncpy((Char *)msg->name, name, len);
 
     /* determine the queueId based upon the processor */
-    queueId = (UInt32)obj->remoteProcId << 16;
+    queueId = MessageQ_openQueueId(MESSAGEQ_INDEX, obj->remoteProcId);
 
     /* set the reply procId */
     MessageQ_setReplyQueue(

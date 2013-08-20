@@ -410,7 +410,7 @@ typedef UInt16 MessageQ_QueueIndex;
 typedef struct MessageQ_Object *MessageQ_Handle;
 
 /*!
- *  @brief  Structure defining parameters for the MessageQ module.
+ *  @brief  Structure defining parameters for MessageQ_create().
  */
 typedef struct {
     Void *synchronizer;
@@ -423,6 +423,39 @@ typedef struct {
      */
 
 } MessageQ_Params;
+
+/*!
+ *  @brief  Structure defining parameters for MessageQ_create2().
+ *
+ *  MessageQ_Params2 is a superset of MessageQ_Params. It is used
+ *  with MessageQ_create2().
+ */
+typedef struct {
+    Void *synchronizer;
+    /*!< Synchronizer instance used to signal IO completion
+     *
+     *  The synchronizer is used in MessageQ_put() and MessageQ_get().
+     *  The synchronizer signal is called as part of MessageQ_put().
+     *  The synchronizer waits in MessageQ_get() if there are no messages
+     *  present.
+     */
+
+     MessageQ_QueueIndex queueIndex;
+     /*!< Value used to specify the index in the MessageQ array
+      *
+      *  This parameter allows an application to specify a queueIndex to
+      *  be used for a message queue. To use this functionality, the
+      *  MessageQ.numReservedEntries static configuration parameter must be
+      *  set to one more than the highest requested queueIndex. The
+      *  MessageQ.numReservedEntries parameter reserves that number of
+      *  message queue slots starting at 0 and proceeding to
+      *  (MessageQ.numReservedEntries - 1).
+      *
+      *  The default is MessageQ_ANY, which means it is not taken from the
+      *  reserved slots.
+      */
+
+} MessageQ_Params2;
 
 /*!
  *  @brief      Required first field in every message
@@ -454,10 +487,25 @@ typedef MessageQ_MsgHeader *MessageQ_Msg;
 typedef enum {
     MessageQ_NORMALPRI      = 0,    /*!< Normal Priority                  */
     MessageQ_HIGHPRI        = 1,    /*!< High Priority                    */
-    MessageQ_RESERVEDPRI    = 2,    /*!< Reserved Priority                 */
+    MessageQ_RESERVEDPRI    = 2,    /*!< Reserved Priority                */
     MessageQ_URGENTPRI      = 3     /*!< Urgent Priority                  */
 } MessageQ_Priority;
 
+/*!
+ *  @brief      Denotes any queueId is acceptable.
+ *
+ *  This constant is the default for the queueId in the MessageQ_Params2
+ *  structure.
+ */
+#define MessageQ_ANY (Bits16)~(0)
+
+/*!
+ *  @brief      Free hook prototype
+ *
+ *  @param[in]  heapId      heapId of message that was freed
+ *  @param[in]  msgId       msgId of message that was freed
+ */
+typedef Void (*MessageQ_FreeHookFxn)(Bits16 heapId, Bits16 msgId);
 
 /* =============================================================================
  *  MessageQ Module-wide Functions
@@ -472,10 +520,17 @@ typedef enum {
 Void MessageQ_Params_init(MessageQ_Params *params);
 
 /*!
+ *  @brief      Initialize MessageQ_Params2
+ *
+ *  @param[in]  params      Parameters required to create a MessageQ
+ */
+Void MessageQ_Params2_init(MessageQ_Params2 *params);
+
+/*!
  *  @brief      Create a MessageQ instance
  *
  *  The name supplied here does not have to be in persistent memory.  The
- *  maximum length of the string supplied here, including the '\\0' terminator
+ *  maximum length of the string supplied here, including the '\\0' terminator,
  *  is '32' by default.
  *
  *  There are no verifications to ensure that the name supplied in
@@ -488,6 +543,24 @@ Void MessageQ_Params_init(MessageQ_Params *params);
  *  @return     MessageQ Handle
  */
 MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params);
+
+/*!
+ *  @brief      Create a MessageQ instance with the MessageQ_Params2 structure
+ *
+ *  The name supplied here does not have to be in persistent memory.  The
+ *  maximum length of the string supplied here, including the '\\0' terminator,
+ *  is '32' by default.
+ *
+ *  There are no verifications to ensure that the name supplied in
+ *  MessageQ_create2() is unique across all processors. Caution must be exercised
+ *  to ensure that each processor uses a unique name.
+ *
+ *  @param[in]  name        Name of the queue
+ *  @param[in]  params      Initialized MessageQ_Params2
+ *
+ *  @return     MessageQ Handle
+ */
+MessageQ_Handle MessageQ_create2(String name, const MessageQ_Params2 *params);
 
 /*!
  *  @brief      Delete a created MessageQ instance
@@ -522,6 +595,41 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr);
  *              - #MessageQ_S_SUCCESS: open successful
  */
 Int MessageQ_open(String name, MessageQ_QueueId *queueId);
+
+/*!
+ *  @brief      Opens a MessageQ given the queue index and remote processor id
+ *
+ *  This function can be used instead of MessageQ_open() if the queue was created
+ *  with a specified QueueIndex.
+ *
+ *      @code
+ *      #define SERVERQUEUEINDEX  1
+ *      #define SERVERMULTIPROCID 2
+ *
+ *      serverFxn() {
+ *          MessageQ_Params2 params2;
+ *
+ *          MessageQ_Params2_init(&params2);
+ *          params2.queueIndex = SERVERQUEUEINDEX;
+ *          messageQ = MessageQ_create2("server", &params2);
+ *          ...
+ *
+ *      clientFxn() {
+ *          MessageQ_QueueId serverQueue;
+ *          serverQueue = MessageQ_openQueueId(SERVERQUEUEINDEX, SERVERMULTIPROCID);
+ *      @endcode
+ *
+ *  It is up to the application to guarantee that the queue that is being opened
+ *  has already been created.  MessageQ_openQueueId() does not validate that
+ *  the queue has been created (unlike the MessageQ_open() function).
+ *
+ *  @param[in] queueIndex   QueueIndex specified in MessageQ_Params2
+ *  @param[in] remoteProcId Multiproc_Id of where the created queue resides
+ *
+ *  @return     The MessageQ_QueueId associated with the queueIndex
+ *              and remoteProcId
+ */
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 remoteProcId);
 
 /*!
  *  @brief      Close the opened handle
@@ -654,6 +762,26 @@ Void MessageQ_setMsgTrace(MessageQ_Msg msg, Bool traceFlag);
  *  @pre    @c size must be at least large enough to hold a #MessageQ_MsgHeader
  */
 Void MessageQ_staticMsgInit(MessageQ_Msg msg, UInt32 size);
+
+/*!
+ *  @brief      Sets MessageQ's free hook function.
+ *
+ *  This API allows a user to specify a hook function which is called within
+ *  MessageQ_free(). The hook is called after a message is freed back to the
+ *  associated heap. The two parameters to the hook function are the heapId
+ *  and the msgId of the freed message.
+ *
+ *  The function is called within MessageQ_free(), so care must be taken to
+ *  minimize any performance or calling context impact.
+ *
+ *  MessageQ_setFreeHookFxn() is not thread safe. It should only
+ *  be called when no MessageQ_free()'s are happening.
+ *
+ *  To disable the hook function, call MessageQ_setFreeHookFxn() with NULL.
+ *
+ *  @param[in]  freeHookFxn  function to be called within MessageQ_free()
+ */
+Void MessageQ_setFreeHookFxn(MessageQ_FreeHookFxn freeHookFxn);
 
 /* =============================================================================
  *  MessageQ Per-instance Functions

@@ -119,13 +119,20 @@ function module$static$init(mod, params)
 
     /*
      *  If no growth allowed, pre-allocate the max length
+     *  Also pre-allocate if numReservedEntries is not zero.
+     *  maxRuntimeEntries < numReservedEntries is caught in validate.
      */
     mod.numQueues = this.$instances.length;
     if (params.maxRuntimeEntries != NameServer.ALLOWGROWTH) {
         mod.numQueues += params.maxRuntimeEntries;
     }
+    else if (params.numReservedEntries != 0){
+        mod.numQueues += params.numReservedEntries;
+    }
+
     mod.queues.length = mod.numQueues;
     mod.canFreeQueues = false;
+    mod.freeHookFxn   = params.freeHookFxn;
 
     if (params.nameTableGate == null) {
          mod.gate = null;
@@ -484,4 +491,20 @@ function viewInitModule(view, mod)
      * that will be used.
      */
     view.nextSeqNum = mod.seqNum;
+
+    /* Display the freeHookFxn if there is one. */
+    if (Number(mod.freeHookFxn) != 0 ) {
+        view.freeHookFxn = Program.lookupFuncName(Number(mod.freeHookFxn));
+    }
+}
+
+function module$validate()
+{
+    if ((MessageQ.maxRuntimeEntries != NameServer.ALLOWGROWTH) &&
+        (MessageQ.maxRuntimeEntries < MessageQ.numReservedEntries)) {
+        MessageQ.$logFatal(
+            "If MessageQ.maxRuntimeEntries is not NameServer.ALLOWGROWTH, " +
+            "it cannot be less than MessageQ.numReservedEntries.",
+            MessageQ);
+    }
 }

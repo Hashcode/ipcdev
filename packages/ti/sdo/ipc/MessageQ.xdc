@@ -196,6 +196,7 @@ module MessageQ
         String               heaps[];
         String               gate;
         UInt16               nextSeqNum;
+        String               freeHookFxn[];
     }
 
     /*!
@@ -334,6 +335,15 @@ module MessageQ
         msg: "LM_get: Message 0x%x (seqNum = %d, srcProc = %d) was received by queue 0x%x"
     };
 
+    /*!
+     *  ======== FreeHookFxn ========
+     *  Function prototype for the MessageQ_free callback
+     *
+     *  @param(Bits16)  heapId of message that was freed
+     *  @param(Bits16)  msgId of message that was freed
+     */
+    typedef Void (*FreeHookFxn)(Bits16, Bits16);
+
     /*! MessageQ ID */
     typedef UInt32 QueueId;
 
@@ -351,6 +361,15 @@ module MessageQ
     const UInt HIGHPRI     = 1;
     const UInt RESERVEDPRI = 2;
     const UInt URGENTPRI   = 3;
+
+    /*!
+     *  Denotes any queueId is acceptable
+     *
+     *  This constant is the default for the {@link #queueId} parameter.
+     *  This value must match ti/ipc/MessageQ.h but is needed to initialize
+     *  queueId.
+     */
+    const Bits16 ANY = ~(0);
 
     /*!
      *  Assert raised when calling API with wrong handle
@@ -452,6 +471,13 @@ module MessageQ
     };
 
     /*!
+     *  Error raised if the requested queueIndex is not available
+     */
+    config Error.Id E_indexNotAvailable  = {
+        msg: "E_indexNotAvailable: queueIndex %d not available"
+    };
+
+    /*!
      *  Trace setting
      *
      *  This flag allows the configuration of the default module trace
@@ -474,6 +500,20 @@ module MessageQ
      *  Maximum number of MessageQs that can be dynamically created
      */
     config UInt maxRuntimeEntries = NameServer.ALLOWGROWTH;
+
+    /*!
+     *  Number of reserved MessageQ indexes
+     *
+     *  An application can request the first N message queue indexes be
+     *  reserved to be used by MessageQ_create2. MessageQ_create will
+     *  not use these slots. The application can use any index less than
+     *  the value of numReservedEntries for the queueIndex field in the
+     *  MessageQ_Params2 structure.
+     *
+     *  numReservedEntries must be equal or less than
+     *  {@link #maxRuntimeEntries}.
+     */
+    config UInt numReservedEntries = 0;
 
     /*!
      *  Gate used to make the name table thread safe
@@ -501,6 +541,12 @@ module MessageQ
      *  Section name is used to place the names table
      */
     metaonly config String tableSection = null;
+
+    /*!
+     *  ======== freeHookFxn ========
+     *  Free function in MessageQ_free after message was freed back to the heap
+     */
+    config FreeHookFxn freeHookFxn = null;
 
     /*!
      *  ======== registerHeapMeta ========
@@ -562,6 +608,20 @@ instance:
      *  called in the {@link #get} if there are no messages present.
      */
     config ISync.Handle synchronizer = null;
+
+    /*!
+     *  Requested MessageQ_QueueIndex
+     *
+     *  This parameter allows an application to specify the queueIndex to
+     *  be used for a message queue. To use this functionality, the
+     *  MessageQ.numReservedEntries static configuration parameter must be set to
+     *  a specific value.
+     *
+     *  The default is {@link #ANY}. This means do that you are not asking for
+     *  an explicit index. MessageQ will find the first available one which is
+     *  equal or greater than MessageQ.numReservedEntries.
+     */
+    config UInt16 queueIndex = ANY;
 
     /*! @_nodoc
      *  ======== create ========
@@ -688,6 +748,7 @@ internal:
         UInt16               numQueues;
         UInt16               numHeaps;
         NameServer.Handle    nameServer;
+        FreeHookFxn          freeHookFxn;
         Bool                 canFreeQueues;
         UInt16               seqNum;
     };

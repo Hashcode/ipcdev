@@ -64,17 +64,21 @@
 
 #ifdef __ti__
     #pragma FUNC_EXT_CALLED(MessageQ_Params_init);
+    #pragma FUNC_EXT_CALLED(MessageQ_Params2_init);
     #pragma FUNC_EXT_CALLED(MessageQ_alloc);
     #pragma FUNC_EXT_CALLED(MessageQ_close);
     #pragma FUNC_EXT_CALLED(MessageQ_count);
     #pragma FUNC_EXT_CALLED(MessageQ_create);
+    #pragma FUNC_EXT_CALLED(MessageQ_create2);
     #pragma FUNC_EXT_CALLED(MessageQ_delete);
     #pragma FUNC_EXT_CALLED(MessageQ_open);
+    #pragma FUNC_EXT_CALLED(MessageQ_openQueueId);
     #pragma FUNC_EXT_CALLED(MessageQ_free);
     #pragma FUNC_EXT_CALLED(MessageQ_get);
     #pragma FUNC_EXT_CALLED(MessageQ_getQueueId);
     #pragma FUNC_EXT_CALLED(MessageQ_put);
     #pragma FUNC_EXT_CALLED(MessageQ_registerHeap);
+    #pragma FUNC_EXT_CALLED(MessageQ_setFreeHookFxn);
     #pragma FUNC_EXT_CALLED(MessageQ_setReplyQueue);
     #pragma FUNC_EXT_CALLED(MessageQ_setMsgTrace);
     #pragma FUNC_EXT_CALLED(MessageQ_staticMsgInit);
@@ -116,6 +120,15 @@ static Void MessageQ_msgInit(MessageQ_Msg msg)
 Void MessageQ_Params_init(MessageQ_Params *params)
 {
     params->synchronizer = NULL;
+}
+
+/*
+ *  ======== MessageQ_Params2_init ========
+ */
+Void MessageQ_Params2_init(MessageQ_Params2 *params)
+{
+    params->synchronizer = NULL;
+    params->queueIndex = MessageQ_ANY;
 }
 
 /*
@@ -206,6 +219,26 @@ Int MessageQ_close(MessageQ_QueueId *queueId)
  */
 MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
 {
+    MessageQ_Handle handle;
+    MessageQ_Params2 params2;
+
+    MessageQ_Params2_init(&params2);
+
+    /* Use the MessageQ_Params fields if not NULL */
+    if (params != NULL) {
+        params2.synchronizer = params->synchronizer;
+    }
+
+    handle = MessageQ_create2(name, &params2);
+
+    return ((MessageQ_Handle)handle);
+}
+
+/*
+ *  ======== MessageQ_create2 ========
+ */
+MessageQ_Handle MessageQ_create2(String name, const MessageQ_Params2 *params)
+{
     ti_sdo_ipc_MessageQ_Handle handle;
     ti_sdo_ipc_MessageQ_Params prms;
     Error_Block eb;
@@ -216,6 +249,7 @@ MessageQ_Handle MessageQ_create(String name, const MessageQ_Params *params)
         ti_sdo_ipc_MessageQ_Params_init(&prms);
 
         prms.synchronizer = params->synchronizer;
+        prms.queueIndex = params->queueIndex;
 
         handle = ti_sdo_ipc_MessageQ_create(name, &prms, &eb);
     }
@@ -246,6 +280,8 @@ Int MessageQ_delete(MessageQ_Handle *handlePtr)
 Int MessageQ_free(MessageQ_Msg msg)
 {
     IHeap_Handle heap;
+    Bits16 msgId;
+    Bits16 heapId;
 
     /* make sure msg is not NULL */
     Assert_isTrue((msg != NULL), ti_sdo_ipc_MessageQ_A_invalidMsg);
@@ -269,7 +305,12 @@ Int MessageQ_free(MessageQ_Msg msg)
     heap = MessageQ_module->heaps[msg->heapId];
 
     if (heap != NULL) {
+        msgId = MessageQ_getMsgId(msg);
+        heapId = msg->heapId;
         Memory_free(heap, msg, msg->msgSize);
+        if (MessageQ_module->freeHookFxn != NULL) {
+            MessageQ_module->freeHookFxn(heapId, msgId);
+        }
     }
     else {
         return (MessageQ_E_FAIL);
@@ -361,6 +402,18 @@ Int MessageQ_open(String name, MessageQ_QueueId *queueId)
     else {
         return (MessageQ_E_NOTFOUND);   /* name not found */
     }
+}
+
+/*
+ *  ======== MessageQ_openQueueId ========
+ */
+MessageQ_QueueId MessageQ_openQueueId(UInt16 queueIndex, UInt16 remoteProcId)
+{
+    MessageQ_QueueId queueId;
+
+    queueId = ((MessageQ_QueueId)(remoteProcId) << 16) | queueIndex;
+
+    return (queueId);
 }
 
 /*
@@ -506,6 +559,14 @@ Int MessageQ_registerHeap(Ptr heap, UInt16 heapId)
     Hwi_restore(key);
 
     return (status);
+}
+
+/*
+ *  ======== MessageQ_setFreeHookFxn ========
+ */
+Void MessageQ_setFreeHookFxn(MessageQ_FreeHookFxn freeHookFxn)
+{
+    MessageQ_module->freeHookFxn = freeHookFxn;
 }
 
 /*
@@ -703,15 +764,31 @@ Int ti_sdo_ipc_MessageQ_Instance_init(ti_sdo_ipc_MessageQ_Object *obj, String na
     /* lock */
     key = IGateProvider_enter(MessageQ_module->gate);
 
-    start = ti_sdo_ipc_MessageQ_Object_count();
-    count = MessageQ_module->numQueues;
+    if (params->queueIndex != MessageQ_ANY) {
+        queueIndex = params->queueIndex;
 
-    /* Search the dynamic array for any holes */
-    for (i = start; (i < count) && (found == FALSE); i++) {
-        if (MessageQ_module->queues[i] == NULL) {
-            MessageQ_module->queues[i] = obj;
-            queueIndex = i;
-            found = TRUE;
+        if ((queueIndex >= ti_sdo_ipc_MessageQ_numReservedEntries) ||
+            (MessageQ_module->queues[queueIndex] != NULL)) {
+            IGateProvider_leave(MessageQ_module->gate, key);
+            Error_raise(eb, ti_sdo_ipc_MessageQ_E_indexNotAvailable,
+                queueIndex, 0);
+            return (5);
+        }
+        MessageQ_module->queues[queueIndex] = obj;
+        found = TRUE;
+    }
+    else {
+
+        start = ti_sdo_ipc_MessageQ_numReservedEntries;
+        count = MessageQ_module->numQueues;
+
+        /* Search the dynamic array for any holes */
+        for (i = start; (i < count) && (found == FALSE); i++) {
+            if (MessageQ_module->queues[i] == NULL) {
+                MessageQ_module->queues[i] = obj;
+                queueIndex = i;
+                found = TRUE;
+            }
         }
     }
 
@@ -799,6 +876,11 @@ Void ti_sdo_ipc_MessageQ_Instance_finalize(
     UInt key;
     MessageQ_QueueIndex index = (MessageQ_QueueIndex)(obj->queue);
     List_Handle listHandle;
+
+    /* Requested queueId was not available. Nothing was done in the init */
+    if (status == 5) {
+        return;
+    }
 
     if (obj->syncSemHandle != NULL) {
         SyncSem_delete(&obj->syncSemHandle);

@@ -41,6 +41,7 @@ var Clock = null;
 var Ipc = null;
 var SyncSwi = null;
 var GateMutex = null;
+var MessageQ = null;
 
 /*
  *  ======== module$use ========
@@ -55,6 +56,7 @@ function module$use()
     Ipc             = xdc.useModule("ti.sdo.ipc.Ipc");
     SyncSwi         = xdc.useModule("ti.sysbios.syncs.SyncSwi");
     GateMutex       = xdc.useModule("ti.sysbios.gates.GateMutex");
+    MessageQ        = xdc.useModule("ti.sdo.ipc.MessageQ");
 }
 
 /*
@@ -90,4 +92,15 @@ function module$static$init(mod, params)
 
     /* create GateMutex */
     mod.gateMutex = GateMutex.create();
+}
+
+function module$validate()
+{
+    if (MessageQ.numReservedEntries == 0) {
+        NameServerMessageQ.$logFatal(
+            "NameServerMessageQ is using MessageQ_create2 and requesting " +
+            "queueIndex 0. However MessageQ.numReservedEntries is zero. " +
+            "MessageQ.numReservedEntries must be increased to at least 1",
+            NameServerMessageQ);
+    }
 }
