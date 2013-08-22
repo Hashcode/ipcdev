@@ -461,7 +461,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR DRMLIB_PREFIX DRM_PREFIX OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6636_TRUE TCI6636_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE DRA7XX_TRUE DRA7XX_FALSE CMEM_TRUE CMEM_FALSE KDIR_TRUE KDIR_FALSE DRM_TRUE DRM_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE EGREP LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CXXCPP LIBTOOL AM_CFLAGS AM_LDFLAGS PLATFORM CMEM_INSTALL_DIR KERNEL_INSTALL_DIR DRM_PREFIX OMAPL138_TRUE OMAPL138_FALSE TCI6614_TRUE TCI6614_FALSE TCI6636_TRUE TCI6636_FALSE TCI6638_TRUE TCI6638_FALSE OMAP54XX_SMP_TRUE OMAP54XX_SMP_FALSE DRA7XX_TRUE DRA7XX_FALSE CMEM_TRUE CMEM_FALSE KDIR_TRUE KDIR_FALSE DRM_TRUE DRM_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -946,10 +946,10 @@ ac_env_KERNEL_INSTALL_DIR_set=${KERNEL_INSTALL_DIR+set}
 ac_env_KERNEL_INSTALL_DIR_value=$KERNEL_INSTALL_DIR
 ac_cv_env_KERNEL_INSTALL_DIR_set=${KERNEL_INSTALL_DIR+set}
 ac_cv_env_KERNEL_INSTALL_DIR_value=$KERNEL_INSTALL_DIR
-ac_env_DRMLIB_PREFIX_set=${DRMLIB_PREFIX+set}
-ac_env_DRMLIB_PREFIX_value=$DRMLIB_PREFIX
-ac_cv_env_DRMLIB_PREFIX_set=${DRMLIB_PREFIX+set}
-ac_cv_env_DRMLIB_PREFIX_value=$DRMLIB_PREFIX
+ac_env_DRM_PREFIX_set=${DRM_PREFIX+set}
+ac_env_DRM_PREFIX_value=$DRM_PREFIX
+ac_cv_env_DRM_PREFIX_set=${DRM_PREFIX+set}
+ac_cv_env_DRM_PREFIX_value=$DRM_PREFIX
 
 #
 # Report the --help message.
@@ -1070,8 +1070,7 @@ Some influential environment variables:
               Installation path directory to the CMEM libraries
   KERNEL_INSTALL_DIR
               Installation path to the Linux kernel.
-  DRMLIB_PREFIX
-              Installation location to the DRM library.
+  DRM_PREFIX  Installation location to the DRM library.
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3717,7 +3716,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 3720 "configure"' > conftest.$ac_ext
+  echo '#line 3719 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -6142,11 +6141,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6145: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:6144: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6149: \$? = $ac_status" >&5
+   echo "$as_me:6148: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -6410,11 +6409,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6413: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:6412: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:6417: \$? = $ac_status" >&5
+   echo "$as_me:6416: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -6514,11 +6513,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:6517: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:6516: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:6521: \$? = $ac_status" >&5
+   echo "$as_me:6520: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8859,7 +8858,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 8862 "configure"
+#line 8861 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -8959,7 +8958,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 8962 "configure"
+#line 8961 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11299,11 +11298,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11302: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11301: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11306: \$? = $ac_status" >&5
+   echo "$as_me:11305: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11403,11 +11402,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11406: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11405: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11410: \$? = $ac_status" >&5
+   echo "$as_me:11409: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12710,11 +12709,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12713: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12712: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12717: \$? = $ac_status" >&5
+   echo "$as_me:12716: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12978,11 +12977,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12981: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12980: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12985: \$? = $ac_status" >&5
+   echo "$as_me:12984: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13082,11 +13081,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13085: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13084: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13089: \$? = $ac_status" >&5
+   echo "$as_me:13088: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16829,47 +16828,6 @@ fi
 fi
 
 
-# Test platform for omap5 and dra7xx variable and require a KERNEL path
-if test "x$PLATFORM" = "xomap54xx_smp"; then
-  if test "x$KERNEL_INSTALL_DIR" = "x"; then
-  { { echo "$as_me:$LINENO: error: Kernel path for ${PLATFORM} is not set" >&5
-echo "$as_me: error: Kernel path for ${PLATFORM} is not set" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-fi
-
-if test "x$PLATFORM" = "xdra7xx"; then
-  if test "x$KERNEL_INSTALL_DIR" = "x"; then
-  { { echo "$as_me:$LINENO: error: Kernel path for ${PLATFORM} is not set" >&5
-echo "$as_me: error: Kernel path for ${PLATFORM} is not set" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-fi
-
-
-# Test platform for omap5 and dra7xx variable and require a DRM path
-if test "x$PLATFORM" = "xomap54xx_smp"; then
-  if test "x$DRM_PREFIX" = "x"; then
-  { { echo "$as_me:$LINENO: error: DRM PREFIX path for ${PLATFORM} is not set" >&5
-echo "$as_me: error: DRM PREFIX path for ${PLATFORM} is not set" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-fi
-
-if test "x$PLATFORM" = "xdra7xx"; then
-  if test "x$DRM_PREFIX" = "x"; then
-  { { echo "$as_me:$LINENO: error: DRM PREFIX path for ${PLATFORM} is not set" >&5
-echo "$as_me: error: DRM PREFIX path for ${PLATFORM} is not set" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-fi
-
-
-
 # Ignore KERNEL path when no platform is set
 if test "x$PLATFORM" = "x"; then
   KERNEL_INSTALL_DIR=
@@ -17818,7 +17776,6 @@ s,@AM_LDFLAGS@,$AM_LDFLAGS,;t t
 s,@PLATFORM@,$PLATFORM,;t t
 s,@CMEM_INSTALL_DIR@,$CMEM_INSTALL_DIR,;t t
 s,@KERNEL_INSTALL_DIR@,$KERNEL_INSTALL_DIR,;t t
-s,@DRMLIB_PREFIX@,$DRMLIB_PREFIX,;t t
 s,@DRM_PREFIX@,$DRM_PREFIX,;t t
 s,@OMAPL138_TRUE@,$OMAPL138_TRUE,;t t
 s,@OMAPL138_FALSE@,$OMAPL138_FALSE,;t t
@@ -18323,6 +18280,9 @@ You have configured to build for the '${PLATFORM}' platform
 
 Your KERNEL installation directory is set to:
     '${KERNEL_INSTALL_DIR}'
+
+Your DRM installation directory is set to:
+    '${DRM_PREFIX}'
 
 Your CMEM installation directory is set to:
     '${CMEM_INSTALL_DIR}'

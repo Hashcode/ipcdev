@@ -53,14 +53,18 @@ if OMAP54XX_SMP
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 if KDIR
+if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 else
 if DRA7XX
 # Add platform specific bin application's here
   bin_PROGRAMS +=
 if KDIR
+if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 else
 if OMAPL138
@@ -87,7 +91,9 @@ if CMEM
   bin_PROGRAMS += nano_test
 endif
 if KDIR
+if DRM
   bin_PROGRAMS += mmrpc_test
+endif
 endif
 endif
 endif
