@@ -67,6 +67,13 @@ extern "C" {
  *  Macros and types
  * =============================================================================
  */
+/*
+ * ZEROINIT_CHUNKS - Set to 1 to zero-init chunk allocations for
+ *                   dynamically allocated remote core memory carveout
+ *                   sections. Default is 0 to achieve better startup
+ *                   performance.
+ */
+#define ZEROINIT_CHUNKS 0
 
 #define RSC_TABLE_STRING ".resource_table"
 #define DDR_MEM 0x80000000
@@ -416,7 +423,11 @@ Int Chunk_allocate (RscTable_Object *obj, UInt32 size, UInt32 * pa)
         // first try to allocate contiguous mem
         da = mmap64(NULL, size,
                     PROT_NOCACHE | PROT_READ | PROT_WRITE,
+#if ZEROINIT_CHUNKS
                     MAP_ANON | MAP_PHYS | MAP_SHARED,
+#else
+                    MAP_ANON | MAP_PHYS | MAP_SHARED | MAP_NOINIT,
+#endif
                     NOFD,
                     0);
         if (da == MAP_FAILED) {
@@ -628,6 +639,9 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
     RscTable_Header * table = NULL;
     UInt i = 0, j = 0;
     UInt dmem_num = 0;
+#if !ZEROINIT_CHUNKS
+    UInt32 vringVA = 0, vringSize = 0;
+#endif
 
     // Find the table for this coreId, if not found, return an error
     if (procId >= MultiProc_MAXPROCESSORS || !RscTable_state.handles[procId]) {
@@ -839,6 +853,22 @@ RscTable_process (UInt16 procId, Bool mmuEnabled, UInt32 numCarveouts,
                 }
 
                 if (!ret) {
+#if !ZEROINIT_CHUNKS
+                    /* Map the phys mem to local */
+                    vringSize = vr_size + vr_bufs_size;
+                    vringVA = (UInt32)mmap_device_io(vringSize, pa);
+                    if (vringVA != MAP_DEVICE_FAILED) {
+                        /* Zero-init the vring */
+                        Memory_set((Ptr)vringVA, 0, vringSize);
+                        munmap_device_io(vringVA, vringSize);
+                    }
+                    else {
+                        GT_0trace(curTrace, GT_4CLASS,
+                                  "RscTable_alloc: "
+                                  "Warning - Unable to zero-init vring mem");
+                    }
+#endif
+
                     obj->vringPa = pa;
                     obj->vringBufsPa = pa + vr_size;
                 }
