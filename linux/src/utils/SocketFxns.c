@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated
+ * Copyright (c) 2012-2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,9 @@
 /* For PRINTVERBOSE* */
 #include <_lad.h>
 
+/* For MultiProc id to remoteproc index map */
+#include <_MultiProc.h>
+
 static Bool verbose = FALSE;
 
 int ConnectSocket(int sock, UInt16 procId, int dst)
@@ -63,8 +66,8 @@ int ConnectSocket(int sock, UInt16 procId, int dst)
     /* connect to remote service */
     memset(&dstAddr, 0, sizeof(dstAddr));
     dstAddr.family     = AF_RPMSG;
-     /* rpmsg "vproc_id" is one less than the MultiProc ID: */
-    dstAddr.vproc_id   = procId - 1;
+    /* convert MultiProc 'procId' to remoteproc index */
+    dstAddr.vproc_id   = _MultiProc_cfg.rprocList[procId];
     dstAddr.addr       = dst;
 
     len = sizeof(struct sockaddr_rpmsg);
@@ -99,7 +102,7 @@ int SocketBindAddr(int fd, UInt16 rprocId, UInt32 localAddr)
     memset(&srcAddr, 0, sizeof(srcAddr));
     srcAddr.family = AF_RPMSG;
     /* We bind the remote proc ID, but local address! */
-    srcAddr.vproc_id = (rprocId - 1);
+    srcAddr.vproc_id   = _MultiProc_cfg.rprocList[rprocId];
     srcAddr.addr  = localAddr;
 
     len = sizeof(struct sockaddr_rpmsg);

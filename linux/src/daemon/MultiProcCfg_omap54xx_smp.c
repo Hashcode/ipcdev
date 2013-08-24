@@ -46,5 +46,8 @@ MultiProc_Config _MultiProc_cfg =  {
    .nameList[0] = "HOST",
    .nameList[1] = "IPU",
    .nameList[2] = "DSP",
+   .rprocList[0] = -1,
+   .rprocList[1] = 1,
+   .rprocList[2] = 0,
    .id = 0,                 /* The host is always zero */
 };

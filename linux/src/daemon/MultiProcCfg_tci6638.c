@@ -52,5 +52,14 @@ MultiProc_Config _MultiProc_cfg =  {
    .nameList[6] = "CORE5",
    .nameList[7] = "CORE6",
    .nameList[8] = "CORE7",
+   .rprocList[0] = -1,
+   .rprocList[1] = 0,
+   .rprocList[2] = 1,
+   .rprocList[3] = 2,
+   .rprocList[4] = 3,
+   .rprocList[5] = 4,
+   .rprocList[6] = 5,
+   .rprocList[7] = 6,
+   .rprocList[8] = 7,
    .id = 0,                 /* The host is always zero */
 };

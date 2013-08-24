@@ -65,6 +65,8 @@ typedef struct MultiProc_Config_tag {
     /*!< Max number of procs for particular system */
     Char   nameList [MultiProc_MAXPROCESSORS][MultiProc_MAXNAMELENGTH];
     /*!< Name List for processors in the system */
+    Int32  rprocList[MultiProc_MAXPROCESSORS];
+    /*!< Linux "remoteproc index" for processors in the system */
     UInt16 id;
     /*!< Local Proc ID. This needs to be set before calling any other APIs */
 } MultiProc_Config;
