@@ -111,12 +111,25 @@ extern "C" {
                                             NAMESERVER_BASE_CMD + 9u,\
                                             NameServerDrv_CmdArgs)
 /*!
- *  @brief  Command for NameServer_close
+ *  @brief  Command for NameServer_getUInt32
  */
 #define CMD_NAMESERVER_GETUINT32            _IOWR(UTILSCMDBASE,\
                                             NAMESERVER_BASE_CMD + 10u,\
                                             NameServerDrv_CmdArgs)
 
+/*!
+ *  @brief  Command for NameServer_add
+ */
+#define CMD_NAMESERVER_ADD                  _IOWR(UTILSCMDBASE,\
+                                            NAMESERVER_BASE_CMD + 11u,\
+                                            NameServerDrv_CmdArgs)
+
+/*!
+ *  @brief  Command for NameServer_get
+ */
+#define CMD_NAMESERVER_GET                  _IOWR(UTILSCMDBASE,\
+                                            NAMESERVER_BASE_CMD + 12u,\
+                                            NameServerDrv_CmdArgs)
 
 /*  ----------------------------------------------------------------------------
  *  Command arguments for NameServer
@@ -141,6 +154,25 @@ typedef struct NameServerDrv_CmdArgs {
         struct {
             NameServer_Handle   handle;
         } delete;
+
+        struct {
+            NameServer_Handle   handle;
+            String              name;
+            UInt32              nameLen;
+            Ptr                 buf;
+            UInt32              len;
+            Ptr                 entry;
+        } add;
+
+        struct {
+            NameServer_Handle   handle;
+            String              name;
+            UInt32              nameLen;
+            Ptr                 buf;
+            UInt32              len;
+            UInt16 *            procId;
+            UInt32              procLen;
+        } get;
 
         struct {
             NameServer_Handle   handle;

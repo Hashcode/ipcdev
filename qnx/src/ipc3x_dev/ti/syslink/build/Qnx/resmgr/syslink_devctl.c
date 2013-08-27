@@ -83,6 +83,8 @@ extern int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                      syslink_ocb_t * ocb);
 extern int syslink_multiproc_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
                                      syslink_ocb_t * ocb);
+extern int syslink_gatemp_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
+                                 syslink_ocb_t * ocb);
 
 /**
  * Handler for devctl() messages.
@@ -118,9 +120,11 @@ int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
         case MESSAGEQCOPY_BASE_CMD:
             status = MessageQCopyDrv_devctl( ctp, msg, ocb);
             break;
+#ifndef SYSLINK_PLATFORM_VAYU
         case HWSPINLOCKDRV_BASE_CMD:
             status = GateHWSpinlockDrv_devctl(ctp, msg, ocb);
             break;
+#endif
         case _DCMD_SYSLINK_NAMESERVER:
             status = syslink_nameserver_devctl(ctp, msg, ocb);
             break;
@@ -130,6 +134,11 @@ int syslink_devctl(resmgr_context_t *ctp, io_devctl_t *msg, syslink_ocb_t *ocb)
         case _DCMD_SYSLINK_MULTIPROC:
             status = syslink_multiproc_devctl(ctp, msg, ocb);
             break;
+#ifdef SYSLINK_PLATFORM_VAYU
+        case _DCMD_SYSLINK_GATEMP:
+            status = syslink_gatemp_devctl(ctp, msg, ocb);
+            break;
+#endif
         default:
             status = _RESMGR_ERRNO(ENOSYS);
             GT_1trace( curTrace, GT_3CLASS,

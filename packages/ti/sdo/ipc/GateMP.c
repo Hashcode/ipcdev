@@ -237,9 +237,17 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
 {
     SharedRegion_SRPtr sharedShmBase;
     Int status;
+    ti_sdo_ipc_GateMP_Object *obj;
+    ti_sdo_ipc_GateMP_Params params;
+    Error_Block eb;
+    UInt key;
     UInt32 len;
+    UInt32 mask;
+    UInt32 resourceId;
     Ptr sharedAddr;
-    UInt32 nsValue[2];
+    UInt32 nsValue[4];
+
+    Error_init(&eb);
 
     /* Assert that a pointer has been supplied */
     Assert_isTrue(handlePtr != NULL, ti_sdo_ipc_Ipc_A_nullArgument);
@@ -275,14 +283,71 @@ Int GateMP_open(String name, GateMP_Handle *handlePtr)
          * from a local heap so don't do SharedRegion Ptr conversion.
          */
         sharedAddr = (Ptr)nsValue[0];
+        status = GateMP_openByAddr(sharedAddr, handlePtr);
     }
-    else {
+    else if (GateMP_module->hostSupport == FALSE) {
         /* Opening a remote GateMP. Need to do SharedRegion Ptr conversion. */
         sharedShmBase = (SharedRegion_SRPtr)nsValue[0];
         sharedAddr = SharedRegion_getPtr(sharedShmBase);
+        status = GateMP_openByAddr(sharedAddr, handlePtr);
     }
+    else {
+        /*  need to track number of opens atomically */
+        key = Hwi_disable();
+        resourceId = nsValue[2];
+        mask = nsValue[3];
 
-    status = GateMP_openByAddr(sharedAddr, handlePtr);
+        /* Remote case */
+        switch (GETREMOTE(mask)) {
+            case GateMP_RemoteProtect_SYSTEM:
+                obj = GateMP_module->remoteSystemGates[resourceId];
+                break;
+
+            case GateMP_RemoteProtect_CUSTOM1:
+                obj = GateMP_module->remoteCustom1Gates[resourceId];
+                break;
+
+            case GateMP_RemoteProtect_CUSTOM2:
+                obj = GateMP_module->remoteCustom2Gates[resourceId];
+                break;
+
+            default:
+                obj = NULL;
+                status = GateMP_E_FAIL;
+                break;
+        }
+
+        if (status == GateMP_S_SUCCESS) {
+            /*
+             *  If the object is NULL, then it must have been created on a
+             *  remote processor. Need to create a local object. This is
+             *  accomplished by setting the openFlag to TRUE.
+             */
+            if (obj == NULL) {
+                /* Create a GateMP object with the openFlag set to true */
+                ti_sdo_ipc_GateMP_Params_init(&params);
+                params.openFlag = TRUE;
+                params.sharedAddr = NULL;
+                params.resourceId = resourceId;
+                params.localProtect = GETLOCAL(mask);
+                params.remoteProtect = GETREMOTE(mask);
+
+                obj = ti_sdo_ipc_GateMP_create(&params, &eb);
+                if (obj == NULL) {
+                    status = GateMP_E_FAIL;
+                }
+            }
+            else {
+                obj->numOpens++;
+            }
+        }
+
+        /* Return the GateMP instance  */
+        *handlePtr = (GateMP_Handle)obj;
+
+        /* restore hwi mask */
+        Hwi_restore(key);
+    }
 
     return (status);
 }
@@ -564,6 +629,7 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
     SizeT minAlign, offset;
     UInt i;
     Bits32 *delegateReservedMask;
+    UInt32 nsValue[6];
 
     minAlign = Memory_getMaxDefaultTypeAlign();
     if (SharedRegion_getCacheLineSize(0) > minAlign) {
@@ -681,6 +747,19 @@ Void ti_sdo_ipc_GateMP_setRegion0Reserved(Ptr sharedAddr)
     else {
         GateMP_module->remoteCustom2InUse = GateMP_module->remoteSystemInUse;
         GateMP_module->remoteCustom2Gates = GateMP_module->remoteSystemGates;
+    }
+
+    if (GateMP_module->hostSupport == TRUE) {
+        /* Add special entry to store inuse arrays' location and size */
+        nsValue[0] = (UInt32)GateMP_module->remoteSystemInUse;
+        nsValue[1] = (UInt32)GateMP_module->remoteCustom1InUse;
+        nsValue[2] = (UInt32)GateMP_module->remoteCustom2InUse;
+        nsValue[3] = GateMP_module->numRemoteSystem;
+        nsValue[4] = GateMP_module->numRemoteCustom1;
+        nsValue[5] = GateMP_module->numRemoteCustom2;
+        GateMP_module->nsKey = NameServer_add((NameServer_Handle)
+            GateMP_module->nameServer, "_GateMP_TI_info", &nsValue,
+            sizeof(nsValue));
     }
 }
 
@@ -847,6 +926,7 @@ Int ti_sdo_ipc_GateMP_start(Ptr sharedAddr)
         gateMPParams.sharedAddr = (Ptr)((UInt32)sharedAddr +
                 ti_sdo_ipc_GateMP_getRegion0ReservedSize());
         gateMPParams.localProtect  = ti_sdo_ipc_GateMP_LocalProtect_TASKLET;
+        gateMPParams.name = "_GateMP_TI_dGate";
 
         if (ti_sdo_utils_MultiProc_numProcessors > 1) {
             gateMPParams.remoteProtect = ti_sdo_ipc_GateMP_RemoteProtect_SYSTEM;
@@ -894,6 +974,13 @@ Int ti_sdo_ipc_GateMP_stop()
             /* delete the default GateMP */
             status = GateMP_delete(&gate);
         }
+
+        /* Remove global info entry from NameServer */
+        if ((GateMP_module->hostSupport == TRUE) &&
+            (GateMP_module->nsKey != 0)) {
+            NameServer_removeEntry((NameServer_Handle)GateMP_module->nameServer,
+                GateMP_module->nsKey);
+        }
     }
 
     return (status);
@@ -921,7 +1008,8 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
     SizeT minAlign, offset;
     SharedRegion_SRPtr sharedShmBase;
     GateMP_Params sparams;
-    UInt32 nsValue[2];
+    UInt32 nsValue[4];
+    UInt32 sizeNsValue;
     IHeap_Handle regionHeap;
 
     /* Initialize resourceId to an invalid value */
@@ -937,25 +1025,33 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
         obj->nsKey          = 0;
         obj->numOpens       = 0; /* Will be set to 1 after init() complete */
         obj->attrs          = (ti_sdo_ipc_GateMP_Attrs *)params->sharedAddr;
-        obj->regionId       = SharedRegion_getId((Ptr)obj->attrs);
-        obj->cacheEnabled   = SharedRegion_isCacheEnabled(obj->regionId);
-
-        /* Assert that the buffer is in a valid shared region */
-        Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
+        if (obj->attrs != NULL) {
+            obj->regionId       = SharedRegion_getId((Ptr)obj->attrs);
+            obj->cacheEnabled   = SharedRegion_isCacheEnabled(obj->regionId);
+            /* Assert that the buffer is in a valid shared region */
+            Assert_isTrue(obj->regionId != SharedRegion_INVALIDREGIONID,
                       ti_sdo_ipc_Ipc_A_addrNotInSharedRegion);
+        }
 
         obj->allocSize      = 0;
         obj->objType        = ti_sdo_ipc_Ipc_ObjType_OPENDYNAMIC;
 
         minAlign = Memory_getMaxDefaultTypeAlign();
 
-        if (SharedRegion_getCacheLineSize(obj->regionId) > minAlign) {
+        if ((obj->attrs != NULL) &&
+            (SharedRegion_getCacheLineSize(obj->regionId) > minAlign)) {
             minAlign = SharedRegion_getCacheLineSize(obj->regionId);
         }
 
         offset = _Ipc_roundup(sizeof(ti_sdo_ipc_GateMP_Attrs), minAlign);
 
-        obj->proxyAttrs = (Ptr)((UInt32)obj->attrs + offset);
+        /* TODO: host side created gates cannot have proxy memory */
+        if (obj->attrs != NULL) {
+            obj->proxyAttrs = (Ptr)((UInt32)obj->attrs + offset);
+        }
+        else {
+            obj->proxyAttrs = NULL;
+        }
     }
     /* Create GateMP instance */
     else {
@@ -1006,9 +1102,19 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
                  *  Bottom 16 bits = '0' if local, '1' otherwise
                  */
                 nsValue[1] = ((UInt32)MultiProc_self()) << 16;
+
+                if (GateMP_module->hostSupport == TRUE) {
+                    nsValue[2] = obj->attrs->arg;
+                    nsValue[3] = obj->attrs->mask;
+                    sizeNsValue = sizeof(nsValue);
+                }
+                else {
+                    sizeNsValue = 2 * sizeof(UInt32);
+                }
+
                 obj->nsKey = NameServer_add((NameServer_Handle)
                         GateMP_module->nameServer, params->name, &nsValue,
-                        2 * sizeof(UInt32));
+                        sizeNsValue);
 
                 if (obj->nsKey == NULL) {
                     Error_raise(eb, ti_sdo_ipc_Ipc_E_nameFailed, params->name,
@@ -1105,9 +1211,6 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
             if (remoteHandle == NULL) {
                 return (5);
             }
-
-            /* Finish filling in the object */
-            obj->gateHandle = IGateMPSupport_Handle_upCast(remoteHandle);
 
             /* Fill in the local array because it is cooked */
             key = Hwi_disable();
@@ -1210,9 +1313,20 @@ Int ti_sdo_ipc_GateMP_Instance_init(ti_sdo_ipc_GateMP_Object *obj,
              *  Bottom 16 bits = '0' if local, '1' otherwise
              */
             nsValue[1] = ((UInt32)MultiProc_self() << 16) | 1;
-            obj->nsKey = NameServer_add(
-                    (NameServer_Handle)GateMP_module->nameServer, params->name,
-                    &nsValue, 2 * sizeof(UInt32));
+
+            if (GateMP_module->hostSupport == TRUE) {
+                /* Making a copy of these for host processor */
+                nsValue[2] = obj->attrs->arg;
+                nsValue[3] = obj->attrs->mask;
+                sizeNsValue = sizeof(nsValue);
+            }
+            else {
+                sizeNsValue = 2 * sizeof(UInt32);
+            }
+
+            obj->nsKey = NameServer_add((NameServer_Handle)
+                    GateMP_module->nameServer, params->name, &nsValue,
+                    sizeNsValue);
 
             if (obj->nsKey == NULL) {
                 Error_raise(eb, ti_sdo_ipc_Ipc_E_nameFailed, params->name, 0);
@@ -1380,7 +1494,12 @@ SharedRegion_SRPtr ti_sdo_ipc_GateMP_getSharedAddr(
 {
     SharedRegion_SRPtr srPtr;
 
-    srPtr = SharedRegion_getSRPtr(obj->attrs, obj->regionId);
+    if (obj->attrs != NULL) {
+        srPtr = SharedRegion_getSRPtr(obj->attrs, obj->regionId);
+    }
+    else {
+        srPtr = NULL;
+    }
 
     return (srPtr);
 }

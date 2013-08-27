@@ -160,6 +160,8 @@ endif
 ifeq ("$(SYSLINK_PLATFORM)", "omap5430")
 EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/ipu
+
+EXCLUDE_OBJS = GateMP_daemon.o gatemp_devctl.o
 endif
 
 ifeq ("$(SYSLINK_PLATFORM)", "ti81xx")
@@ -184,7 +186,10 @@ EXTRA_SRCVPATH+=$(SYSLINK_ROOT)/ti/syslink/family/common	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)dsp	\
 		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu	\
-		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1
+		$(SYSLINK_ROOT)/ti/syslink/family/$(SYSLINK_PLATFORM)/$(SYSLINK_PLATFORM)ipu/$(SYSLINK_PLATFORM)core1   \
+                $(IPC_REPO)/qnx/src/api/gates
+
+EXCLUDE_OBJS = GateMP.o
 endif
 
 include $(MKFILES_ROOT)/qtargets.mk

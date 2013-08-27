@@ -29,28 +29,4 @@
 #   EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-ifndef QCONFIG
-QCONFIG=qconfig.mk
-endif
-include $(QCONFIG)
-
-define PINFO
-PINFO DESCRIPTION=hwspinlock test app
-endef
-
-NAME = HwSpinLockTestApp
-INSTALLDIR = bin
-
-#Add extra include path
-EXTRA_INCVPATH+=$(SYSLINK_ROOT)/inc	\
-                $(SYSLINK_ROOT)/inc/ti/ipc	\
-                $(IPC_REPO)/packages	\
-                $(SYSLINK_ROOT)/../..
-
-
-CCOPTS+=-g -O0
-
-EXTRA_LIBVPATH += $(SYSLINK_ROOT)/build/Qnx/lib/arm/so.le.v7
-LDOPTS+= -lipc_client
-
-include $(MKFILES_ROOT)/qtargets.mk
+include ../../common.mk

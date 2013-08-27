@@ -131,6 +131,54 @@ NameServerDrv_ioctl (UInt32 cmd, Ptr args)
 
     switch (cmd) {
 
+      case CMD_NAMESERVER_ADD:
+      {
+          iov_t nameserver_add_iov[3];
+
+          SETIOV(&nameserver_add_iov[0], cargs, sizeof(NameServerDrv_CmdArgs));
+          SETIOV(&nameserver_add_iov[1], cargs->args.add.name,
+              cargs->args.add.nameLen);
+          SETIOV( &nameserver_add_iov[2], cargs->args.add.buf,
+		      cargs->args.add.len);
+
+          osStatus = devctlv(IpcDrv_handle, DCMD_NAMESERVER_ADD, 3, 3,
+              nameserver_add_iov, nameserver_add_iov, NULL);
+
+          if ( osStatus != 0 ){
+              status = NameServer_E_OSFAILURE;
+          }
+      }
+      break;
+
+      case CMD_NAMESERVER_GET:
+      {
+          iov_t           nameserver_get_iov[4];
+          unsigned char   count = 0;
+
+          SETIOV(&nameserver_get_iov[count], cargs,
+              sizeof(NameServerDrv_CmdArgs));
+          count++;
+          SETIOV( &nameserver_get_iov[count], cargs->args.get.buf,
+              cargs->args.get.len);
+          count++;
+          SETIOV( &nameserver_get_iov[count], cargs->args.get.name,
+              cargs->args.get.nameLen);
+          count++;
+
+          if (cargs->args.get.procId != NULL) {
+              SETIOV(&nameserver_get_iov[count], cargs->args.get.procId,
+                  cargs->args.get.procLen);
+              count++;
+          }
+
+          osStatus = devctlv(IpcDrv_handle, DCMD_NAMESERVER_GET, count,
+              2, nameserver_get_iov, nameserver_get_iov, NULL);
+          if (osStatus != 0) {
+              status = NameServer_E_OSFAILURE;
+          }
+      }
+      break;
+
       case CMD_NAMESERVER_ADDUINT32:
       {
           iov_t nameserver_add_iov[2];

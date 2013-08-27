@@ -67,7 +67,10 @@
 #include <ti/syslink/utils/List.h>
 #include <ti/syslink/utils/MemoryOS.h>
 #include <ti/ipc/MultiProc.h>
+#include <ti/ipc/NameServer.h>
 #include <_MultiProc.h>
+#include <_NameServer.h>
+#include <_GateMP_daemon.h>
 #include <OsalSemaphore.h>
 #include <ti/syslink/utils/OsalPrint.h>
 #if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
@@ -99,6 +102,10 @@ static int verbosity = SLOG2_ERROR;
 static slog2_buffer_t buffer_handle;
 #else
 static int verbosity = 2;
+#endif
+
+#if defined(SYSLINK_PLATFORM_VAYU)
+static bool gatempEnabled = false;
 #endif
 static char trace_buffer[TRACE_BUFFER_SIZE];
 static pthread_mutex_t trace_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -290,7 +297,9 @@ syslink_ocb_free (IOFUNC_OCB_T * i_ocb)
     syslink_ocb_t * ocb = (syslink_ocb_t *)i_ocb;
 
     if (ocb) {
+#ifndef SYSLINK_PLATFORM_VAYU
         GateHWSpinlock_LeaveLockForPID(ocb->pid);
+#endif
         free (ocb);
     }
 }
@@ -818,9 +827,31 @@ procmgropen_fail:
         if (status < 0)
             goto rpcsetup_fail;
 
+#if defined(SYSLINK_PLATFORM_VAYU)
+        if (gatempEnabled) {
+            /* Set up NameServer for resource manager process */
+            status = NameServer_setup();
+            if (status < 0) {
+                goto nameserversetup_fail;
+            }
+
+            /* Set up GateMP */
+            status = GateMP_setup();
+            if (status < 0) {
+                goto gatempsetup_fail;
+            }
+        }
+#endif
+
         goto exit;
     }
 
+#if defined(SYSLINK_PLATFORM_VAYU)
+gatempsetup_fail:
+    NameServer_destroy();
+nameserversetup_fail:
+    rpmsg_rpc_destroy();
+#endif
 rpcsetup_fail:
     ti_ipc_destroy(recover);
 tiipcsetup_fail:
@@ -869,6 +900,14 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
             ProcMgr_stop(procH[i]);
         }
     }
+
+#if defined(SYSLINK_PLATFORM_VAYU)
+    if (gatempEnabled) {
+        GateMP_destroy();
+
+        NameServer_destroy();
+    }
+#endif
 
     rpmsg_rpc_destroy();
 
@@ -1139,7 +1178,9 @@ static Void printUsage (Char * app)
 #endif
     printf ("  -H   enable/disable hibernation, 1: ON, 0: OFF, Default: 1)\n");
     printf ("  -T   specify the hibernation timeout in ms, Default: 5000 ms)\n");
-
+#if defined(SYSLINK_PLATFORM_VAYU)
+    printf ("  -g   enable GateMP support on host\n");
+#endif
     exit (EXIT_SUCCESS);
 }
 
@@ -1170,7 +1211,7 @@ int main(int argc, char *argv[])
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "f:d:H:T:U:v:");
+        c = getopt (argc, argv, "f:d:H:T:U:gv:");
         if (c == -1)
             break;
 
@@ -1221,6 +1262,12 @@ int main(int argc, char *argv[])
         case 'v':
             verbosity++;
             break;
+#if defined(SYSLINK_PLATFORM_VAYU)
+        case 'g':
+            printf("GateMP support enabled on host\n");
+            gatempEnabled = true;
+            break;
+#endif
         default:
             fprintf (stderr, "Unrecognized argument\n");
         }

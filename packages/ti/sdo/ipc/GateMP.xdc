@@ -284,6 +284,12 @@ module GateMP
     config UInt maxNameLen = 32;
 
     /*!
+     *  ======== hostSupport ========
+     *  Support for host processor
+     */
+    metaonly config Bool hostSupport = false;
+
+    /*!
      *  ======== tableSection ========
      *  Section name is used to place the names table
      */
@@ -501,6 +507,8 @@ internal:
         IGateProvider.Handle    gateMutexPri;
         IGateProvider.Handle    gateNull;
         Handle                  defaultGate;
+        Ptr                     nsKey;
+        Bool                    hostSupport;
         Int                     proxyMap[ProxyOrder_NUM];
     };
 }

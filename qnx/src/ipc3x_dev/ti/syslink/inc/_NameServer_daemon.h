@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,34 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  ======== _NameServer_daemon.h ========
+ *
+ *  Internal header
+ *
+ */
 
-#ifndef NameServerRemote__include
-#define NameServerRemote__include
+#ifndef _NAMESERVER_DAEMON_H
+#define _NAMESERVER_DAEMON_H
+
+#include <ti/ipc/NameServer.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#define MAXNAMEINCHAR   80
-#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
-#define MAXVALUELEN     75
+/*!
+ * Setup the NameServer module.
+ */
+Int NameServer_setup(Void);
 
-/* message sent to remote procId */
-typedef struct NameServerRemote_Msg {
-    Bits32  reserved;           /* reserved field: must be first!   */
-    Bits32  value;              /* holds value if len <= 4          */
-    Bits32  request;            /* whether its a request/response   */
-    Bits32  requestStatus;      /* status of request                */
-                                /* name of NameServer instance      */
-    Bits32  instanceName[NAMEARRAYSZIE];
-                                /* name of NameServer entry         */
-    Bits32  name[NAMEARRAYSZIE];
-    Bits32  valueLen;              /* len of value                  */
-    Bits32  valueBuf[MAXVALUELEN]; /* value buffer                  */
-} NameServerRemote_Msg;
-
-#define NAME_SERVER_RPMSG_ADDR  0
-#define NAME_SERVER_PORT_INVALID (-1)
-
-#define NAMESERVER_MSG_TOKEN   0x5678abcd
-
-/* That special per processor RPMSG channel reserved to multiplex MessageQ */
-/* Duplicated in _TransportRpmsg.h: move to a common rpmsg_ports.h? */
-#define RPMSG_MESSAGEQ_PORT         61
-
-extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
-extern void NameServerRemote_SetNameServerPort(UInt port);
+/*!
+ * Function to destroy the NameServer module.
+ */
+Void NameServer_destroy(Void);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* NameServerRemote__include */
+
+#endif /* _NAMESERVER_DAEMON_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,60 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  ======== _GateMP_daemon.h ========
+ *
+ *  Internal header
+ *
+ */
 
-#ifndef NameServerRemote__include
-#define NameServerRemote__include
+#ifndef _GATEMP_DAEMON_H
+#define _GATEMP_DAEMON_H
+
+#include <ti/ipc/GateMP.h>
+#include <ti/ipc/NameServer.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#define MAXNAMEINCHAR   80
-#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
-#define MAXVALUELEN     75
+/*!
+ * Setup the GateMP module.
+ */
+Int GateMP_setup(Void);
 
-/* message sent to remote procId */
-typedef struct NameServerRemote_Msg {
-    Bits32  reserved;           /* reserved field: must be first!   */
-    Bits32  value;              /* holds value if len <= 4          */
-    Bits32  request;            /* whether its a request/response   */
-    Bits32  requestStatus;      /* status of request                */
-                                /* name of NameServer instance      */
-    Bits32  instanceName[NAMEARRAYSZIE];
-                                /* name of NameServer entry         */
-    Bits32  name[NAMEARRAYSZIE];
-    Bits32  valueLen;              /* len of value                  */
-    Bits32  valueBuf[MAXVALUELEN]; /* value buffer                  */
-} NameServerRemote_Msg;
+/*!
+ * Function to destroy the GateMP module.
+ */
+Void GateMP_destroy(Void);
 
-#define NAME_SERVER_RPMSG_ADDR  0
-#define NAME_SERVER_PORT_INVALID (-1)
+/*!
+ * Find a free resource id for a particular protection type.
+ */
+Int GateMP_getFreeResource(GateMP_RemoteProtect type);
 
-#define NAMESERVER_MSG_TOKEN   0x5678abcd
+/*!
+ * Release a resource id for a particular protection type.
+ */
+Int GateMP_releaseResource(UInt id, GateMP_RemoteProtect type);
 
-/* That special per processor RPMSG channel reserved to multiplex MessageQ */
-/* Duplicated in _TransportRpmsg.h: move to a common rpmsg_ports.h? */
-#define RPMSG_MESSAGEQ_PORT         61
+/*!
+ * Get the total number of resources for a particular protection type.
+ */
+Int GateMP_getNumResources(GateMP_RemoteProtect type);
 
-extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
-extern void NameServerRemote_SetNameServerPort(UInt port);
+/*!
+ * Get the NameServer handle for GateMP.
+ */
+NameServer_Handle GateMP_getNameServer(Void);
+
+/*!
+ * Find out whether GateMP is setup
+ */
+Bool GateMP_isSetup(Void);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* NameServerRemote__include */
+
+#endif /* _GATEMP_DAEMONH */

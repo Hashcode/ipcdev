@@ -121,12 +121,25 @@ function module$static$init(mod, params)
     var Program = xdc.module('xdc.cfg.Program');
     var target  = Program.build.target;
 
-    /*
-     *  Need 2 words:
-     *    1 word for the SharedRegion Ptr.
-     *    1 word for the proc id of creator and if remote is allowed.
-     */
-    GateMP.nameSrvPrms.maxValueLen       = 2 * target.stdTypes["t_Int32"].size;
+    if (params.hostSupport) {
+        /*
+         *  Need 6 words for info entry, which is larger than other entries
+         */
+        GateMP.nameSrvPrms.maxValueLen = 6 * target.stdTypes["t_Int32"].size;
+        if (params.maxNameLen < 16) {
+            GateMP.nameSrvPrms.maxNameLen = 16; /* min 16 chars for def gate */
+        }
+	mod.hostSupport = true;
+    }
+    else {
+        /*
+         *  Need 2 words:
+         *    1 word for the SharedRegion Ptr.
+         *    1 word for the proc id of creator and if remote is allowed.
+         */
+        GateMP.nameSrvPrms.maxValueLen = 2 * target.stdTypes["t_Int32"].size;
+	mod.hostSupport = false;
+    }
 
     /*
      *  Get the current number of created static instances of this module.
@@ -171,7 +184,7 @@ function module$static$init(mod, params)
     }
 
     mod.defaultGate = null;
-
+    mod.nsKey = 0;
     mod.remoteSystemGates[0] = mod.defaultGate;
 
     /* Initialize the rest of the proxy gate arrays */

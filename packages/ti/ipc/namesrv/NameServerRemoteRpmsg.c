@@ -180,6 +180,7 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
     /* Create request message and send to remote processor: */
     msg.request = NameServerRemoteRpmsg_REQUEST;
     msg.requestStatus = 0;
+    msg.valueLen = *valueLen;
 
     len = strlen(instanceName);
     Assert_isTrue(len < MAXNAMEINCHAR, NameServerRemoteRpmsg_A_nameIsTooLong);
@@ -212,10 +213,15 @@ Int NameServerRemoteRpmsg_get(NameServerRemoteRpmsg_Object *obj,
         /* name is found */
 
         /* set length to amount of data that was copied */
-        *valueLen = sizeof(Bits32);
+        *valueLen = replyMsg->valueLen;
 
         /* set the contents of value */
-        memcpy(value, &(replyMsg->value), sizeof(Bits32));
+        if (*valueLen <= sizeof (Bits32)) {
+            memcpy(value, &(replyMsg->value), sizeof(Bits32));
+        }
+        else {
+            memcpy(value, replyMsg->valueBuf, *valueLen);
+        }
 
         /* set the status to success */
         status = NameServer_S_SUCCESS;
@@ -258,6 +264,7 @@ void NameServerRemote_processMessage(NameServerRemote_Msg * msg)
     UInt16 dstProc  = MultiProc_getId("HOST");
 
     Assert_isTrue(msg != NULL, NULL);
+    Assert_isTrue(msg->valueLen <= MAXVALUELEN, NULL);
 
     if (msg->request == NameServerRemoteRpmsg_REQUEST) {
         Log_print1(Diags_INFO, FXNN": Request from procId %d.\n", dstProc);
@@ -270,8 +277,14 @@ void NameServerRemote_processMessage(NameServerRemote_Msg * msg)
 
         if (handle != NULL) {
             /* Search for the NameServer entry */
-            status = NameServer_getLocalUInt32(handle,
+            if (msg->valueLen <= sizeof (Bits32)) {
+                status = NameServer_getLocalUInt32(handle,
                      (String)msg->name, &msg->value);
+            }
+            else {
+                status = NameServer_getLocal(handle, (String)msg->name,
+                     (Ptr)msg->valueBuf, &msg->valueLen);
+            }
         }
 
         /* set the request status */

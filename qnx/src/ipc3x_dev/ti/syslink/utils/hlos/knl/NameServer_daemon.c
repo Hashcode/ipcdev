@@ -30,7 +30,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*!
- *  @file       NameServer.c
+ *  @file       NameServer_daemon.c
  *
  *  @brief      NameServer Manager
  *
@@ -245,6 +245,8 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
         LOG2("NameServer Request: instanceName: %s, name: %s\n",
              (String)msg->instanceName, (String)msg->name)
 
+        assert(msg->valueLen <= MAXVALUELEN);
+
         /*
          *  Message is a request. Lookup name in NameServer table.
          *  Send a response message back to source processor.
@@ -253,9 +255,16 @@ static void NameServerRemote_processMessage(NameServerMsg * msg, UInt16 procId)
 
         if (handle != NULL) {
             /* Search for the NameServer entry */
-            LOG0("Calling NameServer_getLocalUInt32...\n")
-            status = NameServer_getLocalUInt32(handle,
+            if (msg->valueLen <= sizeof (Bits32)) {
+                LOG0("Calling NameServer_getLocalUInt32...\n")
+                status = NameServer_getLocalUInt32(handle,
                      (String)msg->name, &msg->value);
+            }
+            else {
+                LOG0("Calling NameServer_getLocal...\n")
+                status = NameServer_getLocal(handle,
+                     (String)msg->name, (Ptr)msg->valueBuf, &msg->valueLen);
+            }
         }
 
         LOG2("NameServer Response: instanceName: %s, name: %s,",
@@ -303,7 +312,7 @@ static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
     LOG0("listener_cb: Entered Listener thread.\n")
 
     LOG1("NameServer: Listener got NameServer message "
-         "from MessageQCopy: 0x%x!\n", handle);
+         "from MessageQCopy: 0x%p!\n", handle);
     /* Get NameServer message and process: */
     memcpy(&msg, data, len);
 
@@ -312,7 +321,7 @@ static Void _listener_cb(MessageQCopy_Handle handle, void * data, int len,
             len)
     }
     else {
-        LOG1("listener_cb: read from MessageQCopy 0x%x\n", handle)
+        LOG1("listener_cb: read from MessageQCopy 0x%p\n", handle)
         LOG2("\tReceived ns msg: byte count: %d, from addr: %d, ",
              len, src)
         LOG1("from vproc: %d\n", srcProc)
@@ -458,12 +467,6 @@ NameServer_Handle NameServer_create(String name,
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
-    if (params->maxValueLen > sizeof(UInt32)) {
-        LOG1("NameServer_create: params->maxValueLen (%d) too big for now\n", params->maxValueLen)
-       /* Can't handle more than UInt32 at this time: */
-       goto leave;
-    }
-
     /* check if the name is already created or not */
     if (NameServer_getHandle(name)) {
         LOG0("NameServer_create NameServer_E_INVALIDARG Name is in use!\n")
@@ -486,6 +489,8 @@ NameServer_Handle NameServer_create(String name,
     }
     strncpy(handle->name, name, strlen (name) + 1u);
     memcpy((Ptr) &handle->params, (Ptr) params, sizeof(NameServer_Params));
+
+    assert(params.maxValueLen <= MAXVALUELEN);
 
     if (params->maxValueLen < sizeof(UInt32)) {
         handle->params.maxValueLen = sizeof(UInt32);
@@ -569,6 +574,13 @@ Ptr NameServer_add(NameServer_Handle handle, String name, Ptr buf, UInt len)
 
     /* Calculate the hash */
     hash = stringHash(name);
+
+    if (len > handle->params.maxValueLen) {
+        status = NameServer_E_INVALIDARG;
+        LOG0("NameServer_add: value length exceeded maximum!\n")
+        new_node = NULL;
+        goto exit;
+    }
 
     pthread_mutex_lock(&handle->gate);
 
@@ -789,6 +801,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     nsMsg.reserved = NAMESERVER_MSG_TOKEN;
     nsMsg.request = NAMESERVER_REQUEST;
     nsMsg.requestStatus = 0;
+    nsMsg.valueLen = *len;
 
     strncpy((char *)nsMsg.instanceName, obj->name, strlen(obj->name) + 1);
     strncpy((char *)nsMsg.name, name, strlen(name) + 1);
@@ -833,13 +846,26 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
         if (replyMsg->requestStatus) {
             /* name is found */
-            /* set the contents of value */
-            *(UInt32 *)value = (UInt32)replyMsg->value;
 
-            LOG2("NameServer_getRemote: Reply from: %d, %s:",
-                 procId, (String)replyMsg->instanceName)
-            LOG2("%s, value: 0x%x...\n",
-                 (String)replyMsg->name, *(UInt32 *)value)
+            /* set length to amount of data that was copied */
+            *len = replyMsg->valueLen;
+
+            /* set the contents of value */
+            if (*len <= sizeof (Bits32)) {
+                *(UInt32 *)value = (UInt32)replyMsg->value;
+                LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                    procId, (String)replyMsg->instanceName)
+                LOG2("%s, value: 0x%x...\n",
+                    (String)replyMsg->name, *(UInt32 *)value)
+            }
+            else {
+                memcpy(value, replyMsg->valueBuf, *len);
+                LOG2("NameServer_getRemote: Reply from: %d, %s:",
+                    procId, (String)replyMsg->instanceName)
+                LOG2("%s, value buffer at address: 0x%p...\n",
+                    (String)replyMsg->name, value)
+            }
+
             goto exit;
         }
         else {

@@ -1,58 +1,45 @@
-/**
- *  @file   GateHWSpinlock.h
+/*
+ * Copyright (c) 2008-2013, Texas Instruments Incorporated
+ * All rights reserved.
  *
- *  @brief      Defines for Gate based on Hardware SpinLock.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
  *
+ * *  Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  *
- *  @ver        02.00.00.46_alpha1
+ * *  Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  *
- *  ============================================================================
+ * *  Neither the name of Texas Instruments Incorporated nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  *
- *  Copyright (c) 2008-20012, Texas Instruments Incorporated
- *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions
- *  are met:
- *
- *  *  Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *  *  Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *
- *  *  Neither the name of Texas Instruments Incorporated nor the names of
- *     its contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- *  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- *  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- *  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- *  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *  Contact information for paper mail:
- *  Texas Instruments
- *  Post Office Box 655303
- *  Dallas, Texas 75265
- *  Contact information:
- *  http://www-k.ext.ti.com/sc/technical-support/product-information-centers.htm?
- *  DCMP=TIHomeTracking&HQS=Other+OT+home_d_contact
- *  ============================================================================
- *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+/*
+ *  ======== GateHWSpinlock.h ========
+ */
 
 #ifndef GATEHWSPINLOCK_H_0xF416
 #define GATEHWSPINLOCK_H_0xF416
 
 /* Utilities & Osal headers */
 #include <ti/syslink/Std.h>
+
+#include <ti/ipc/GateMP.h>
 
 #if defined (__cplusplus)
 extern "C" {
@@ -63,24 +50,6 @@ extern "C" {
  *  @brief  Unique module ID.
  */
 #define GateHWSpinlock_MODULEID               (0xc43d)
-
-typedef enum GateMP_LocalProtect {
-    GateMP_LocalProtect_NONE      = 0,
-    /*!< Use no local protection */
-
-    GateMP_LocalProtect_INTERRUPT = 1,
-    /*!< Use the INTERRUPT local protection level */
-
-    GateMP_LocalProtect_TASKLET   = 2,
-    /*!< Use the TASKLET local protection level */
-
-    GateMP_LocalProtect_THREAD    = 3,
-    /*!< Use the THREAD local protection level */
-
-    GateMP_LocalProtect_PROCESS   = 4
-    /*!< Use the PROCESS local protection level */
-
-} GateMP_LocalProtect;
 
 /* =============================================================================
  * Module Success and Failure codes
@@ -244,6 +213,15 @@ GateHWSpinlock_setup (const GateHWSpinlock_Config * config);
 /* Function to destroy the GateHWSpinlock module */
 Int
 GateHWSpinlock_destroy (Void);
+
+/* Initialize parameter structure */
+Void GateHWSpinlock_Params_init(GateHWSpinlock_Params *params);
+
+/* Function to start GateHWSpinlock module */
+Int32 GateHWSpinlock_start(Void);
+
+/* Funciton to stop GateHWSpinlock module */
+Int GateHWSpinlock_stop(Void);
 
 /* Function to create an instance of GateHWSpinlock */
 GateHWSpinlock_Handle

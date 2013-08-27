@@ -48,6 +48,7 @@ CCOPTS += -DSYSLINK_BUILDOS_QNX
 # source path
 EXTRA_SRCVPATH += \
        $(IPC_REPO)/qnx/src/api \
+       $(IPC_REPO)/qnx/src/api/gates
 
 EXCLUDE_OBJS =
 

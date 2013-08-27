@@ -44,6 +44,8 @@
 #include <time.h>
 
 #include <ti/ipc/NameServer.h>
+#include <ti/ipc/MultiProc.h>
+
 #include <_IpcLog.h>
 #include <ti/syslink/inc/_MultiProc.h>
 #include <ti/syslink/inc/IoctlDefs.h>
@@ -128,6 +130,63 @@ NameServer_Handle NameServer_create(String name,
 
     return cmdArgs.args.create.handle;
 }
+
+Ptr NameServer_add(NameServer_Handle nsHandle, String name, Ptr buf,
+                   UInt32 len)
+{
+    Int status;
+    NameServerDrv_CmdArgs cmdArgs;
+
+    cmdArgs.args.add.handle  = nsHandle;
+    cmdArgs.args.add.name    = name;
+    cmdArgs.args.add.nameLen = strlen(name) + 1;
+    cmdArgs.args.add.buf     = buf;
+    cmdArgs.args.add.len     = len;
+
+    status = NameServerDrv_ioctl(CMD_NAMESERVER_ADD, &cmdArgs);
+
+    if (status < 0) {
+        PRINTVERBOSE1("NameServer_add: API (through IOCTL) failed, \
+            status=%d\n", status)
+        return NULL;
+    }
+
+    return cmdArgs.args.add.entry;
+}
+
+Int NameServer_get(NameServer_Handle handle, String name, Ptr buf,
+                   UInt32 * len, UInt16 procId[])
+{
+    Int status;
+    UInt32 procLen = 0;
+    NameServerDrv_CmdArgs cmdArgs;
+
+    cmdArgs.args.get.name = name;
+    cmdArgs.args.get.handle = handle;
+    cmdArgs.args.get.procId  = procId;
+    if (procId != NULL) {
+        while (procId[procLen] != MultiProc_INVALIDID) {
+            procLen++;
+        }
+    }
+    cmdArgs.args.get.procLen = procLen;
+    cmdArgs.args.get.buf = buf;
+    cmdArgs.args.get.len = *len;
+    cmdArgs.args.get.nameLen = strlen(name) + 1;
+
+    status = NameServerDrv_ioctl (CMD_NAMESERVER_GET, &cmdArgs);
+
+    if (status < 0) {
+        PRINTVERBOSE1("NameServer_get: API (through IOCTL) failed, \
+            status=%d\n", status)
+        return status;
+    }
+
+    *len = cmdArgs.args.get.len;
+
+    return status;
+}
+
 
 Ptr NameServer_addUInt32(NameServer_Handle nsHandle, String name, UInt32 value)
 {

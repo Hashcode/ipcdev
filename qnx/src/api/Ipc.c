@@ -59,6 +59,9 @@
 #include <ti/ipc/NameServer.h>
 #include <_MessageQ.h>
 #include <_NameServer.h>
+#include <_GateMP.h>
+#include <_GateMP_usr.h>
+#include <ti/syslink/inc/GateHWSpinlock.h>
 #include <ti/syslink/inc/_MultiProc.h>
 
 MultiProc_Config _MultiProc_cfg;
@@ -109,13 +112,50 @@ Int Ipc_start (Void)
               printf("Ipc_start: MessageQ_attach(%d) failed: %d\n",
                      rprocId, status);
               status = Ipc_E_FAIL;
+              goto messageqattach_fail;
            }
         }
     }
     else {
         printf("Ipc_start: NameServer_setup() failed: %d\n", status);
         status = Ipc_E_FAIL;
+        goto nameserversetup_fail;
     }
+
+    /* Start GateMP only if it is setup in the resource manager */
+    if (GateMP_isSetup()) {
+        status = GateHWSpinlock_start();
+        if (status < 0) {
+            printf("Ipc_start: GateHWSpinlock_start failed: %d\n",
+                status);
+            status = Ipc_E_FAIL;
+            goto gatehwspinlockstart_fail;
+        }
+        else {
+            status = GateMP_start();
+            if (status < 0) {
+                printf("Ipc_start: GateMP_start failed: %d\n",
+                status);
+                status = Ipc_E_FAIL;
+                goto gatempstart_fail;
+            }
+        }
+    }
+
+    /* Success */
+    goto exit;
+
+gatempstart_fail:
+    GateHWSpinlock_stop();
+gatehwspinlockstart_fail:
+    for (rprocId = rprocId - 1; (rprocId > 0) && (status >= 0); rprocId--) {
+       MessageQ_detach(rprocId);
+    }
+messageqattach_fail:
+    MessageQ_destroy();
+    NameServer_destroy();
+nameserversetup_fail:
+    IpcDrv_close();
 
 exit:
     return (status);
@@ -127,6 +167,24 @@ Int Ipc_stop (Void)
 {
     Int32             status = Ipc_S_SUCCESS;
     UInt16            rprocId;
+
+    if (GateMP_isSetup()) {
+        /* Stop GateMP */
+        status = GateMP_stop();
+        if (status < 0) {
+            printf("Ipc_stop: GateMP_stop() failed: %d\n", status);
+            status = Ipc_E_FAIL;
+            goto exit;
+        }
+
+        /* Finalize GateHWSpinlock */
+        status = GateHWSpinlock_stop();
+        if (status < 0) {
+            printf("Ipc_stop: GateHWSpinlock_stop() failed: %d\n", status);
+            status = Ipc_E_FAIL;
+            goto exit;
+        }
+    }
 
     /* Now detach from all remote processors, assuming they are up. */
     for (rprocId = 0;

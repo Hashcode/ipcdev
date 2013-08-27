@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,35 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  ======== GateMP_config.h ========
+ *
+ *  Define the configuration of parameters used in GateMP. This file also
+ *  configures the various proxies.
+ *
+ */
 
-#ifndef NameServerRemote__include
-#define NameServerRemote__include
+#ifndef GATEMP_CONFIG
+#define GATEMP_CONFIG
+
+#include <ti/syslink/inc/GateHWSpinlock.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#define MAXNAMEINCHAR   80
-#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
-#define MAXVALUELEN     75
+#define MAX_RUNTIME_ENTRIES   128  /* Max number of GateMP instances + 1 */
+#define MAX_NAME_LEN          16   /* Max name length of GateMP instances */
 
-/* message sent to remote procId */
-typedef struct NameServerRemote_Msg {
-    Bits32  reserved;           /* reserved field: must be first!   */
-    Bits32  value;              /* holds value if len <= 4          */
-    Bits32  request;            /* whether its a request/response   */
-    Bits32  requestStatus;      /* status of request                */
-                                /* name of NameServer instance      */
-    Bits32  instanceName[NAMEARRAYSZIE];
-                                /* name of NameServer entry         */
-    Bits32  name[NAMEARRAYSZIE];
-    Bits32  valueLen;              /* len of value                  */
-    Bits32  valueBuf[MAXVALUELEN]; /* value buffer                  */
-} NameServerRemote_Msg;
-
-#define NAME_SERVER_RPMSG_ADDR  0
-#define NAME_SERVER_PORT_INVALID (-1)
-
-#define NAMESERVER_MSG_TOKEN   0x5678abcd
-
-/* That special per processor RPMSG channel reserved to multiplex MessageQ */
-/* Duplicated in _TransportRpmsg.h: move to a common rpmsg_ports.h? */
-#define RPMSG_MESSAGEQ_PORT         61
-
-extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
-extern void NameServerRemote_SetNameServerPort(UInt port);
+/* Proxy functions and data structures */
+#define GateMP_RemoteSystemProxy_Params_init(x) GateHWSpinlock_Params_init(x)
+#define GateMP_RemoteSystemProxy_create        GateHWSpinlock_create
+#define GateMP_RemoteSystemProxy_delete        GateHWSpinlock_delete
+#define GateMP_RemoteSystemProxy_Params        GateHWSpinlock_Params
+#define GateMP_RemoteSystemProxy_Handle        GateHWSpinlock_Handle
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* NameServerRemote__include */
+
+#endif /* GATEMP_CONFIG */

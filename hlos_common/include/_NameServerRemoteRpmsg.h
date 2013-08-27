@@ -37,6 +37,7 @@
 
 #define MAXNAMEINCHAR 80
 #define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
+#define MAXVALUELEN   75
 
 #define NAMESERVER_GET_TIMEOUT  10 /* Seconds */
 
@@ -52,4 +53,6 @@ typedef struct NameServerMsg {
     Bits32  instanceName[NAMEARRAYSZIE];
                                 /* name of NameServer entry         */
     Bits32  name[NAMEARRAYSZIE];
+    Bits32  valueLen;              /* len of value                  */
+    Bits32  valueBuf[MAXVALUELEN]; /* value buffer                  */
 } NameServerMsg;

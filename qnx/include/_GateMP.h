@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, Texas Instruments Incorporated
+ * Copyright (c) 2013, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,58 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  ======== _GateMP.h ========
+ *
+ *  Internal header
+ *
+ */
+#ifndef _GATEMP_H
+#define _GATEMP_H
 
-#ifndef NameServerRemote__include
-#define NameServerRemote__include
+#include <ti/ipc/GateMP.h>
+
+#include <ti/syslink/inc/IObject.h>
+#include <ti/syslink/utils/IGateProvider.h>
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#define MAXNAMEINCHAR   80
-#define NAMEARRAYSZIE   (((MAXNAMEINCHAR - 1) / sizeof(Bits32)) + 1)
-#define MAXVALUELEN     75
+/* Helper macros */
+#define GETREMOTE(mask) ((GateMP_RemoteProtect)(mask >> 8))
+#define GETLOCAL(mask)  ((GateMP_LocalProtect)(mask & 0xFF))
+#define SETMASK(remoteProtect, localProtect) \
+                        ((Bits32)(remoteProtect << 8 | localProtect))
 
-/* message sent to remote procId */
-typedef struct NameServerRemote_Msg {
-    Bits32  reserved;           /* reserved field: must be first!   */
-    Bits32  value;              /* holds value if len <= 4          */
-    Bits32  request;            /* whether its a request/response   */
-    Bits32  requestStatus;      /* status of request                */
-                                /* name of NameServer instance      */
-    Bits32  instanceName[NAMEARRAYSZIE];
-                                /* name of NameServer entry         */
-    Bits32  name[NAMEARRAYSZIE];
-    Bits32  valueLen;              /* len of value                  */
-    Bits32  valueBuf[MAXVALUELEN]; /* value buffer                  */
-} NameServerRemote_Msg;
+/*!
+ *  @brief  Structure for the Handle for the GateMP.
+ */
+typedef struct {
+    GateMP_Params           params;
+    /*!< Instance specific creation parameters */
+    GateMP_RemoteProtect    remoteProtect;
+    GateMP_LocalProtect     localProtect;
+    Ptr                     nsKey;
+    Int                     numOpens;
 
-#define NAME_SERVER_RPMSG_ADDR  0
-#define NAME_SERVER_PORT_INVALID (-1)
+    Bits16                  mask;
+    Bits16                  creatorProcId;
+    Bits32                  arg;
 
-#define NAMESERVER_MSG_TOKEN   0x5678abcd
+    IGateProvider_Handle    gateHandle; /* remote gate handle */
+    Ipc_ObjType             objType;
+    IGateProvider_Handle    localGate;  /* local gate handle */
 
-/* That special per processor RPMSG channel reserved to multiplex MessageQ */
-/* Duplicated in _TransportRpmsg.h: move to a common rpmsg_ports.h? */
-#define RPMSG_MESSAGEQ_PORT         61
+    UInt                    resourceId;
+    /*!< Resource id of GateMP proxy */
+} GateMP_Object;
 
-extern void NameServerRemote_processMessage(NameServerRemote_Msg * ns_msg);
-extern void NameServerRemote_SetNameServerPort(UInt port);
+/* Has GateMP been setup */
+Bool GateMP_isSetup(Void);
 
 #if defined (__cplusplus)
 }
 #endif /* defined (__cplusplus) */
-#endif /* NameServerRemote__include */
+
+#endif /* _GATEMP_H */

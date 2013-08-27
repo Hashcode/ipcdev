@@ -62,6 +62,10 @@
 #include <ti/syslink/inc/NameServerDrvDefs.h>
 
 /* Function prototypes */
+int syslink_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
+    syslink_ocb_t *ocb);
+int syslink_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
+    syslink_ocb_t *ocb);
 int syslink_nameserver_adduint32(resmgr_context_t *ctp, io_devctl_t *msg,
     syslink_ocb_t *ocb);
 int syslink_nameserver_getuint32(resmgr_context_t *ctp, io_devctl_t *msg,
@@ -101,6 +105,17 @@ int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
 
     switch (msg->i.dcmd)
     {
+      case DCMD_NAMESERVER_ADD:
+      {
+          return syslink_nameserver_add( ctp, msg, ocb);
+      }
+      break;
+
+      case DCMD_NAMESERVER_GET:
+      {
+          return syslink_nameserver_get( ctp, msg, ocb);
+      }
+      break;
       case DCMD_NAMESERVER_ADDUINT32:
       {
           return syslink_nameserver_adduint32( ctp, msg, ocb);
@@ -163,6 +178,84 @@ int syslink_nameserver_devctl(resmgr_context_t *ctp, io_devctl_t *msg,
 
     return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
         sizeof(NameServerDrv_CmdArgs)));
+}
+
+/**
+ * Handler for nameserver add API.
+ *
+ * \param ctp   Thread's associated context information.
+ * \param msg   The actual devctl() message.
+ * \param ocb   OCB associated with client's session.
+ *
+ * \return POSIX errno value.
+ *
+ * \retval EOK      Success.
+ * \retval ENOTSUP  Unsupported devctl().
+ */
+int syslink_nameserver_add(resmgr_context_t *ctp, io_devctl_t *msg,
+    syslink_ocb_t *ocb)
+{
+    NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->i));
+    NameServerDrv_CmdArgs *     out  = (NameServerDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->o));
+    String name = (String)(cargs+1);
+    Ptr buf = (Ptr)((sizeof(char) * cargs->args.add.nameLen) + (char *)(name));
+    Ptr entry;
+
+    GT_assert (curTrace, (name != NULL));
+
+    entry = NameServer_add(cargs->args.add.handle,
+                           name,
+                           buf,
+                           cargs->args.add.len);
+    GT_assert (curTrace, (entry != NULL));
+
+    out->args.add.entry = entry;
+
+    return (_RESMGR_PTR (ctp, &msg->o, sizeof(msg->o) +
+        sizeof(NameServerDrv_CmdArgs)));
+}
+
+/**
+ * Handler for nameserver get  API.
+ *
+ * \param ctp   Thread's associated context information.
+ * \param msg   The actual devctl() message.
+ * \param ocb   OCB associated with client's session.
+ *
+ * \return POSIX errno value.
+ *
+ * \retval EOK      Success.
+ * \retval ENOTSUP  Unsupported devctl().
+ */
+int syslink_nameserver_get(resmgr_context_t *ctp, io_devctl_t *msg,
+    syslink_ocb_t *ocb)
+{
+    NameServerDrv_CmdArgs *     cargs = (NameServerDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->i));
+    NameServerDrv_CmdArgs *     out  = (NameServerDrv_CmdArgs *)
+        (_DEVCTL_DATA (msg->o));
+
+    char * buf = (char *)(cargs + 1);
+    char * name  = (char *)(buf + (sizeof(char) * cargs->args.get.len));
+    UInt16 * procId = NULL;
+
+    if (cargs->args.get.procLen > 0) {
+        procId = (UInt16 *)(name + (sizeof(char) * cargs->args.get.nameLen));
+    }
+
+    out->apiStatus = NameServer_get(cargs->args.get.handle,
+                             (String)name,
+                             (Ptr)buf,
+                             &cargs->args.get.len,
+                             procId);
+
+    SETIOV(&ctp->iov[0], &msg->o, sizeof(msg->o) +
+        sizeof(NameServerDrv_CmdArgs));
+    SETIOV(&ctp->iov[1], (Ptr)buf, cargs->args.get.len);
+
+    return _RESMGR_NPARTS(2);
 }
 
 /**

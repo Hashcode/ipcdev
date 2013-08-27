@@ -50,7 +50,8 @@ extern "C" {
 typedef enum {
     _DCMD_SYSLINK_NAMESERVER = 0x2A,
     _DCMD_SYSLINK_MESSAGEQ,
-    _DCMD_SYSLINK_MULTIPROC
+    _DCMD_SYSLINK_MULTIPROC,
+    _DCMD_SYSLINK_GATEMP
 } dcmd_class_t_val;
 
 /*  ----------------------------------------------------------------------------
@@ -113,6 +114,18 @@ typedef enum {
 #define DCMD_NAMESERVER_GETUINT32           __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
                                             10, \
                                             NameServerDrv_CmdArgs)
+/*!
+ *  @brief  Command for NameServer_add
+ */
+#define DCMD_NAMESERVER_ADD                 __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+                                            11,\
+                                            NameServerDrv_CmdArgs)
+/*!
+ *  @brief  Command for NameServer_get
+ */
+#define DCMD_NAMESERVER_GET                 __DIOTF(_DCMD_SYSLINK_NAMESERVER,\
+                                            12, \
+                                            NameServerDrv_CmdArgs)
 
 
 /*  ----------------------------------------------------------------------------
@@ -162,6 +175,46 @@ typedef enum {
 #define DCMD_MULTIPROC_GETCONFIG            __DIOTF(_DCMD_SYSLINK_MULTIPROC,\
                                             1,\
                                             MultiProcDrv_CmdArgs)
+
+/*  ----------------------------------------------------------------------------
+*   IOCTL command IDs for GateMP
+*   ----------------------------------------------------------------------------
+*/
+
+/*!
+ *  @brief  Command for GateMP_getFreeResource
+ */
+#define DCMD_GATEMP_GETFREERES              __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            1,\
+                                            GateMPDrv_CmdArgs)
+
+/*!
+ *  @brief  Command for GateMP_releaseResource
+ */
+#define DCMD_GATEMP_RELRES                  __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            2,\
+                                            GateMPDrv_CmdArgs)
+
+/*!
+ *  @brief  Command for GateMP_getNumResources
+ */
+#define DCMD_GATEMP_GETNUMRES               __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            3,\
+                                            GateMPDrv_CmdArgs)
+
+/*!
+ *  @brief  Command for GateMP_start
+ */
+#define DCMD_GATEMP_START                   __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            4,\
+                                            GateMPDrv_CmdArgs)
+
+/*!
+ *  @brief  Command for GateMP_isSetup
+ */
+#define DCMD_GATEMP_ISSETUP                 __DIOTF(_DCMD_SYSLINK_GATEMP,\
+                                            5,\
+                                            GateMPDrv_CmdArgs)
 
 #if defined (__cplusplus)
 }
