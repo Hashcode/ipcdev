@@ -65,6 +65,9 @@
 
 #include <ti/ipc/rpmsg_rpc.h>
 
+#elif defined(IPC_BUILDOS_ANDROID)
+#include <linux/rpmsg_rpc.h>
+
 #else
 #error Unsupported Operating System
 #endif
