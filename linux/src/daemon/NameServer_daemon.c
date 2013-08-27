@@ -464,15 +464,15 @@ Int NameServer_setup(Void)
 
             err = SocketBindAddr(sock, procId, NAME_SERVER_RPMSG_ADDR);
             if (err < 0) {
-               status = NameServer_E_FAIL;
-               LOG2("NameServer_setup: bind failed: %d, %s\n",
+                status = NameServer_E_FAIL;
+                LOG2("NameServer_setup: bind failed: %d, %s\n",
                     errno, strerror(errno))
 
                 LOG1("    closing recv socket: %d\n", sock)
                 close(sock);
             }
             else {
-               NameServer_module->recvSock[procId] = sock;
+                NameServer_module->recvSock[procId] = sock;
             }
         }
     }
@@ -488,6 +488,17 @@ Int NameServer_setup(Void)
         LOG0("NameServer_setup: eventfd failed");
 
         status = NameServer_E_FAIL;
+    }
+    else {
+        /* look for at least one good send/recv pair to indicate success */
+        for (procId = 0; procId < numProcs; procId++) {
+            if (NameServer_module->sendSock[procId] != INVALIDSOCKET &&
+                NameServer_module->recvSock[procId] != INVALIDSOCKET) {
+                status = NameServer_S_SUCCESS;
+
+                break;
+            }
+        }
     }
 
 exit:
@@ -937,6 +948,13 @@ Int NameServer_getRemote(NameServer_Handle handle,
 
     /* Create request message and send to remote: */
     sock = NameServer_module->sendSock[procId];
+    if (sock == INVALIDSOCKET) {
+        LOG1("NameServer_getRemote: no socket connection to processor %d\n",
+             procId);
+        status = NameServer_E_RESOURCE;
+        goto exit;
+    }
+
     LOG1("NameServer_getRemote: Sending request via sock: %d\n", sock)
 
     /* Create request message and send to remote processor: */
@@ -1039,7 +1057,8 @@ Int NameServer_get(NameServer_Handle handle,
                 status = NameServer_getRemote(handle, name, value, len, i);
 
                 if ((status >= 0) ||
-                    ((status < 0) && (status != NameServer_E_NOTFOUND))) {
+                    ((status < 0) && (status != NameServer_E_NOTFOUND) &&
+                                     (status != NameServer_E_RESOURCE))) {
                     break;
                 }
             }
@@ -1060,12 +1079,17 @@ Int NameServer_get(NameServer_Handle handle,
             }
 
             if ((status >= 0) ||
-                ((status < 0) && (status != NameServer_E_NOTFOUND))) {
+                ((status < 0) && (status != NameServer_E_NOTFOUND) &&
+                                 (status != NameServer_E_RESOURCE))) {
                 break;
             }
 
             i++;
         }
+    }
+
+    if (status == NameServer_E_RESOURCE) {
+        status = NameServer_E_NOTFOUND;
     }
 
     return (status);

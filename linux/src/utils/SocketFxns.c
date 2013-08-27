@@ -73,15 +73,16 @@ int ConnectSocket(int sock, UInt16 procId, int dst)
     len = sizeof(struct sockaddr_rpmsg);
     err = connect(sock, (struct sockaddr *)&dstAddr, len);
     if (err < 0) {
-         printf("connect failed: %s (%d)\n", strerror(errno), errno);
-         return (-1);
+        /* don't hard-printf since this is no longer fatal */
+        PRINTVERBOSE2("connect failed: %s (%d)\n", strerror(errno), errno);
+        return (-1);
     }
 
     /* let's see what local address we got */
     err = getsockname(sock, (struct sockaddr *)&srcAddr, &len);
     if (err < 0) {
-         printf("getpeername failed: %s (%d)\n", strerror(errno), errno);
-         return (-1);
+        printf("getpeername failed: %s (%d)\n", strerror(errno), errno);
+        return (-1);
     }
 
     PRINTVERBOSE3("Connected over sock: %d\n\tdst vproc_id: %d, dst addr: %d\n",

@@ -73,9 +73,10 @@ Int Ipc_start (Void)
 {
     MessageQ_Config   msgqCfg;
     MultiProc_Config  mpCfg;
-    Int32             status = Ipc_S_SUCCESS;
+    Int32             status;
     LAD_Status        ladStatus;
     UInt16            rprocId;
+    Int32             attachedAny = 0;
 
     /* Catch ctrl-C, and cleanup: */
     (void) signal(SIGINT, cleanup);
@@ -97,19 +98,28 @@ Int Ipc_start (Void)
         MessageQ_setup(&msgqCfg);
 
         /* Now attach to all remote processors, assuming they are up. */
-        for (rprocId = 0;
-             (rprocId < MultiProc_getNumProcessors()) && (status >= 0);
-             rprocId++) {
-           if (0 == rprocId) {
-               /* Skip host, which should always be 0th entry. */
-               continue;
-           }
-           status = MessageQ_attach (rprocId, NULL);
-           if (status < 0) {
-              printf("Ipc_start: MessageQ_attach(%d) failed: %d\n",
-                     rprocId, status);
-              status = Ipc_E_FAIL;
-           }
+        for (rprocId = 0; rprocId < MultiProc_getNumProcessors(); rprocId++) {
+            if (0 == rprocId) {
+                /* Skip host, which should always be 0th entry. */
+                continue;
+            }
+            status = MessageQ_attach(rprocId, NULL);
+            if (status == MessageQ_E_RESOURCE) {
+                continue;
+            }
+            if (status < 0) {
+                printf("Ipc_start: MessageQ_attach(%d) failed: %d\n",
+                       rprocId, status);
+                status = Ipc_E_FAIL;
+
+                break;
+            }
+            else {
+                attachedAny = 1;
+            }
+        }
+        if (attachedAny) {
+            status = Ipc_S_SUCCESS;
         }
     }
     else {
