@@ -1675,7 +1675,6 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
     uintptr_t ptr;
     void * vptr[RPPC_MAX_PARAMETERS];
     uint32_t idx = 0;
-    uint32_t param_offset = 0;
 
     function = (struct rppc_function *)data;
     memset(vptr, 0, sizeof(void *) * RPPC_MAX_PARAMETERS);
@@ -1688,15 +1687,14 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
             status = -EINVAL;
             break;
         }
-        param_offset = function->params[idx].data - function->params[idx].base;
-        if (translation[i].offset - param_offset + sizeof(uint32_t) > function->params[idx].size) {
+        if (translation[i].offset + sizeof(uint32_t) > function->params[idx].size) {
             status = -EINVAL;
             break;
         }
         if (!vptr[idx]) {
             /* get the physical address of ptr */
             status = mem_offset64_peer(pid,
-                                       function->params[idx].data,
+                                       reverse ? function->params[idx].base : function->params[idx].data,
                                        function->params[idx].size,
                                        &paddr[idx], &phys_len);
             if (status >= 0 && phys_len == function->params[idx].size) {
@@ -1716,7 +1714,7 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
             }
         }
         /* Get physical address of the contents */
-        ptr = (uint32_t)vptr[idx] + translation[i].offset - param_offset;
+        ptr = (uint32_t)vptr[idx] + translation[i].offset;
         if (reverse) {
             *(uint32_t *)ptr = translation[i].base;
         }
@@ -1757,8 +1755,10 @@ _rpmsg_rpc_translate(ProcMgr_Handle handle, char *data, pid_t pid, bool reverse)
             }
             if (status >= 0) {
                 if ((ipu_addr =
-                            _rpmsg_rpc_pa2da(handle, (uint32_t)phys_addr)) != 0)
+                            _rpmsg_rpc_pa2da(handle, (uint32_t)phys_addr)) != 0) {
+                    function->params[i].base = function->params[i].data;
                     function->params[i].data = ipu_addr;
+                }
                 else {
                     status = -EINVAL;
                     break;
@@ -1865,7 +1865,7 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
     Memory_copy (&(fxn_info->func), function,
                  RPPC_PARAM_SIZE(function->num_translations));
 
-    status = _rpmsg_rpc_translate(rpc->conn->procH, (char *)function,
+    status = _rpmsg_rpc_translate(rpc->conn->procH, (char *)&(fxn_info->func),
                                   ctp->info.pid, false);
     if (status < 0) {
         Memory_free(NULL, fxn_info, sizeof(rpmsg_rpc_FxnInfo) +\
@@ -1886,7 +1886,7 @@ rpmsg_rpc_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *io_ocb)
 
     for (i = 0; i < function->num_params; i++) {
         ((UInt32 *)(packet->data))[i*2] = function->params[i].size;
-        ((UInt32 *)(packet->data))[(i*2)+1] = function->params[i].data;
+        ((UInt32 *)(packet->data))[(i*2)+1] = fxn_info->func.params[i].data;
         packet->data_size += (sizeof(UInt32) * 2);
     }
     msg_hdr->msg_len += packet->data_size;
