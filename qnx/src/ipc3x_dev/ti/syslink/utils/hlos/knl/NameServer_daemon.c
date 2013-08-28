@@ -794,8 +794,8 @@ Int NameServer_getRemote(NameServer_Handle handle,
     pthread_mutex_lock(&NameServer_module->modGate);
 
     /* Set Timeout to wait: */
-    tv.tv_sec = NAMESERVER_GET_TIMEOUT;
-    tv.tv_usec = 0;
+    tv.tv_sec = 0;
+    tv.tv_usec = NAMESERVER_GET_TIMEOUT;
 
     /* Create request message and send to remote processor: */
     nsMsg.reserved = NAMESERVER_MSG_TOKEN;
@@ -909,7 +909,8 @@ Int NameServer_get(NameServer_Handle handle,
                 status = NameServer_getRemote(handle, name, value, len, i);
 
                 if ((status >= 0) ||
-                    ((status < 0) && (status != NameServer_E_NOTFOUND))) {
+                    ((status < 0) && (status != NameServer_E_NOTFOUND) &&
+                    (status != NameServer_E_TIMEOUT))) {
                     break;
                 }
             }

@@ -932,8 +932,8 @@ Int NameServer_getRemote(NameServer_Handle handle,
     int err;
 
     /* Set Timeout to wait: */
-    tv.tv_sec = NAMESERVER_GET_TIMEOUT;
-    tv.tv_usec = 0;
+    tv.tv_sec = 0;
+    tv.tv_usec = NAMESERVER_GET_TIMEOUT;
 
     /* Create request message and send to remote: */
     sock = NameServer_module->sendSock[procId];
