@@ -127,26 +127,32 @@ typedef struct {
         } ptr;
 
         struct {
-            size_t      size;   /*!< size (bytes) of memory block */
-            size_t      base;   /*!< base address of memory block */
-            size_t      offset; /*!< offset (bytes) from base to data */
+            size_t      size;   /*!< size (bytes) of param structure */
+            size_t      base;   /*!< param address */
+            size_t      offset; /*!< offset within param */
             size_t      handle; /*!< memory allocator handle */
         } offPtr;
 
-#if 0 /* TBD */
-        struct {
-            size_t      size;   /*!< size of the array element */
-            size_t      offset; /*!< offset to current array element */
-            size_t      base;   /*!< base address of array */
-            size_t      handle; /*!< memory allocator handle */
-        } elem;
-#endif
     } param;
 } MmRpc_Param;
 
 typedef struct {
     uint32_t    index;  /*!< parameter index to base pointer */
-    ptrdiff_t   offset; /*!< offset from the base address to pointer */
+    ptrdiff_t   offset; /*!< offset to embedded pointer
+                         *
+                         *   If param type is MmRpc_ParamType_Ptr, offset
+                         *   to embedded pointer from addr. If param type
+                         *   is MmRpc_ParamType_OffPtr, offset to embedded
+                         *   pointer from base+offset.
+                         */
+    size_t      base;   /*!< addr or file descriptor [+ data offset]
+                         *
+                         *   If param type is MmRpc_ParamType_Ptr, the
+                         *   value of the embedded pointer. If param type
+                         *   is MmRpc_ParamType_OffPtr, the file descriptor
+                         *   of the block referenced by the embedded pointer
+                         *   plus an optional data offset.
+                         */
     size_t      handle; /*!< memory allocator handle */
 } MmRpc_Xlt;
 

@@ -184,9 +184,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     int len;
     int i;
 
-    /* Combine function parameters and translation array into one contiguous
-     * message. TODO, modify driver to accept two separate buffers in order
-     * to eliminate this step. */
+    /* combine params and translation array into one contiguous message */
     len = sizeof(struct rppc_function) +
                 (ctx->num_xlts * sizeof(struct rppc_param_translation));
     msg = (void *)calloc(len, sizeof(char));
@@ -231,15 +229,6 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].reserved = param->param.offPtr.handle;
                 break;
 
-#if 0 /* TBD */
-            case MmRpc_ParamType_Elem:
-                rpfxn->params[i].type = RPPC_PARAM_TYPE_PTR;
-                rpfxn->params[i].size = param->param.elem.size;
-                rpfxn->params[i].data = param->param.elem.offset;
-                rpfxn->params[i].base = param->param.elem.base;
-                rpfxn->params[i].reserved = param->param.elem.handle;
-                break;
-#endif
             default:
                 printf("MmRpc_call: Error: invalid parameter type\n");
                 status = MmRpc_E_INVALIDPARAM;
@@ -252,17 +241,10 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
     rpfxn->num_translations = ctx->num_xlts;
 
     for (i = 0; i < ctx->num_xlts; i++) {
-        uint32_t index;
-        size_t ptr;
-
-        /* compute base value */
-        index = ctx->xltAry[i].index;
-        ptr = rpfxn->params[index].base + ctx->xltAry[i].offset;
-
         /* pack the pointer translation entry */
-        rpfxn->translations[i].index    = index;
+        rpfxn->translations[i].index    = ctx->xltAry[i].index;
         rpfxn->translations[i].offset   = ctx->xltAry[i].offset;
-        rpfxn->translations[i].base     = (size_t)(*(void **)ptr);
+        rpfxn->translations[i].base     = ctx->xltAry[i].base;
         rpfxn->translations[i].reserved = ctx->xltAry[i].handle;
     }
 

@@ -196,6 +196,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
 
     fxnCtx->xltAry[0].index = 0;
     fxnCtx->xltAry[0].offset = MmRpc_OFFSET(compute, &compute->inBuf);
+    fxnCtx->xltAry[0].base = (size_t)compute->inBuf;
 #if defined(SYSLINK_BUILDOS_QNX)
     fxnCtx->xltAry[0].handle = NULL;
 #else
@@ -204,6 +205,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
 
     fxnCtx->xltAry[1].index = 0;
     fxnCtx->xltAry[1].offset = MmRpc_OFFSET(compute, &compute->outBuf);
+    fxnCtx->xltAry[1].base = (size_t)compute->outBuf;
 #if defined(SYSLINK_BUILDOS_QNX)
     fxnCtx->xltAry[1].handle = NULL;
 #else
