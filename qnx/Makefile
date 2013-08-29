@@ -59,6 +59,7 @@ install:
 	@cd src/mm; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 	@cd src/tests; make USE_INSTALL_ROOT=1 DESTDIR=$(DESTDIR) \
+		SYSLINK_PLATFORM=$(SYSLINK_PLATFORM) \
 		INSTALL_ROOT_nto=$(DESTDIR) install
 
 clean:
