@@ -123,6 +123,7 @@ Int Ipc_start (Void)
     }
 
     /* Start GateMP only if it is setup in the resource manager */
+#if defined(GATEMP_SUPPORT)
     if (GateMP_isSetup()) {
         status = GateHWSpinlock_start();
         if (status < 0) {
@@ -141,16 +142,17 @@ Int Ipc_start (Void)
             }
         }
     }
-
+#endif
     /* Success */
     goto exit;
-
+#if defined(GATEMP_SUPPORT)
 gatempstart_fail:
     GateHWSpinlock_stop();
 gatehwspinlockstart_fail:
     for (rprocId = rprocId - 1; (rprocId > 0) && (status >= 0); rprocId--) {
        MessageQ_detach(rprocId);
     }
+#endif
 messageqattach_fail:
     MessageQ_destroy();
     NameServer_destroy();
@@ -167,7 +169,7 @@ Int Ipc_stop (Void)
 {
     Int32             status = Ipc_S_SUCCESS;
     UInt16            rprocId;
-
+#if defined(GATEMP_SUPPORT)
     if (GateMP_isSetup()) {
         /* Stop GateMP */
         status = GateMP_stop();
@@ -185,7 +187,7 @@ Int Ipc_stop (Void)
             goto exit;
         }
     }
-
+#endif
     /* Now detach from all remote processors, assuming they are up. */
     for (rprocId = 0;
          (rprocId < MultiProc_getNumProcessors()) && (status >= 0);

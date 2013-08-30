@@ -45,6 +45,10 @@ INSTALLDIR = /dev/null
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX
 
+ifeq ("$(SYSLINK_PLATFORM)", "vayu")
+CCOPTS += -DGATEMP_SUPPORT
+endif
+
 # source path
 EXTRA_SRCVPATH += \
        $(IPC_REPO)/qnx/src/api \

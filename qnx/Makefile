@@ -39,7 +39,7 @@ endif
 all:  utils ipc3x_dev libs tests
 
 libs: ipc3x_dev
-	@cd src/api; make
+	@cd src/api; make SYSLINK_PLATFORM=$(SYSLINK_PLATFORM)
 	@cd src/mm; make
 
 utils:
