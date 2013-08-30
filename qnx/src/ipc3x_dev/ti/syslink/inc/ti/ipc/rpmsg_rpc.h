@@ -40,97 +40,158 @@
 
 #define __packed __attribute__ ((packed))
 
+/**
+ * struct rppc_buf_fds - rppc buffer registration/deregistration
+ * @num: number of file descriptors
+ * @fds: pointer to the array holding the file descriptors
+ */
+struct rppc_buf_fds {
+	uint32_t num;
+	int32_t *fds;
+};
+
+/*
+ * ioctl definitions
+ */
 #define RPPC_IOC_MAGIC		'r'
 #define RPPC_IOC_CREATE		_IOW(RPPC_IOC_MAGIC, 1, struct rppc_create_instance)
-/* TODO: these may not be needed */
-#define RPPC_IOC_BUFREGISTER    _IOW(RPPC_IOC_MAGIC, 2, int)
-#define RPPC_IOC_BUFUNREGISTER  _IOW(RPPC_IOC_MAGIC, 3, int)
+#define RPPC_IOC_BUFREGISTER    _IOW(RPPC_IOC_MAGIC, 2, struct rppc_buf_fds)
+#define RPPC_IOC_BUFUNREGISTER  _IOW(RPPC_IOC_MAGIC, 3, struct rppc_buf_fds)
 #define RPPC_IOC_MAXNR		(4)
 
 #define RPPC_MAX_PARAMETERS	(10)
 #define RPPC_MAX_TRANSLATIONS	(1024)
+#define RPPC_MAX_INST_NAMELEN	(48)
 
+/**
+ * enum rppc_param_type - RPC function parameter type
+ * @RPPC_PARAM_TYPE_UNKNOWN: unrecognized parameter
+ * @RPPC_PARAM_TYPE_ATOMIC: an atomic data type, 1 byte to architecture limit
+ *			    sized bytes
+ * @RPPC_PARAM_TYPE_PTR: a pointer to shared memory. The reserved field in the
+ *			 structures rppc_param and rppc_param_translation must
+ *			 contain the file descriptor of the associated dma_buf
+ * @RPPC_PARAM_TYPE_STRUCT: (unsupported) a structure type. Will be architecture
+ *			    width aligned in memory
+ *
+ * These enum values are used to identify the parameter type for every
+ * parameter argument of the remote function.
+ */
 enum rppc_param_type {
 	RPPC_PARAM_TYPE_UNKNOWN = 0,
-	/* An atomic data type, 1 byte to architecture limit sized bytes */
 	RPPC_PARAM_TYPE_ATOMIC,
-	/*
-	 * A pointer to shared memory. The reserved field must contain
-	 * the handle to the memory
-	 */
 	RPPC_PARAM_TYPE_PTR,
-	/*
-	 * (Unsupported) A structure type. Will be architecure width
-	 * aligned in memory.
-	 */
 	RPPC_PARAM_TYPE_STRUCT,
 };
 
+/**
+ * struct rppc_param_translation - pointer translation helper structure
+ * @index: index of the parameter where the translation needs to be done in.
+ *	   used for indicating the base pointer
+ * @offset: offset from the base address to the pointer to translate
+ * @base: the base user virtual address of the pointer to translate (used to
+ *	  calculate translated pointer offset).
+ * @reserved: reserved field, expected to contain the dma_buf file descriptor.
+ */
 struct rppc_param_translation {
-	/* The parameter index which indicates which is the base pointer */
-	uint32_t  index;
-	/* The offset from the base address to the pointer to translate */
+	uint32_t index;
 	ptrdiff_t offset;
-	/*
-	 * The base user virtual address of the pointer to translate
-	 * (used to calculate translated pointer offset).
-	 */
 	size_t base;
-	/* reserved field */
 	size_t reserved;
 };
 
+/**
+ * struct rppc_param - descriptor structure for each parameter
+ * @type: type of the parameter, as dictated by enum rppc_param_type
+ * @size: size of the data
+ * @data: either the parameter value itself (for atomic type) or
+ *	  the actual user space pointer address to the data (for pointer type)
+ * @base: the base user space pointer address of the original allocated buffer,
+ *	  providing a reference if data has the pointer that is at an offset
+ *	  from the original pointer
+ * @reserved: file descriptor of the exported allocation (will be used to
+ *	      import the associated dma_buf within the driver).
+ */
 struct rppc_param {
-	uint32_t type;		/* rppc_param_type */
-	size_t size;		/* The size of the data */
-	size_t data;		/* Either the pointer to the data or
-				the data itself */
-	size_t base;		/* If a pointer is in data, this is the base
-				pointer (if data has an offset from base). */
-	size_t reserved;	/* Shared Memory Handle (used only with ptrs) */
+	uint32_t type;
+	size_t size;
+	size_t data;
+	size_t base;
+	size_t reserved;
 };
 
+/**
+ * struct rppc_function - descriptor structure for the remote function
+ * @fxn_id: index of the function to invoke on the opened rppc device
+ * @num_params: number of parameters filled in the params field
+ * @params: array of parameter descriptor structures
+ * @num_translations: number of in-place translations to be performed within
+ *		      the arguments.
+ * @translations: an open array of the translation descriptor structures, whose
+ *		  length is passed in num_translations. Used for translating
+ *		  the pointers within the function data.
+ *
+ * This is the primary descriptor structure passed down from the userspace,
+ * describing the function, its parameter arguments and the needed translations.
+ */
 struct rppc_function {
-	/* The function to call */
 	uint32_t fxn_id;
-	/* The number of parameters in the array. */
 	uint32_t num_params;
-	/* The array of parameters */
 	struct rppc_param params[RPPC_MAX_PARAMETERS];
-	/* The number of translations needed in the offsets array */
 	uint32_t num_translations;
-	/*
-	 * An indeterminate length array of offsets within
-	 * payload_data to pointers which need translation
-	 */
 	struct rppc_param_translation translations[0];
 };
 
+/**
+ * struct rppc_function_return - function return status descriptor structure
+ * @fxn_id: index of the function invoked on the opened rppc device
+ * @status: return value of the executed function
+ */
 struct rppc_function_return {
 	uint32_t fxn_id;
 	uint32_t status;
 };
 
+/*
+ * helper macros for manipulating the function index in the marshalled packet
+ */
 #define RPPC_DESC_EXEC_SYNC	(0x0100)
 #define RPPC_DESC_TYPE_MASK	(0x0F00)
 
-/* TODO: Remove the relative offset */
-/** The remote functions are offset by one relative to the client */
+/*
+ * helper macros for manipulating the function index in the marshalled packet.
+ * The remote functions are offset by one relative to the client
+ * XXX: Remove the relative offset
+ */
 #define RPPC_SET_FXN_IDX(idx)	(((idx) + 1) | 0x80000000)
-
-/** The remote functions are offset by one relative to the client */
 #define RPPC_FXN_MASK(idx)	(((idx) - 1) & 0x7FFFFFFF)
 
-/* TODO: remove or mask unneeded fields for RFC */
-/** This is actually a frankensteined structure of RCM */
+/**
+ * struct rppc_packet - the actual marshalled packet
+ * @desc: type of function execution, currently only synchronous function
+ *	  invocations are supported
+ * @msg_id: an incremental message index identifier
+ * @flags: a combination of job id and pool id of the worker threads
+ *	   of the server
+ * @fxn_id: id of the function to execute
+ * @result: result of the remotely executed function
+ * @data_size: size of the payload packet
+ * @data: variable payload, containing the marshalled function data.
+ *
+ * This is actually a condensed structure of the Remote Command Messaging
+ * (RCM) structure. The initial fields of the structure are used by the
+ * remote-side server to schedule the execution of the function. The actual
+ * variable payload data starts from the .data field.
+ * XXX: remove or mask unneeded fields, some fields can be stripped down
+ */
 struct rppc_packet {
-	uint16_t desc;		/* RcmClient_Packet.desc */
-	uint16_t msg_id;	/* RcmClient_Packet.msgId */
-	uint32_t flags;		/* RcmClient_Message.jobId & poolId */
-	uint32_t fxn_id;	/* RcmClient_Message.fxnIdx */
-	int32_t  result;	/* RcmClient_Message.result */
-	uint32_t data_size;	/* RcmClient_Message.data_size */
-	uint8_t  data[0];	/* RcmClient_Message.data pointer */
+	uint16_t desc;
+	uint16_t msg_id;
+	uint32_t flags;
+	uint32_t fxn_id;
+	int32_t  result;
+	uint32_t data_size;
+	uint8_t  data[0];
 } __packed;
 
 
@@ -147,7 +208,15 @@ struct rppc_create_instance {
 	char name[RPPC_MAX_CHANNEL_NAMELEN];
 };
 
-/** The parameter direction as relative to the function it describes */
+/**
+ * enum rppc_param_direction - direction of the function parameter
+ * @RPPC_PARAMDIR_IN: input argument
+ * @RPPC_PARAMDIR_OUT: output argument
+ * @RPPC_PARAMDIR_BI: an in and out argument
+ * @RPPC_PARAMDIR_MAX: limit value for the direction type
+ *
+ * The parameter direction is described as relative to the function.
+ */
 enum rppc_param_direction {
 	RPPC_PARAMDIR_IN = 0,
 	RPPC_PARAMDIR_OUT,
@@ -155,6 +224,26 @@ enum rppc_param_direction {
 	RPPC_PARAMDIR_MAX
 };
 
+/**
+ * enum rppc_param_datatype - parameter data type and descriptor flags
+ * @RPPC_PARAM_VOID: parameter is of type 'void'
+ * @RPPC_PARAM_S08: parameter is of type 's8'
+ * @RPPC_PARAM_U08: parameter is of type 'u8'
+ * @RPPC_PARAM_S16: parameter is of type 's16'
+ * @RPPC_PARAM_U16: parameter is of type 'u16'
+ * @RPPC_PARAM_S32: parameter is of type 's32'
+ * @RPPC_PARAM_U32: parameter is of type 'u32'
+ * @RPPC_PARAM_S64: parameter is of type 's64'
+ * @RPPC_PARAM_U64: parameter is of type 'u64'
+ * @RPPC_PARAM_ATOMIC_MAX: limit value for scalar data types
+ * @RPPC_PARAM_MASK: mask field for retrieving the scalar data type
+ * @RPPC_PARAM_PTR: flag to indicate the data type is a pointer
+ * @RPPC_PARAM_MAX: max limit value used as a marker
+ *
+ * This enum is used to describe the data type for the parameters.
+ * A pointer of a data type is reflected by using an additional bit
+ * mask field.
+ */
 enum rppc_param_datatype {
 	RPPC_PARAM_VOID = 0,
 	RPPC_PARAM_S08,
@@ -168,15 +257,18 @@ enum rppc_param_datatype {
 	RPPC_PARAM_ATOMIC_MAX,
 
 	RPPC_PARAM_MASK = 0x7F,
-	RPPC_PARAM_PTR = 0x80, /**< Logically OR'd with lower type to make a
-				    pointer to the correct type */
+	RPPC_PARAM_PTR = 0x80,
+
 	RPPC_PARAM_MAX
 };
 
-#define RPPC_PTR_TYPE(type)	(type | RPPC_PARAM_PTR)
-#define RPPC_IS_PTR(type)	(type & RPPC_PARAM_PTR)
-#define RPPC_IS_ATOMIC(type)	((type > RPPC_PARAM_VOID) && \
-					(type < RPPC_PARAM_ATOMIC_MAX))
+/*
+ * helper macros to deal with parameter types
+ */
+#define RPPC_PTR_TYPE(type)	((type) | RPPC_PARAM_PTR)
+#define RPPC_IS_PTR(type)	((type) & RPPC_PARAM_PTR)
+#define RPPC_IS_ATOMIC(type)	(((type) > RPPC_PARAM_VOID) && \
+				 ((type) < RPPC_PARAM_ATOMIC_MAX))
 
 //#endif /* __KERNEL__ */
 

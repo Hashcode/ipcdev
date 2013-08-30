@@ -74,6 +74,11 @@
 
 #include "MmRpc.h"
 
+#if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
+static int MmRpc_bufHandle(MmRpc_Handle handle, int cmd, int num,
+        MmRpc_BufDesc *desc);
+#endif
+
 
 /*
  *  ======== MmRpc_Object ========
@@ -284,3 +289,104 @@ leave:
 
     return(status);
 }
+
+/*
+ *  ======== MmRcp_release ========
+ */
+int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
+        MmRpc_BufDesc *desc)
+{
+    int stat = MmRpc_S_SUCCESS;
+
+    switch (type) {
+
+#if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
+        case MmRpc_BufType_Handle:
+            stat = MmRpc_bufHandle(handle, RPPC_IOC_BUFUNREGISTER, num, desc);
+            break;
+
+#elif defined(SYSLINK_BUILDOS_QNX)
+        case MmRpc_BufType_Ptr:
+            break;
+#endif
+        default:
+            printf("MmRpc_release: Error: unsupported type value: %d\n", type);
+            stat = MmRpc_E_INVALIDPARAM;
+            break;
+    }
+
+    if (stat < 0) {
+        printf("MmRpc_release: Error: unable to release buffer\n");
+    }
+
+    return(stat);
+}
+
+/*
+ *  ======== MmRcp_use ========
+ */
+int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
+        MmRpc_BufDesc *desc)
+{
+    int stat = MmRpc_S_SUCCESS;
+
+    switch (type) {
+
+#if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
+        case MmRpc_BufType_Handle:
+            stat = MmRpc_bufHandle(handle, RPPC_IOC_BUFREGISTER, num, desc);
+            break;
+
+#elif defined(SYSLINK_BUILDOS_QNX)
+        case MmRpc_BufType_Ptr:
+            break;
+#endif
+        default:
+            printf("MmRpc_use: Error: unsupported type value: %d\n", type);
+            stat = MmRpc_E_INVALIDPARAM;
+            break;
+    }
+
+    if (stat < 0) {
+        printf("MmRpc_use: Error: unable to declare buffer use\n");
+    }
+
+    return(stat);
+}
+
+#if defined(KERNEL_INSTALL_DIR) || defined(IPC_BUILDOS_ANDROID)
+/*
+ *  ======== MmRpc_bufHandle ========
+ */
+int MmRpc_bufHandle(MmRpc_Handle handle, int cmd, int num, MmRpc_BufDesc *desc)
+{
+    int stat = MmRpc_S_SUCCESS;
+    MmRpc_Object *obj = (MmRpc_Object *)handle;
+    int i;
+    struct rppc_buf_fds reg = { num, NULL };
+
+    reg.fds = (int32_t *)malloc(num * sizeof(int32_t));
+
+    if (reg.fds == NULL) {
+        stat = MmRpc_E_NOMEM;
+        goto leave;
+    }
+
+    for (i = 0; i < num; i++) {
+        reg.fds[i] = desc[i].handle;
+    }
+
+    stat = ioctl(obj->fd, cmd, &reg);
+
+    if (stat < 0) {
+        stat = MmRpc_E_SYS;
+    }
+
+leave:
+    if (reg.fds != NULL) {
+        free(reg.fds);
+    }
+
+    return(stat);
+}
+#endif

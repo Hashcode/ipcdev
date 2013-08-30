@@ -67,6 +67,16 @@ extern "C" {
 #define MmRpc_E_INVALIDPARAM (-2)
 
 /*!
+ *  @brief  Memory allocation failed
+ */
+#define MmRpc_E_NOMEM (-3)
+
+/*!
+ *  @brief  A system call failed
+ */
+#define MmRpc_E_SYS (-4)
+
+/*!
  *  @brief  Size of parameter array in function context structure
  */
 #define MmRpc_MAX_PARAMS (10)
@@ -169,6 +179,29 @@ typedef struct {
 } MmRpc_FxnCtx;
 
 /*!
+ *  @brief      Memory buffer types
+ *
+ *  @remark     Not all operating systems support all buffer types.
+ */
+typedef enum {
+    MmRpc_BufType_Handle,       /*!< memory allocator handle */
+    MmRpc_BufType_Ptr           /*!< buffer address */
+} MmRpc_BufType;
+
+/*!
+ *  @brief      Memory buffer descriptor
+ */
+typedef union {
+    size_t      handle;         /*!< file descriptor or handle */
+
+    struct {
+        size_t  addr;           /*!< address of memory buffer */
+        size_t  size;           /*!< size (bytes) of memory buffer */
+    } ptr;
+    
+} MmRpc_BufDesc;
+
+/*!
  *  @brief      Instance create parameters
  */
 typedef struct {
@@ -195,11 +228,74 @@ int MmRpc_create(const char *service, const MmRpc_Params *params,
 int MmRpc_delete(MmRpc_Handle *handlePtr);
 
 /*!
+ *  @brief      Release buffers which were declared in use
+ *
+ *  @param[in]  type    buffer descriptor type
+ *
+ *  @param[in]  num     number of elements in @c desc array
+ *
+ *  @param[in]  desc    pointer to array of buffer descriptors
+ *
+ *  @remark     When the remote processor no longer needs a reference
+ *              to a buffer, calling MmRpc_release() will release the
+ *              buffer and any associated resources.
+ *
+ *  @retval     MmRpc_S_SUCCESS
+ *  @retval     MmRpc_E_INVALIDPARAM
+ *  @retval     MmRpc_E_NOMEM
+ *  @retval     MmRpc_E_SYS
+ *
+ *  @sa         MmRpc_use()
+ */
+int MmRpc_release(MmRpc_Handle handle, MmRpc_BufType type, int num,
+        MmRpc_BufDesc *desc);
+
+/*!
+ *  @brief      Declare the use of the given buffers
+ *
+ *  @param[in]  type    buffer descriptor type
+ *
+ *  @param[in]  num     number of elements in @c desc array
+ *
+ *  @param[in]  desc    pointer to array of buffer descriptors
+ *
+ *  @remark     When using MmRpc_call() to invoke remote function calls,
+ *              any referenced buffers will be made available to the
+ *              remote processor only for the duration of the remote
+ *              function call. If the remote processor maintains a
+ *              reference to the buffer across multiple invocations of
+ *              MmRpc_call(), then the application must declare the buffer
+ *              "in use". This will make the buffer persistent.
+ *
+ *  @remark     The application must release the buffer when it is no
+ *              longer needed.
+ *
+ *  @code
+ *      #include <ti/ipc/mm/MmRpc.h>
+ *
+ *      MmRpc_BufDesc desc[2];
+ *
+ *      desc[0].handle = fd1;
+ *      desc[1].handle = fd2;
+ *
+ *      MmRpc_use(h, MmRpc_BufType_Handle, 2, desc);
+ *  @endcode
+ *
+ *  @retval     MmRpc_S_SUCCESS
+ *  @retval     MmRpc_E_INVALIDPARAM
+ *  @retval     MmRpc_E_NOMEM
+ *  @retval     MmRpc_E_SYS
+ *
+ *  @sa         MmRpc_release()
+ */
+int MmRpc_use(MmRpc_Handle handle, MmRpc_BufType type, int num,
+        MmRpc_BufDesc *desc);
+
+/*!
  *  @brief      Initialize the instance create parameter structure
  *
  */
 void MmRpc_Params_init(MmRpc_Params *params);
-
 
 
 #if defined(__cplusplus)

@@ -176,6 +176,29 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     int32_t fxnRet;
     char send_buf[512] = {0};
     int status;
+    MmRpc_BufDesc desc[1];
+    int num = 0;
+
+    /* make the output buffer persistent */
+#if defined(SYSLINK_BUILDOS_QNX)
+    desc[0].ptr.addr = compute->outBuf;
+    desc[0].ptr.size = compute->size * sizeof(uint32_t);
+    num = 1;
+
+    status = MmRpc_use(Mx_rpcIpu, MmRpc_BufType_Ptr, num, desc);
+#else
+    desc[0].handle = fdOut;
+    num = 1;
+
+    status = MmRpc_use(Mx_rpcIpu, MmRpc_BufType_Handle, num, desc);
+#endif
+
+    if (status < 0) {
+        printf("mmrpc_test: Error: MmRpc_use failed\n");
+        num = 0;
+        fxnRet = -1;
+        goto leave;
+    }
 
     /* marshall function arguments into the send buffer */
     fxnCtx = (MmRpc_FxnCtx *)send_buf;
@@ -218,6 +241,22 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
     if (status < 0) {
         printf("mmrpc_test: Error: MmRpc_call failed\n");
         fxnRet = -1;
+        goto leave;
+    }
+
+leave:
+    /* release the output buffer */
+    if (num > 0) {
+#if defined(SYSLINK_BUILDOS_QNX)
+        status = MmRpc_release(Mx_rpcIpu, MmRpc_BufType_Ptr, num, desc);
+#else
+        status = MmRpc_release(Mx_rpcIpu, MmRpc_BufType_Handle, num, desc);
+#endif
+
+        if (status < 0) {
+            printf("mmrpc_test: Error: MmRpc_release failed\n");
+            fxnRet = -1;
+        }
     }
 
     return(fxnRet);
