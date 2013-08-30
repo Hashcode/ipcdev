@@ -31,36 +31,53 @@
 #  ======== products.mak ========
 #
 
+# Note that these variables can be explicitly set here or on the command line.
+# The ?= assignment used through gives the command line precedence over
+# settings in this file.
+
 # Optional: recommended to install all dependent components in one folder.
 #
 DEPOT ?= _your_depot_folder_
 
+# Optional: platform to build
+#   Supported platforms (choose one):
+#       omapl138, omap54xx_smp, dra7xx, tci6636, tci6638
+#
+# Note, this is used for both Linux and BIOS builds
+#
+PLATFORM ?=
+
+
 #################### IPC Linux ####################
 
 # Set up required cross compiler path for IPC Linux configuration and build
+#
 TOOLCHAIN_LONGNAME ?= arm-none-linux-gnueabi
 TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
 TOOLCHAIN_PREFIX ?= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
 
-# Linux Kernel install path needed to build the mmRpc user libaries 
-# for devices that support RPMSG_RPC (optional)
+# Optional: Path to Linux Kernel - needed to build the MmRpc user libraries
+# (for devices that support it)
+#
 KERNEL_INSTALL_DIR ?=
 
-# Linux platform to build (optional)
-# Run './configure --help' for available PLATFORM options
-PLATFORM ?=
+# Optional: Path to DRM Library
+#
+DRM_PREFIX ?=
 
-# Path to TI Linux Utils package to locate the pre-built CMEM libraries (optional):
+# Optional: Path to TI Linux Utils product
+#
 CMEM_INSTALL_DIR ?=
 
-# Path to DRM Library
-DRM_PREFIX ?=/
 
 #################### IPC QNX ####################
 
-# Set up path to QNX tools installation
+# Path to QNX tools installation
+#
 QNX_INSTALL_DIR ?=
-# Set up destination for target binaries
+
+# Destination for target binaries
+#
 DESTDIR ?=
 
 # List of supported devices (choose one): omap5432, vayu, simvayu
@@ -69,14 +86,12 @@ DEVICE ?= _device_
 
 #################### IPC Bios ####################
 
-# Set up required dependencies for IPC Bios builds
+# Path to required dependencies for IPC BIOS builds
+#
 XDC_INSTALL_DIR ?= $(DEPOT)/_your_xdctools_install_
 BIOS_INSTALL_DIR ?= $(DEPOT)/_your_bios_install_
 
-#
-# Set location of various cgtools for Bios builds needed
-# These variables can be set here or on the command line.  The ?= makes
-# the command line to take precedence over the setting in this file.
+# Path to various cgtools
 #
 ti.targets.C28_large ?=
 ti.targets.C28_float ?=
