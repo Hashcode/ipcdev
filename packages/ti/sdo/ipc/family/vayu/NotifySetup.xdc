@@ -64,13 +64,12 @@ module NotifySetup inherits ti.sdo.ipc.interfaces.INotifySetup
 
 internal:
 
+    /* note: IPU intentionally omitted, nothing to setup */
     config UInt eve1ProcId      = MultiProc.INVALIDID;
     config UInt eve2ProcId      = MultiProc.INVALIDID;
     config UInt eve3ProcId      = MultiProc.INVALIDID;
     config UInt eve4ProcId      = MultiProc.INVALIDID;
     config UInt dsp1ProcId      = MultiProc.INVALIDID;
     config UInt dsp2ProcId      = MultiProc.INVALIDID;
-    config UInt ipu1ProcId      = MultiProc.INVALIDID;
-    config UInt ipu2ProcId      = MultiProc.INVALIDID;
     config UInt hostProcId      = MultiProc.INVALIDID;
 }

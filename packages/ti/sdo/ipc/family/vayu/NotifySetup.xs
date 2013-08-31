@@ -55,14 +55,13 @@ function module$use()
         this.procIdTable[loopIdx] = -1;
     }
 
+    /* note: IPU intentionally omitted, nothing to setup */
     this.eve1ProcId     = MultiProc.getIdMeta("EVE1");
     this.eve2ProcId     = MultiProc.getIdMeta("EVE2");
     this.eve3ProcId     = MultiProc.getIdMeta("EVE3");
     this.eve4ProcId     = MultiProc.getIdMeta("EVE4");
     this.dsp1ProcId     = MultiProc.getIdMeta("DSP1");
     this.dsp2ProcId     = MultiProc.getIdMeta("DSP2");
-    this.ipu1ProcId     = MultiProc.getIdMeta("IPU1");
-    this.ipu2ProcId     = MultiProc.getIdMeta("IPU2");
     this.hostProcId     = MultiProc.getIdMeta("HOST");
 
     if (this.eve1ProcId != MultiProc.INVALIDID) {
@@ -82,12 +81,6 @@ function module$use()
     }
     if (this.dsp2ProcId != MultiProc.INVALIDID) {
         this.procIdTable[this.dsp2ProcId] = 5;
-    }
-    if (this.ipu1ProcId != MultiProc.INVALIDID) {
-        this.procIdTable[this.ipu1ProcId] = 6;
-    }
-    if (this.ipu2ProcId != MultiProc.INVALIDID) {
-        this.procIdTable[this.ipu2ProcId] = 7;
     }
     if (this.hostProcId != MultiProc.INVALIDID) {
         this.procIdTable[this.hostProcId] = 8;
