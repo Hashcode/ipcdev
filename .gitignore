@@ -66,6 +66,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /qnx/src/tests/*/arm/o.g.le.v7/*.o
 /qnx/src/tests/*/arm/o.g.le.v7/*.map
 /qnx/src/tests/*/arm/o.g.le.v7/*.pinfo
+/qnx/src/tests/*/arm/o.g.le.v7/GateMPApp_g
 /qnx/src/tests/*/arm/o.g.le.v7/MessageQApp_g
 /qnx/src/tests/*/arm/o.g.le.v7/MessageQBench_g
 /qnx/src/tests/*/arm/o.g.le.v7/MessageQMulti_g
@@ -75,6 +76,7 @@ packages/ti/srvmgr/omx/OmxSrvMgr.h
 /qnx/src/tests/*/arm/o.le.v7/*.o
 /qnx/src/tests/*/arm/o.le.v7/*.map
 /qnx/src/tests/*/arm/o.le.v7/*.pinfo
+/qnx/src/tests/*/arm/o.le.v7/GateMPApp
 /qnx/src/tests/*/arm/o.le.v7/MessageQApp
 /qnx/src/tests/*/arm/o.le.v7/MessageQBench
 /qnx/src/tests/*/arm/o.le.v7/MessageQMulti
