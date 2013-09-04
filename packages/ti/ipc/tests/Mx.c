@@ -181,7 +181,7 @@ int32_t Mx_compute_Linux(Mx_Compute *compute, int fd, int fdIn, int fdOut)
 
     /* make the output buffer persistent */
 #if defined(SYSLINK_BUILDOS_QNX)
-    desc[0].ptr.addr = compute->outBuf;
+    desc[0].ptr.addr = (size_t)compute->outBuf;
     desc[0].ptr.size = compute->size * sizeof(uint32_t);
     num = 1;
 
