@@ -961,6 +961,7 @@ Int NameServer_getRemote(NameServer_Handle handle,
     nsMsg.reserved = NAMESERVER_MSG_TOKEN;
     nsMsg.request = NAMESERVER_REQUEST;
     nsMsg.requestStatus = 0;
+    nsMsg.valueLen = *len;
 
     strncpy((char *)nsMsg.instanceName, obj->name, strlen(obj->name) + 1);
     strncpy((char *)nsMsg.name, name, strlen(name) + 1);
