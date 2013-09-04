@@ -35,10 +35,6 @@
 SUBDIRS =  linux/etc linux/src/utils linux/src/api \
         linux/src/mm linux/src/daemon linux/src/tests
 
-# hook to remove libtools library extention files (.la)
-install-exec-hook:
-	rm -f $(DESTDIR)$(libdir)/*.la
-
 # where to install common headers on the system
 ipcincludedir = $(includedir)/ti/ipc
 
