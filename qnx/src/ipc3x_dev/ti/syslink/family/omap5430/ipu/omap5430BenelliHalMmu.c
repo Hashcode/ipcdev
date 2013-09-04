@@ -102,6 +102,7 @@ extern "C" {
  *  @brief  Interrupt Id for DSP MMU faults
  */
 #define MMU_FAULT_INTERRUPT          132
+#define MMU_FAULT_INTERRUPT_DSP      60
 
 /*!
  *  @brief  Size constants
@@ -394,8 +395,10 @@ _OMAP5430BENELLI_halMmuCheckAndClearFunc (Ptr arg)
     mmuObj->mmuFaultAddr = REG32(halObject->mmuBase + MMU_MMU_FAULT_AD_OFFSET);
 
     /* Print the fault information */
-    GT_0trace (curTrace, GT_4CLASS,
-               "**************** Benelli-MMU Fault ****************");
+    GT_1trace (curTrace, GT_4CLASS,
+            "**************** %s-MMU Fault ****************",
+            MultiProc_getName(halObject->procId));
+
     GT_1trace (curTrace, GT_4CLASS,
                "****    addr: 0x%x", mmuObj->mmuFaultAddr);
     if (mmuObj->mmuIrqStatus & MMU_IRQ_TLBMISS)
@@ -478,7 +481,13 @@ _OMAP5430BENELLI_halMmuEnable (OMAP5430BENELLI_HalObject * halObject,
     isrParams.sharedInt        = FALSE;
     isrParams.checkAndClearFxn = &_OMAP5430BENELLI_halMmuCheckAndClearFunc;
     isrParams.fxnArgs          = halObject;
-    isrParams.intId            = MMU_FAULT_INTERRUPT;
+    if (halObject->procId == MultiProc_getId("DSP")) {
+        isrParams.intId        = MMU_FAULT_INTERRUPT_DSP;
+    }
+    else {
+        isrParams.intId        = MMU_FAULT_INTERRUPT;
+    }
+
     mmuObj->isrHandle = OsalIsr_create (&_OMAP5430BENELLI_halMmuInt_isr,
                                         halObject,
                                         &isrParams);

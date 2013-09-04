@@ -1937,6 +1937,7 @@ Void ipu_destroy(OMAP5430BENELLI_HalObject * halObject)
         deinit_mmu_page_attribs();
     }
     else if (halObject->procId == PROCTYPE_DSP) {
+        shm_phys_addr_dsp = 0;
         deinit_dsp_mmu_page_attribs();
     }
 }

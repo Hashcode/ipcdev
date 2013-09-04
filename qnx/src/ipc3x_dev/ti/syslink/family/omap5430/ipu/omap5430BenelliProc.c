@@ -1241,7 +1241,8 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                  "    OMAP5430BENELLIPROC_attach: Slave is now "
                                  "in reset!");
 
-                        if (procHandle->procId == PROCTYPE_IPU0) {
+                        if (procHandle->procId == PROCTYPE_IPU0 ||
+                            procHandle->procId == PROCTYPE_DSP) {
                             /* Enable MMU */
                             GT_0trace (curTrace,
                                        GT_2CLASS,
@@ -1333,7 +1334,8 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
 
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
-            if (procHandle->procId == PROCTYPE_IPU0) {
+            if (procHandle->procId == PROCTYPE_IPU0 ||
+                procHandle->procId == PROCTYPE_DSP) {
                 /* Disable MMU */
                 GT_0trace (curTrace,
                            GT_2CLASS,
