@@ -68,7 +68,7 @@ struct rppc_buf_fds {
  * @RPPC_PARAM_TYPE_UNKNOWN: unrecognized parameter
  * @RPPC_PARAM_TYPE_ATOMIC: an atomic data type, 1 byte to architecture limit
  *			    sized bytes
- * @RPPC_PARAM_TYPE_PTR: a pointer to shared memory. The reserved field in the
+ * @RPPC_PARAM_TYPE_PTR: a pointer to shared memory. The fd field in the
  *			 structures rppc_param and rppc_param_translation must
  *			 contain the file descriptor of the associated dma_buf
  * @RPPC_PARAM_TYPE_STRUCT: (unsupported) a structure type. Will be architecture
@@ -87,37 +87,43 @@ enum rppc_param_type {
 /**
  * struct rppc_param_translation - pointer translation helper structure
  * @index: index of the parameter where the translation needs to be done in.
- *	   used for indicating the base pointer
- * @offset: offset from the base address to the pointer to translate
+ *	   used for computing the primary offset and mapping into kernel
+ *	   the page from the buffer referred to in the correspoding parameter
+ * @offset: offset from the primary base pointer to the pointer to translate.
+ *	    This is the secondary offset, and used either for mentioning the
+ *	    offset from an structure array element base, or within a single
+ *	    structure which itself is at an offset in an allocated buffer
  * @base: the base user virtual address of the pointer to translate (used to
- *	  calculate translated pointer offset).
- * @reserved: reserved field, expected to contain the dma_buf file descriptor.
+ *	  calculate translated pointer offset)
+ * @fd: dma_buf file descriptor of the allocated buffer pointer within which
+ *	the translated pointer is present
  */
 struct rppc_param_translation {
 	uint32_t index;
 	ptrdiff_t offset;
 	size_t base;
-	size_t reserved;
+	int32_t fd;
 };
 
 /**
  * struct rppc_param - descriptor structure for each parameter
  * @type: type of the parameter, as dictated by enum rppc_param_type
- * @size: size of the data
+ * @size: size of the data (for atomic types) or size of the containing
+ *	  structure in which translations are performed
  * @data: either the parameter value itself (for atomic type) or
  *	  the actual user space pointer address to the data (for pointer type)
  * @base: the base user space pointer address of the original allocated buffer,
  *	  providing a reference if data has the pointer that is at an offset
  *	  from the original pointer
- * @reserved: file descriptor of the exported allocation (will be used to
- *	      import the associated dma_buf within the driver).
+ * @fd: file descriptor of the exported allocation (will be used to
+ *	import the associated dma_buf within the driver).
  */
 struct rppc_param {
 	uint32_t type;
 	size_t size;
 	size_t data;
 	size_t base;
-	size_t reserved;
+	int32_t fd;
 };
 
 /**
@@ -128,7 +134,7 @@ struct rppc_param {
  * @num_translations: number of in-place translations to be performed within
  *		      the arguments.
  * @translations: an open array of the translation descriptor structures, whose
- *		  length is passed in num_translations. Used for translating
+ *		  length is given in @num_translations. Used for translating
  *		  the pointers within the function data.
  *
  * This is the primary descriptor structure passed down from the userspace,
@@ -181,7 +187,9 @@ struct rppc_function_return {
  * This is actually a condensed structure of the Remote Command Messaging
  * (RCM) structure. The initial fields of the structure are used by the
  * remote-side server to schedule the execution of the function. The actual
- * variable payload data starts from the .data field.
+ * variable payload data starts from the .data field. This marshalled packet
+ * is the payload for a rpmsg message.
+ *
  * XXX: remove or mask unneeded fields, some fields can be stripped down
  */
 struct rppc_packet {

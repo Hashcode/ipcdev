@@ -214,7 +214,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].size = param->param.scalar.size;
                 rpfxn->params[i].data = param->param.scalar.data;
                 rpfxn->params[i].base = 0;
-                rpfxn->params[i].reserved = 0;
+                rpfxn->params[i].fd = 0;
                 break;
 
             case MmRpc_ParamType_Ptr:
@@ -222,7 +222,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].size = param->param.ptr.size;
                 rpfxn->params[i].data = param->param.ptr.addr;
                 rpfxn->params[i].base = param->param.ptr.addr;
-                rpfxn->params[i].reserved = param->param.ptr.handle;
+                rpfxn->params[i].fd = (size_t)param->param.ptr.handle;
                 break;
 
             case MmRpc_ParamType_OffPtr:
@@ -231,7 +231,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].data = param->param.offPtr.base +
                         param->param.offPtr.offset;
                 rpfxn->params[i].base = param->param.offPtr.base;
-                rpfxn->params[i].reserved = param->param.offPtr.handle;
+                rpfxn->params[i].fd = (size_t)param->param.offPtr.handle;
                 break;
 
             default:
@@ -247,10 +247,10 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
 
     for (i = 0; i < ctx->num_xlts; i++) {
         /* pack the pointer translation entry */
-        rpfxn->translations[i].index    = ctx->xltAry[i].index;
-        rpfxn->translations[i].offset   = ctx->xltAry[i].offset;
-        rpfxn->translations[i].base     = ctx->xltAry[i].base;
-        rpfxn->translations[i].reserved = ctx->xltAry[i].handle;
+        rpfxn->translations[i].index = ctx->xltAry[i].index;
+        rpfxn->translations[i].offset = ctx->xltAry[i].offset;
+        rpfxn->translations[i].base = ctx->xltAry[i].base;
+        rpfxn->translations[i].fd = (int32_t)ctx->xltAry[i].handle;
     }
 
     /* send message for remote execution */
