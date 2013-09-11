@@ -91,6 +91,11 @@ DEVICE ?= _device_
 XDC_INSTALL_DIR ?= $(DEPOT)/_your_xdctools_install_
 BIOS_INSTALL_DIR ?= $(DEPOT)/_your_bios_install_
 
+# Do you want to build SMP-enabled libraries (if supported for your target)?
+# Set to either 0 (disabled) or 1 (enabled)
+#
+BIOS_SMPENABLED=1
+
 # Path to various cgtools
 #
 ti.targets.C28_large ?=

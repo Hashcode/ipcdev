@@ -113,15 +113,8 @@ var lnkOpts = {
                                         " --cinit_compression=off"
 };
 
-/* Enable building SMP-BIOS enabled libraries for targets that support it */
-if (Pkg.name.match(/^ti\.sdo\.(ipc|utils)/)) {
-    xdc.module("ti.targets.arm.elf.M3").profiles["smp"] =
-            xdc.module("ti.targets.arm.elf.M3").profiles["debug"];
-    xdc.module("ti.targets.arm.elf.M4").profiles["smp"] =
-            xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
-}
-
 var platform = "";
+var smpEnabled = true;
 
 /* initialize local vars with those set in xdcpaths.mak (via XDCARGS) */
 for (arg = 0; arg < arguments.length; arg++) {
@@ -133,6 +126,11 @@ for (arg = 0; arg < arguments.length; arg++) {
     if (configParts[0].split("=")[0] == "PLATFORM") {
         // print("FOUND PLATFORM ARG - " + configParts[0]);
         platform = configParts[0].split("=")[1];
+        continue;
+    }
+    else if (configParts[0].split("=")[0] == "BIOS_SMPENABLED") {
+        // print("FOUND SMP_ENABLED ARG - " + configParts[0]);
+        smpEnabled = configParts[0].split("=")[1].match(/^1$/);
         continue;
     }
     /*
@@ -227,6 +225,15 @@ for (arg = 0; arg < arguments.length; arg++) {
     Build.targets.$add(target);
 }
 
+if (smpEnabled) {
+    /* Enable building SMP-BIOS enabled libraries for targets that support it */
+    if (Pkg.name.match(/^ti\.sdo\.(ipc|utils)/)) {
+        xdc.module("ti.targets.arm.elf.M3").profiles["smp"] =
+                xdc.module("ti.targets.arm.elf.M3").profiles["debug"];
+        xdc.module("ti.targets.arm.elf.M4").profiles["smp"] =
+                xdc.module("ti.targets.arm.elf.M4").profiles["debug"];
+    }
+}
 
 /* lib/ is a generated directory that 'xdc clean' should remove */
 Pkg.generatedFiles.$add("lib/");
