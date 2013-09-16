@@ -46,7 +46,7 @@ VPATH = ../../../packages/ti/ipc/tests
 
 # the program to build (the names of the final binaries)
 bin_PROGRAMS = ping_rpmsg MessageQApp  MessageQBench MessageQMulti \
-                NameServerApp
+                NameServerApp Msgq100
 
 
 if OMAP54XX_SMP
@@ -137,6 +137,9 @@ NameServerApp_SOURCES = $(nameServer_common_sources)
 # list of sources for the 'nano_test' binary
 nano_test_SOURCES = $(common_sources) nano_test.c
 
+# list of sources for the 'Msgq100' binary
+Msgq100_SOURCES = $(common_sources) Msgq100.c
+
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
@@ -168,6 +171,10 @@ NameServerApp_LDADD = $(common_libraries) \
 # the additional libraries needed to link nano_test
 nano_test_LDADD = $(common_libraries) \
                 $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
+                $(AM_LDFLAGS)
+
+# the additional libraries needed to link Msgq100
+Msgq100_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 ###############################################################################
