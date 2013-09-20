@@ -211,6 +211,12 @@ instance:
      */
     config Ptr writeAddr = null;
 
+    /*!
+     *  ======== swiPriority ========
+     *  The priority of the Transport Swi object created
+     */
+    config UInt swiPriority = 1;
+
 internal:
 
     /*! The max index set to (numMsgs - 1) */
