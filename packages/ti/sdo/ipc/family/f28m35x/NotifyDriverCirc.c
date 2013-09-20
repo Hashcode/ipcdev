@@ -366,11 +366,24 @@ Void NotifyDriverCirc_intSend()
 {
 #ifdef xdc_target__isaCompatible_v7M
     volatile UInt32 *set = (volatile UInt32 *)MTOCIPCSET;
+    volatile UInt32 *clear  = (volatile UInt32 *)MTOCIPCCLR;
 #else
     volatile UInt16 *set = (volatile UInt16 *)CTOMIPCSET;
+    volatile UInt32 *clear  = (volatile UInt32 *)CTOMIPCCLR;
 #endif
+    UInt hwiKey;
 
+    /* Make sure multiple threads are not hitting this at the same time */
+    hwiKey = Hwi_disable();
+
+    /* Make sure we get a leading edge... */
+    *clear  = 1 << IpcMgr_ipcSetFlag;
+
+    /* Signal the other side */
     *set = 1 << IpcMgr_ipcSetFlag;
+
+    /* Restore the interrupt line */
+    Hwi_restore(hwiKey);
 }
 
 /*
@@ -403,9 +416,6 @@ Void NotifyDriverCirc_isr(UArg arg)
 
     /* Make sure the NotifyDriverCirc_Object is not NULL */
     Assert_isTrue(obj != NULL, IpcMgr_A_internal);
-
-    /* Clear the remote interrupt */
-    NotifyDriverCirc_intClear();
 
     /* get the writeIndex and readIndex */
     writeIndex = obj->getWriteIndex[0];

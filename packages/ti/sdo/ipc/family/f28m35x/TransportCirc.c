@@ -328,7 +328,14 @@ Void TransportCirc_swiFxn(UArg arg)
         buf = MessageQ_alloc(msg->heapId, msgSize);
 
         /* Make sure buf is not NULL */
-        Assert_isTrue(buf != NULL, IpcMgr_A_internal);
+        if (buf == NULL) {
+            TransportCirc_errFxn(TransportCirc_Reason_FAILEDALLOC,
+                ti_sdo_ipc_family_f28m35x_TransportCirc_Handle_upCast(obj),
+                NULL,
+                (UArg)msg);
+
+            return;
+        }
 
         /* copy the message to the buffer allocated, set the heap id */
         memcpy((Ptr)buf, (Ptr)msg, msgSize);
