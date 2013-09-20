@@ -125,10 +125,12 @@ function sharedMemReqMeta(params)
 function viewInitBasic(view, obj)
 {
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    var MultiProcCfg = Program.getModuleConfig('ti.sdo.utils.MultiProc');
 
     /* view.remoteProcName */
     try {
-        view.remoteProcName = MultiProc.getName$view(obj.remoteProcId);
+        view.remoteProcName = MultiProc.getName$view(obj.remoteProcId -
+                                  MultiProcCfg.baseIdOfCluster);
     }
     catch(e) {
         Program.displayError(view, 'remoteProcName',
@@ -156,7 +158,7 @@ function getEventData(view, obj, bufferPtr, putIndex, getIndex)
     }
 
     try {
-        var putBuffer = Program.fetchArray(TransportCirc.msgSize$fetchDesc,
+        var putBuffer = Program.fetchArray(ScalarStructs.S_Bits32$fetchDesc,
                                            bufferPtr,
                                            modCfg.numMsgs);
     }
@@ -174,13 +176,15 @@ function getEventData(view, obj, bufferPtr, putIndex, getIndex)
 
         elem.index = i;
         elem.buffer = bufferName;
-        elem.addr = utils.toHex(putBuffer[i].$addr);
-        elem.message = utils.toHex(putBuffer[i].elem);
+        elem.message = utils.toHex(Number(bufferPtr) + (i * modCfg.msgSize));
 
         /* Create a new row in the instance data view */
         view.elements.$add(elem);
 
         i++;
+        if ((i % modCfg.numMsgs) == 0) {
+            i = 0;
+        }
     }
 }
 

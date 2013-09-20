@@ -103,12 +103,14 @@ function sharedMemReqMeta(params)
 function viewInitBasic(view, obj)
 {
     var MultiProc = xdc.useModule('ti.sdo.utils.MultiProc');
+    var MultiProcCfg = Program.getModuleConfig('ti.sdo.utils.MultiProc');
     var modCfg =
         Program.getModuleConfig('ti.sdo.ipc.family.f28m35x.NotifyDriverCirc');
 
     /* view.remoteProcName */
     try {
-        view.remoteProcName = MultiProc.getName$view(obj.remoteProcId);
+        view.remoteProcName = MultiProc.getName$view(obj.remoteProcId -
+                                  MultiProcCfg.baseIdOfCluster);
     }
     catch(e) {
         Program.displayError(view, 'remoteProcName',
@@ -166,6 +168,9 @@ function getEventData(view, obj, bufferPtr, putIndex, getIndex)
         view.elements.$add(elem);
 
         i++;
+        if ((i % modCfg.numMsgs) == 0) {
+            i = 0;
+        }
     }
 }
 

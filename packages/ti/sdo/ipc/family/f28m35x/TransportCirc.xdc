@@ -52,10 +52,10 @@ import xdc.rov.ViewInfo;
  *  NOTE: Processor '0' corresponds to the M3 and '1' corresponds to the C28
  *
  * sharedAddr -> --------------------------- bytes
- *               |  entry0  (0) [Put]      | 4
- *               |  entry1  (0)            | 4
+ *               |  entry0  (0) [Put]      | msgSize
+ *               |  entry1  (0)            | msgSize
  *               |  ...                    |
- *               |  entryN  (0)            | 4
+ *               |  entryN  (0)            | msgSize
  *               |                         |
  *               |-------------------------|
  *               |  putWriteIndex (0)      | 4
@@ -64,10 +64,10 @@ import xdc.rov.ViewInfo;
  *               |  getReadIndex (1)       | 4
  *               |                         |
  *               |-------------------------|
- *               |  entry0  (1) [Get]      | 4
- *               |  entry1  (1)            | 4
+ *               |  entry0  (1) [Get]      | msgSize
+ *               |  entry1  (1)            | msgSize
  *               |  ...                    |
- *               |  entryN  (1)            | 4
+ *               |  entryN  (1)            | msgSize
  *               |                         |
  *               |-------------------------|
  *               |  putWriteIndex (1)      | 4
@@ -99,7 +99,6 @@ module TransportCirc inherits ti.sdo.ipc.interfaces.IMessageQTransport
     metaonly struct EventDataView {
         UInt        index;
         String      buffer;
-        Ptr         addr;
         Ptr         message;
     }
 
