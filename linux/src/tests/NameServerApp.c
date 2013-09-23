@@ -193,6 +193,7 @@ NameServerApp_startup()
     Int32 status = 0;
     NameServer_Params params;
     NameServer_Handle nsHandle;
+    NameServer_Handle nsHandleAlias;
     NameServer_Handle nsHandle2;
     Int iteration = 0;
 #ifdef USE_NSD
@@ -218,12 +219,14 @@ NameServerApp_startup()
 
 again:
     NameServer_Params_init(&params);
+
+    params.maxValueLen = sizeof(UInt32);
+    params.maxNameLen = 32;
+
     printf("params.maxValueLen=%d\n", params.maxValueLen);
     printf("params.maxNameLen=%d\n", params.maxNameLen);
     printf("params.checkExisting=%d\n", params.checkExisting);
 
-    params.maxValueLen = sizeof(UInt32);
-    params.maxNameLen = 32;
     nsHandle = NameServer_create(NSNAME, &params);
     if (nsHandle == NULL) {
         printf("Failed to create NameServer '%s'\n", NSNAME);
@@ -231,6 +234,15 @@ again:
     }
     else {
         printf("Created NameServer '%s'\n", NSNAME);
+    }
+
+    nsHandleAlias = NameServer_create(NSNAME, &params);
+    if (nsHandleAlias == NULL) {
+        printf("Failed to get handle to NameServer '%s'\n", NSNAME);
+        return -1;
+    }
+    else {
+        printf("Got another handle to NameServer '%s'\n", NSNAME);
     }
 
     NameServer_Params_init(&params);
@@ -246,12 +258,35 @@ again:
         printf("Created NameServer '%s'\n", NSNAME2);
     }
 
+    printf("Testing nsHandle\n");
     status = testNS(nsHandle, "Key");
+    if (status != 0) {
+        printf("test failed on nsHandle\n");
+        return status;
+    }
+    printf("Testing nsHandle2\n");
     status = testNS(nsHandle2, "Key");
+    if (status != 0) {
+        printf("test failed on nsHandle2\n");
+        return status;
+    }
 
     printf("Deleting nsHandle and nsHandle2...\n");
     NameServer_delete(&nsHandle);
     NameServer_delete(&nsHandle2);
+
+    /*
+     * Verify that we can still use the alias handle after deleting the
+     * initial handle
+     */
+    printf("Testing nsHandleAlias\n");
+    status = testNS(nsHandleAlias, "Key");
+    if (status != 0) {
+        printf("test failed on nsHandleAlias\n");
+        return status;
+    }
+    printf("Deleting nsHandleAlias...\n");
+    NameServer_delete(&nsHandleAlias);
 
     iteration++;
     if (iteration < 2) {

@@ -115,6 +115,7 @@ function instance$static$init(obj, name, params)
     obj.numDynamic    = params.maxRuntimeEntries;
     obj.checkExisting = params.checkExisting;
     obj.numStatic     = numStatic;
+    obj.refCount      = 1;
     obj.table.length  = numStatic;
     if (params.tableHeap == null) {
         obj.tableHeap     = NameServer.common$.instanceHeap;

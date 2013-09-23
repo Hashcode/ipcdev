@@ -154,6 +154,14 @@ module NameServer
     };
 
     /*!
+     *  Error raised when creation parameters do not match those of an
+     *  existing NameServer
+     */
+    config Error.Id E_paramMismatch  = {
+        msg: "E_paramMismatch: parameters do not match existing NameServer %s "
+    };
+
+    /*!
      *  Allow dynamic growth of the NameServer instance table
      *
      *  This value can be used to set the {@link #maxRuntimeEntries}.
@@ -482,6 +490,7 @@ internal:
         UInt8        values[];       /* Buffer for values              */
         IHeap.Handle tableHeap;      /* Heap used to alloc table       */
         Bool         checkExisting;  /* check ig name already exists   */
+        UInt32       refCount;       /* reference count to this instance */
     };
 
     struct Module_State {

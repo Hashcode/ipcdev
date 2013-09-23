@@ -529,6 +529,11 @@ for (var i = 0; i < Build.targets.length; i++) {
             defs: "-D BENCHMARK " + extraDefs
         }).addObjects(["messageq_single.c"]);
 
+        /* NameServerApp */
+        Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
+            cfgScript: "rpmsg_transport",
+        }).addObjects(["NameServerApp.c"]);
+
         /* nano_test - demonstrates passing ptrs using CMEM */
         if (platform.match(/^ti\.platforms\.evmOMAPL138\:DSP/)) {
             Pkg.addExecutable(name + "/nano_test", targ, platform, {

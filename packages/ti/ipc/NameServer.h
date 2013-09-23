@@ -263,6 +263,11 @@ Void NameServer_Params_init(NameServer_Params *params);
 /*!
  *  @brief      Creates a NameServer instance
  *
+ *  If NameServer_create() was previously called to create an instance with the
+ *  same name, subsequent calls to NameServer_create() on the same name will
+ *  simply return a valid handle to the existing NameServer instance, similar
+ *  to what is done by NameServer_getHandle().
+ *
  *  @param      name    Instance name
  *  @param      params  Instance param structure
  *
@@ -278,6 +283,10 @@ NameServer_Handle NameServer_create(String name,
  *
  *  If the instance is not empty, the contents is freed back to the
  *  heap it was allocated from.
+ *
+ *  If NameServer_create() was called multiple times on the same name,
+ *  a matching number of calls to NameServer_delete() is necessary in
+ *  order to fully deallocate the instance.
  *
  *  @param      handlePtr  Pointer to a NameServer handle
  *

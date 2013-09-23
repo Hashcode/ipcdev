@@ -113,6 +113,7 @@ struct NameServer_Object {
     String             name;            /* name of the instance */
     NameServer_Params  params;          /* the parameter structure */
     UInt32             count;           /* count of entries */
+    UInt32             refCount;        /* reference count to this object */
     pthread_mutex_t    gate;            /* crit sect gate */
 } NameServer_Object;
 
@@ -628,9 +629,16 @@ NameServer_Handle NameServer_create(String name,
     }
 
     /* check if the name is already created or not */
-    if (NameServer_getHandle(name)) {
-        LOG0("NameServer_create NameServer_E_INVALIDARG Name is in use!\n")
-        handle = NULL;
+    handle = NameServer_getHandle(name);
+    if (handle != NULL) {
+        if (memcmp((Ptr)&handle->params, (Ptr)params,
+            sizeof(NameServer_Params)) == 0) {
+            handle->refCount++;
+        }
+        else {
+            LOG0("NameServer_create: NameServer params mismatch\n")
+            handle = NULL;
+        }
         goto leave;
     }
     else {
@@ -642,6 +650,7 @@ NameServer_Handle NameServer_create(String name,
         goto leave;
     }
 
+    handle->refCount = 1;
     handle->name = (String)malloc(strlen(name) + 1u);
     if (!handle->name) {
         LOG0("NameServer_create: instance name alloc failed\n")
@@ -696,6 +705,11 @@ Int NameServer_delete(NameServer_Handle * handle)
 
     pthread_mutex_lock(&NameServer_module->modGate);
 
+    (*handle)->refCount--;
+    if ((*handle)->refCount != 0) {
+        goto leave;
+    }
+
     if ((*handle)->count == 0) {
         CIRCLEQ_REMOVE(&NameServer_module->objList, *handle, elem);
 
@@ -710,6 +724,7 @@ Int NameServer_delete(NameServer_Handle * handle)
         (*handle) = NULL;
     }
 
+leave:
     pthread_mutex_unlock(&NameServer_module->modGate);
 
     return (status);

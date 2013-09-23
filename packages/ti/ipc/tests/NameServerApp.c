@@ -37,14 +37,27 @@
  *  ============================================================================
  */
 
+/* this define must precede inclusion of any xdc header file */
+#define Registry_CURDESC Test__Desc
+#define MODULE_NAME "Server"
+
 /* Standard headers */
 #include <stdio.h>
 
 /* Ipc Standard header */
-#include <ti/ipc/Std.h>
+#include <xdc/std.h>
+#include <xdc/runtime/Diags.h>
+#include <xdc/runtime/Error.h>
+#include <xdc/runtime/Log.h>
+#include <xdc/runtime/System.h>
+#include <xdc/runtime/Assert.h>
+#include <xdc/runtime/Registry.h>
+
+#include <ti/sysbios/BIOS.h>
+#include <ti/sysbios/knl/Task.h>
 
 #include <ti/ipc/Ipc.h>
-#include <_NameServer.h>
+//#include <_NameServer.h>
 
 /* Module level headers */
 #include <ti/ipc/NameServer.h>
@@ -56,6 +69,11 @@
  */
 #define NSNAME "MyNS"
 #define NSNAME2 "MyNS2"
+
+/* private data */
+Registry_Desc               Registry_CURDESC;
+
+Void smain (UArg arg0, UArg arg1);
 
 /** ============================================================================
  *  Globals
@@ -72,74 +90,74 @@ Int testNS(NameServer_Handle nsHandle, String name)
 
     ptr = NameServer_addUInt32(nsHandle, name, 0xdeadbeef);
     if (ptr == NULL) {
-        printf("Failed to NameServer_addUInt32()\n");
+        Log_print0(Diags_INFO, "Failed to NameServer_addUInt32()\n");
         return -1;
     }
     else {
-        printf("NameServer_addUInt32() returned %p\n", ptr);
+        Log_print1(Diags_INFO, "NameServer_addUInt32() returned %p\n", (IArg)ptr);
     }
 
-    printf("Trying to add same key (should fail)...\n");
+    Log_print0(Diags_INFO, "Trying to add same key (should fail)...\n");
     ptr = NameServer_addUInt32(nsHandle, name, 0xdeadc0de);
     if (ptr == NULL) {
-        printf("    ...got expected Failure from NameServer_addUInt32()\n");
+        Log_print0(Diags_INFO, " ...got expected Failure from NameServer_addUInt32()\n");
     }
     else {
-        printf("    Error: NameServer_addUInt32() returned non-NULL %p (but was expected to fail)\n", ptr);
+        Log_print1(Diags_INFO, "    Error: NameServer_addUInt32() returned non-NULL %p (but was expected to fail)\n", (IArg)ptr);
         return -1;
     }
 
     val = 0x00c0ffee;
     status = NameServer_getUInt32(nsHandle, name, &val, NULL);
-    printf("NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
+    Log_print2(Diags_INFO, "NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
 
-    printf("Removing 0xdeadbeef w/ NameServer_remove()...\n");
+    Log_print0(Diags_INFO, "Removing 0xdeadbeef w/ NameServer_remove()...\n");
     status = NameServer_remove(nsHandle, name);
     if (status < 0) {
-        printf("NameServer_remove() failed: %d\n", status);
+        Log_print1(Diags_INFO, "NameServer_remove() failed: %d\n", status);
         return -1;
     }
 
     ptr = NameServer_addUInt32(nsHandle, name, 0xdeadc0de);
     if (ptr == NULL) {
-        printf("Error: NameServer_addUInt32() failed\n");
+        Log_print0(Diags_INFO, "Error: NameServer_addUInt32() failed\n");
         return -1;
     }
     else {
-        printf("NameServer_addUInt32(0xdeadc0de) succeeded\n");
+        Log_print0(Diags_INFO, "NameServer_addUInt32(0xdeadc0de) succeeded\n");
     }
 
     val = 0x00c0ffee;
     status = NameServer_getUInt32(nsHandle, name, &val, NULL);
-    printf("NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
+    Log_print2(Diags_INFO, "NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
 
-    printf("Removing 0xdeadc0de w/ NameServer_removeEntry()...\n");
+    Log_print0(Diags_INFO, "Removing 0xdeadc0de w/ NameServer_removeEntry()...\n");
     status = NameServer_removeEntry(nsHandle, ptr);
     if (status < 0) {
-        printf("NameServer_remove() failed: %d\n", status);
+        Log_print1(Diags_INFO, "NameServer_remove() failed: %d\n", status);
         return -1;
     }
 
     ptr = NameServer_addUInt32(nsHandle, name, 0x0badc0de);
     if (ptr == NULL) {
-        printf("Error: NameServer_addUInt32() failed\n");
+        Log_print0(Diags_INFO, "Error: NameServer_addUInt32() failed\n");
         return -1;
     }
     else {
-        printf("NameServer_addUInt32(0x0badc0de) succeeded\n");
+        Log_print0(Diags_INFO, "NameServer_addUInt32(0x0badc0de) succeeded\n");
     }
 
     val = 0x00c0ffee;
     status = NameServer_getUInt32(nsHandle, name, &val, NULL);
-    printf("NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
+    Log_print2(Diags_INFO, "NameServer_getUInt32() returned %d, val=0x%x (was 0x00c0ffee)\n", status, val);
 
     status = NameServer_remove(nsHandle, name);
     if (status < 0) {
-        printf("Error: NameServer_remove() failed\n");
+        Log_print0(Diags_INFO, "Error: NameServer_remove() failed\n");
         return -1;
     }
     else {
-        printf("NameServer_remove(%s) succeeded\n", name);
+        Log_print1(Diags_INFO, "NameServer_remove(%s) succeeded\n", (IArg)name);
     }
 
     for (i = 0; i < 10; i++) {
@@ -147,19 +165,19 @@ Int testNS(NameServer_Handle nsHandle, String name)
 
         ptr = NameServer_addUInt32(nsHandle, key, 0x0badc0de + i);
         if (ptr == NULL) {
-            printf("Error: NameServer_addUInt32() failed\n");
+            Log_print0(Diags_INFO, "Error: NameServer_addUInt32() failed\n");
             return -1;
         }
         else {
-            printf("NameServer_addUInt32(%s, 0x%x) succeeded\n", key, 0x0badc0de + i);
+            Log_print2(Diags_INFO, "NameServer_addUInt32(%s, 0x%x) succeeded\n", (IArg)key, 0x0badc0de + i);
         }
 
         val = 0x00c0ffee;
         status = NameServer_getUInt32(nsHandle, key, &val, NULL);
-        printf("NameServer_getUInt32(%s) returned %d, val=0x%x (was 0x00c0ffee)\n", key, status, val);
+        Log_print3(Diags_INFO, "NameServer_getUInt32(%s) returned %d, val=0x%x (was 0x00c0ffee)\n", (IArg)key, status, val);
 
         if (val != (0x0badc0de + i)) {
-            printf("get val (0x%x) != add val (0x%x)!\n", val, 0x0badc0de + i);
+            Log_print2(Diags_INFO, "get val (0x%x) != add val (0x%x)!\n", val, 0x0badc0de + i);
         }
     }
 
@@ -168,11 +186,11 @@ Int testNS(NameServer_Handle nsHandle, String name)
 
         status = NameServer_remove(nsHandle, key);
         if (status < 0) {
-            printf("Error: NameServer_remove() failed\n");
+            Log_print0(Diags_INFO, "Error: NameServer_remove() failed\n");
             return -1;
         }
         else {
-            printf("NameServer_remove(%s) succeeded\n", key);
+            Log_print1(Diags_INFO, "NameServer_remove(%s) succeeded\n", (IArg)key);
         }
     }
 
@@ -193,17 +211,17 @@ NameServerApp_startup()
     NameServer_Handle nsHandle2;
     Int iteration = 0;
 
-    printf ("Entered NameServerApp_startup\n");
+    Log_print0(Diags_INFO, "Entered NameServerApp_startup\n");
 
-    status = Ipc_start();
+/*    status = Ipc_start();
 
     if (status < 0) {
-        printf("Ipc_start failed: status = %d\n", status);
+        Log_print1(Diags_INFO, "Ipc_start failed: status = %d\n", status);
         return -1;
     }
-
-    printf("Calling NameServer_setup()...\n");
-    NameServer_setup();
+*/
+//    Log_print0(Diags_INFO, "Calling NameServer_setup()...\n");
+//    NameServer_setup();
 
 again:
     NameServer_Params_init(&params);
@@ -211,26 +229,26 @@ again:
     params.maxValueLen = sizeof(UInt32);
     params.maxNameLen = 32;
 
-    printf("params.maxValueLen=%d\n", params.maxValueLen);
-    printf("params.maxNameLen=%d\n", params.maxNameLen);
-    printf("params.checkExisting=%d\n", params.checkExisting);
+    Log_print1(Diags_INFO, "params.maxValueLen=%d\n", params.maxValueLen);
+    Log_print1(Diags_INFO, "params.maxNameLen=%d\n", params.maxNameLen);
+    Log_print1(Diags_INFO, "params.checkExisting=%d\n", params.checkExisting);
 
     nsHandle = NameServer_create(NSNAME, &params);
     if (nsHandle == NULL) {
-        printf("Failed to create NameServer '%s'\n", NSNAME);
+        Log_print1(Diags_INFO, "Failed to create NameServer '%s'\n", (IArg)NSNAME);
         return -1;
     }
     else {
-        printf("Created NameServer '%s'\n", NSNAME);
+        Log_print1(Diags_INFO, "Created NameServer '%s'\n", (IArg)NSNAME);
     }
 
     nsHandleAlias = NameServer_create(NSNAME, &params);
     if (nsHandleAlias == NULL) {
-        printf("Failed to get handle to NameServer '%s'\n", NSNAME);
+        Log_print1(Diags_INFO, "Failed to get handle to NameServer '%s'\n", (IArg)NSNAME);
         return -1;
     }
     else {
-        printf("Got another handle to NameServer '%s'\n", NSNAME);
+        Log_print1(Diags_INFO, "Got another handle to NameServer '%s'\n", (IArg)NSNAME);
     }
 
     NameServer_Params_init(&params);
@@ -239,27 +257,27 @@ again:
     params.maxNameLen = 32;
     nsHandle2 = NameServer_create(NSNAME2, &params);
     if (nsHandle2 == NULL) {
-        printf("Failed to create NameServer '%s'\n", NSNAME2);
+        Log_print1(Diags_INFO, "Failed to create NameServer '%s'\n", (IArg)NSNAME2);
         return -1;
     }
     else {
-        printf("Created NameServer '%s'\n", NSNAME2);
+        Log_print1(Diags_INFO, "Created NameServer '%s'\n", (IArg)NSNAME2);
     }
 
-    printf("Testing nsHandle\n");
+    Log_print0(Diags_INFO, "Testing nsHandle\n");
     status = testNS(nsHandle, "Key");
     if (status != 0) {
-        printf("test failed on nsHandle\n");
+        Log_print0(Diags_INFO, "test failed on nsHandle\n");
         return status;
     }
-    printf("Testing nsHandle2\n");
+    Log_print0(Diags_INFO, "Testing nsHandle2\n");
     status = testNS(nsHandle2, "Key");
     if (status != 0) {
-        printf("test failed on nsHandle2\n");
+        Log_print0(Diags_INFO, "test failed on nsHandle2\n");
         return status;
     }
 
-    printf("Deleting nsHandle and nsHandle2...\n");
+    Log_print0(Diags_INFO, "Deleting nsHandle and nsHandle2...\n");
     NameServer_delete(&nsHandle);
     NameServer_delete(&nsHandle2);
 
@@ -267,13 +285,13 @@ again:
      * Verify that we can still use the alias handle after deleting the
      * initial handle
      */
-    printf("Testing nsHandleAlias\n");
+    Log_print0(Diags_INFO, "Testing nsHandleAlias\n");
     status = testNS(nsHandleAlias, "Key");
     if (status != 0) {
-        printf("test failed on nsHandleAlias\n");
+        Log_print0(Diags_INFO, "test failed on nsHandleAlias\n");
         return status;
     }
-    printf("Deleting nsHandleAlias...\n");
+    Log_print0(Diags_INFO, "Deleting nsHandleAlias...\n");
     NameServer_delete(&nsHandleAlias);
 
     iteration++;
@@ -281,10 +299,10 @@ again:
         goto again;
     }
 
-    printf("Calling NameServer_destroy()...\n");
-    NameServer_destroy();
+//    Log_print0(Diags_INFO, "Calling NameServer_destroy()...\n");
+//    NameServer_destroy();
 
-    printf ("Leaving NameServerApp_startup: status = 0x%x\n", status);
+    Log_print1(Diags_INFO, "Leaving NameServerApp_startup: status = 0x%x\n", status);
 
     return status;
 }
@@ -295,9 +313,9 @@ NameServerApp_execute()
 {
     Int32 status = 0;
 
-    printf ("Entered NameServerApp_execute\n");
+    Log_print0(Diags_INFO, "Entered NameServerApp_execute\n");
 
-    printf ("Leaving NameServerApp_execute\n\n");
+    Log_print0(Diags_INFO, "Leaving NameServerApp_execute\n\n");
 
     return status;
 }
@@ -307,37 +325,76 @@ NameServerApp_shutdown()
 {
     Int32 status = 0;
 
-    printf ("Entered NameServerApp_shutdown()\n");
+    Log_print0(Diags_INFO, "Entered NameServerApp_shutdown()\n");
 
-    status = Ipc_stop();
+/*    status = Ipc_stop();
     if (status < 0) {
-        printf("Ipc_stop failed: status = %d\n", status);
+        Log_print1(Diags_INFO, "Ipc_stop failed: status = %d\n", status);
     }
-
-    printf ("Leave NameServerApp_shutdown()\n");
+*/
+    Log_print0(Diags_INFO, "Leave NameServerApp_shutdown()\n");
 
     return status;
 }
 
-int
-main (int argc, char ** argv)
+Int main(Int argc, Char* argv[])
+{
+    Error_Block     eb;
+    Task_Params     taskParams;
+    Registry_Result result;
+
+    Log_print0(Diags_ENTRY, "--> main:");
+
+    /* must initialize the error block before using it */
+    Error_init(&eb);
+
+    /* create main thread (interrupts not enabled in main on BIOS) */
+    Task_Params_init(&taskParams);
+    taskParams.instance->name = "smain";
+    taskParams.stackSize = 0x1000;
+    Task_create(smain, &taskParams, &eb);
+
+    if (Error_check(&eb)) {
+        System_abort("main: failed to create application startup thread");
+    }
+
+    /* register with xdc.runtime to get a diags mask */
+    result = Registry_addModule(&Registry_CURDESC, MODULE_NAME);
+    Assert_isTrue(result == Registry_SUCCESS, (Assert_Id)NULL);
+
+    /* start scheduler, this never returns */
+    BIOS_start();
+
+    /* should never get here */
+    Log_print0(Diags_EXIT, "<-- main:");
+    return (0);
+}
+
+Void smain (UArg arg0, UArg arg1)
 {
     int status = 0;
 
+    Log_print0(Diags_ENTRY | Diags_INFO, "--> smain:");
+
+    /* turn on Diags_INFO trace */
+    Diags_setMask("Server+F");
+
     status = NameServerApp_startup();
     if (status < 0) {
-        return -1;
+        goto leave;
     }
 
     status = NameServerApp_execute();
     if (status < 0) {
-        return -1;
+        goto leave;
     }
 
     status = NameServerApp_shutdown();
     if (status < 0) {
-        return -1;
+        goto leave;
     }
 
-    return(0);
+leave:
+    Log_print1(Diags_EXIT, "<-- smain: %d", (IArg)status);
+    return;
 }

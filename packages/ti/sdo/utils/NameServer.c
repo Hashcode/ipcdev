@@ -274,24 +274,43 @@ NameServer_Handle NameServer_create(String name, const NameServer_Params *params
     ti_sdo_utils_NameServer_Params nsParams;
     ti_sdo_utils_NameServer_Object *obj;
     Error_Block eb;
+    NameServer_Handle handle = NULL;
 
     Error_init(&eb);
 
-    if (params != NULL) {
-        /* init the module params struct */
-        ti_sdo_utils_NameServer_Params_init(&nsParams);
-        nsParams.maxRuntimeEntries = params->maxRuntimeEntries;
-        nsParams.tableHeap         = params->tableHeap;
-        nsParams.checkExisting     = params->checkExisting;
-        nsParams.maxValueLen       = params->maxValueLen;
-        nsParams.maxNameLen        = params->maxNameLen;
-
-        /* call the module create */
-        obj = ti_sdo_utils_NameServer_create(name, &nsParams, &eb);
+    /* check if the name is already created or not */
+    handle = NameServer_getHandle(name);
+    if (handle != NULL) {
+        obj = (ti_sdo_utils_NameServer_Object *)handle;
+        if ((obj->numDynamic == params->maxRuntimeEntries) &&
+            (obj->tableHeap == params->tableHeap) &&
+            (obj->checkExisting == params->checkExisting) &&
+            (obj->maxValueLen == params->maxValueLen) &&
+            (obj->maxNameLen == params->maxNameLen)) {
+            obj->refCount++;
+        }
+        else {
+            Error_raise(&eb, ti_sdo_utils_NameServer_E_paramMismatch, name, 0);
+            handle = NULL;
+        }
     }
     else {
-        /* passing in NULL uses the default params */
-        obj = ti_sdo_utils_NameServer_create(name, NULL, &eb);
+        if (params != NULL) {
+            /* init the module params struct */
+            ti_sdo_utils_NameServer_Params_init(&nsParams);
+            nsParams.maxRuntimeEntries = params->maxRuntimeEntries;
+            nsParams.tableHeap         = params->tableHeap;
+            nsParams.checkExisting     = params->checkExisting;
+            nsParams.maxValueLen       = params->maxValueLen;
+            nsParams.maxNameLen        = params->maxNameLen;
+
+            /* call the module create */
+            obj = ti_sdo_utils_NameServer_create(name, &nsParams, &eb);
+        }
+        else {
+            /* passing in NULL uses the default params */
+            obj = ti_sdo_utils_NameServer_create(name, NULL, &eb);
+        }
     }
 
     return ((NameServer_Handle)obj);
@@ -302,8 +321,14 @@ NameServer_Handle NameServer_create(String name, const NameServer_Params *params
  */
 Int NameServer_delete(NameServer_Handle *handlePtr)
 {
-    ti_sdo_utils_NameServer_delete(
-        (ti_sdo_utils_NameServer_Handle *)handlePtr);
+    ti_sdo_utils_NameServer_Object * obj =
+        (ti_sdo_utils_NameServer_Object *)*handlePtr;
+
+    obj->refCount--;
+    if (obj->refCount == 0) {
+        ti_sdo_utils_NameServer_delete(
+            (ti_sdo_utils_NameServer_Handle *)handlePtr);
+    }
 
     return (NameServer_S_SUCCESS);
 }
@@ -614,6 +639,7 @@ Int ti_sdo_utils_NameServer_Instance_init(
     obj->table         = NULL;
     obj->values        = NULL;
     obj->names         = NULL;
+    obj->refCount      = 1;
 
     if (params->tableHeap == NULL) {
         obj->tableHeap = ti_sdo_utils_NameServer_Object_heap();
