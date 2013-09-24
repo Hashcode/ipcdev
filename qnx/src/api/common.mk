@@ -40,8 +40,7 @@ define PINFO
 PINFO DESCRIPTION=IPC QNX User library
 endef
 
-# don't install the binaries, they are copied in base makefile
-INSTALLDIR = /dev/null
+INSTALLDIR = /usr/lib
 
 CCOPTS += -DSYSLINK_BUILDOS_QNX
 
@@ -65,3 +64,11 @@ EXTRA_INCVPATH += \
 
 include $(MKFILES_ROOT)/qtargets.mk
 OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)
+
+# install the headers
+POST_INSTALL += \
+        $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/MessageQ.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/MessageQ.h; \
+        $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/NameServer.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/NameServer.h; \
+        $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/GateMP.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/GateMP.h; \
+        $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/Ipc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/Ipc.h; \
+        $(CP_HOST) -Rv $(IPC_REPO)/qnx/include/ti/ipc/Std.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/Std.h

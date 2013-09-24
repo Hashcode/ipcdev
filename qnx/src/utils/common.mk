@@ -40,8 +40,7 @@ define PINFO
 PINFO DESCRIPTION=IPC QNX UTIILIES USER LIBRARY
 endef
 
-# don't install the binaries, they are copied in base makefile
-INSTALLDIR = /dev/null
+INSTALLDIR = usr/lib
 
 # source path
 EXTRA_SRCVPATH += \
@@ -58,3 +57,7 @@ EXTRA_INCVPATH += \
 
 include $(MKFILES_ROOT)/qtargets.mk
 OPTIMIZE__gcc=$(OPTIMIZE_NONE_gcc)
+
+# install the headers
+POST_INSTALL += \
+        $(CP_HOST) -Rv $(IPC_REPO)/packages/ti/ipc/MultiProc.h $(INSTALL_ROOT_nto)/usr/include/ti/ipc/MultiProc.h
