@@ -73,6 +73,13 @@ function module$static$init(mod, params)
                 TransportCirc.numMsgs +
                 " is not a power of 2", TransportCirc);
     }
+
+    if (params.errFxn != null) {
+        mod.errFxn = params.errFxn;
+    }
+    else {
+        mod.errFxn = TransportCirc.defaultErrFxn;
+    }
 }
 
 /*

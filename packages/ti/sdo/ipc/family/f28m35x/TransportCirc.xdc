@@ -34,6 +34,7 @@
  */
 
 import ti.sysbios.knl.Swi;
+import ti.sdo.ipc.interfaces.IMessageQTransport;
 
 import xdc.rov.ViewInfo;
 
@@ -88,7 +89,7 @@ import xdc.rov.ViewInfo;
 @InstanceFinalize
 @InstanceInitError
 
-module TransportCirc inherits ti.sdo.ipc.interfaces.IMessageQTransport
+module TransportCirc inherits IMessageQTransport
 {
     /*! @_nodoc */
     metaonly struct BasicView {
@@ -227,6 +228,20 @@ internal:
     config UInt msgSize;
 
     /*!
+     *  ======== defaultErrFxn ========
+     *  This is the default error function.
+     *
+     *  This function is an empty function that does nothing.
+     *
+     *  @param(reason)  reason for error function
+     *  @param(handle)  handle of transport that had error
+     *  @param(ptr)     pointer to the message
+     *  @param(arg)     argument passed to error function
+     */
+    Void defaultErrFxn(IMessageQTransport.Reason reason,
+                       IMessageQTransport.Handle handle, Ptr ptr, UArg arg);
+
+    /*!
      *  ======== swiFxn ========
      *  This function takes the messages from the transport ListMP and
      *  calls MessageQ_put to send them to their destination queue.
@@ -263,5 +278,9 @@ internal:
         SizeT           allocSize;      /* Shared memory allocated          */
         UInt16          remoteProcId;   /* dst proc id                      */
         UInt16          priority;       /* priority to register             */
+    };
+
+    struct Module_State {
+        ErrFxn errFxn;                  /* error function */
     };
 }

@@ -42,6 +42,7 @@
 
 #include <ti/sysbios/hal/Hwi.h>
 #include <ti/sysbios/knl/Swi.h>
+#include <ti/sdo/ipc/interfaces/IMessageQTransport.h>
 
 #include <ti/sdo/ipc/family/f28m35x/IpcMgr.h>
 
@@ -329,7 +330,7 @@ Void TransportCirc_swiFxn(UArg arg)
 
         /* Make sure buf is not NULL */
         if (buf == NULL) {
-            TransportCirc_errFxn(TransportCirc_Reason_FAILEDALLOC,
+            TransportCirc_module->errFxn(TransportCirc_Reason_FAILEDALLOC,
                 ti_sdo_ipc_family_f28m35x_TransportCirc_Handle_upCast(obj),
                 NULL,
                 (UArg)msg);
@@ -394,9 +395,19 @@ SizeT TransportCirc_sharedMemReq(const TransportCirc_Params *params)
 }
 
 /*
+ *  ======== TransportCirc_defaultErrFxn ========
+ */
+Void TransportCirc_defaultErrFxn(IMessageQTransport_Reason reason,
+                                 IMessageQTransport_Handle handle,
+				 Ptr ptr,
+				 UArg arg)
+{
+}
+
+/*
  *  ======== TransportCirc_setErrFxn ========
  */
 Void TransportCirc_setErrFxn(TransportCirc_ErrFxn errFxn)
 {
-    /* Ignore the errFxn */
+    TransportCirc_module->errFxn = errFxn;
 }
