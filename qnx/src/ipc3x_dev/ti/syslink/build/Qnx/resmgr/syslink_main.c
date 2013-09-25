@@ -723,7 +723,13 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
 
         for (i = 0; i < syslink_num_cores; i++) {
             procId = firmware[i].proc_id = MultiProc_getId(firmware[i].proc);
-            if (procId >= MultiProc_MAXPROCESSORS || procH[procId]) {
+            if (procId >= MultiProc_MAXPROCESSORS) {
+                status = -1;
+                fprintf(stderr, "Invalid processor name specified\n");
+                break;
+            }
+
+            if (procH[procId]) {
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "init_ipc",
@@ -857,6 +863,9 @@ rpcsetup_fail:
 tiipcsetup_fail:
     for (i-=1; i >= 0; i--) {
         procId = firmware[i].proc_id;
+        if (procId >= MultiProc_MAXPROCESSORS) {
+            continue;
+        }
         ProcMgr_unregisterNotify(procH[procId], syslink_error_cb,
                                 (Ptr)dev, errStates);
         ProcMgr_stop(procH[procId]);
@@ -1171,15 +1180,22 @@ static int init_ducati_slog2(void)
 /** print usage */
 static Void printUsage (Char * app)
 {
-    printf ("\n%s: [-fHT]\n", app);
-    printf ("  -f   specify the binary file to load to the remote cores)\n");
+    printf("\n\nUsage:\n");
 #if defined(SYSLINK_PLATFORM_OMAP5430)
-    printf ("  -d   specify the binary file to load to the dsp)\n");
-#endif
-    printf ("  -H   enable/disable hibernation, 1: ON, 0: OFF, Default: 1)\n");
-    printf ("  -T   specify the hibernation timeout in ms, Default: 5000 ms)\n");
-#if defined(SYSLINK_PLATFORM_VAYU)
-    printf ("  -g   enable GateMP support on host\n");
+    printf("\n%s: [-HT] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+        app);
+    printf("  <core_id#> should be set to a core name (e.g. IPU, DSP)\n");
+    printf("      followed by the path to the executable to load on that core.\n");
+    printf("Options:\n");
+    printf("  -H   enable/disable hibernation, 1: ON, 0: OFF, Default: 1)\n");
+    printf("  -T   specify the hibernation timeout in ms, Default: 5000 ms)\n");
+#else
+    printf("\n%s: [-g] <core_id1> <executable1> [<core_id2> <executable2> ...]\n",
+        app);
+    printf("  <core_id#> should be set to a core name (e.g. DSP1, IPU2)\n");
+    printf("      followed by the path to the executable to load on that core.\n");
+    printf("Options:\n");
+    printf("  -g   enable GateMP support on host\n");
 #endif
     exit (EXIT_SUCCESS);
 }
@@ -1211,42 +1227,13 @@ int main(int argc, char *argv[])
     /* Parse the input args */
     while (1)
     {
-        c = getopt (argc, argv, "f:d:H:T:U:gv:");
+        c = getopt (argc, argv, "H:T:U:gv:");
         if (c == -1)
             break;
 
         switch (c)
         {
-        case 'f':
-            /* for backward compatibility, "-f" option loaded Ducati/Benelli */
-            syslink_firmware[syslink_num_cores].firmware = optarg;
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-            syslink_firmware[syslink_num_cores].proc = "SYSM3";
-#else
-#ifndef SYSLINK_SYSBIOS_SMP
-            syslink_firmware[syslink_num_cores].proc = "CORE0";
-#else
-            syslink_firmware[syslink_num_cores].proc = "IPU";
-#endif
-#endif
-            syslink_num_cores++;
-#ifndef SYSLINK_SYSBIOS_SMP
-            syslink_firmware[syslink_num_cores].firmware = NULL;
-#if defined(SYSLINK_PLATFORM_OMAP4430)
-            syslink_firmware[syslink_num_cores].proc = "APPM3";
-#else
-            syslink_firmware[syslink_num_cores].proc = "CORE1";
-#endif
-            syslink_num_cores++;
-#endif
-            break;
 #if defined(SYSLINK_PLATFORM_OMAP5430)
-        case 'd':
-            syslink_firmware[syslink_num_cores].firmware = optarg;
-            syslink_firmware[syslink_num_cores].proc = "DSP";
-            syslink_num_cores++;
-            break;
-#endif
         case 'H':
             hib_enable = atoi(optarg);
             if (hib_enable != 0 && hib_enable != 1) {
@@ -1256,6 +1243,7 @@ int main(int argc, char *argv[])
         case 'T':
             hib_timeout = atoi(optarg);
             break;
+#endif
         case 'U':
             user_parm = optarg;
             break;
@@ -1287,7 +1275,8 @@ int main(int argc, char *argv[])
 
     /* Get the name of the binary from the input args */
     if (!syslink_num_cores) {
-        fprintf(stderr, "-f or -d or <core_id> option must be specified");
+        fprintf(stderr, "At least one core_id and executable must be "\
+            "specified");
         printUsage(argv[0]);
         return (error);
     }
@@ -1321,7 +1310,7 @@ int main(int argc, char *argv[])
             return -1;
         }
         if (NULL == realpath(syslink_firmware[i].firmware, abs_path)) {
-            fprintf (stderr, "realpath failed\n");
+            fprintf (stderr, "invalid path to executable\n");
             return -1;
         }
         syslink_firmware[i].firmware = abs_path;
