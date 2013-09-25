@@ -168,9 +168,12 @@ static NameServer_ModuleObject NameServer_state = {
     .defInstParams.checkExisting     = TRUE,
     .defInstParams.maxValueLen       = 0u,
     .defInstParams.maxNameLen        = 16u,
+#if defined(IPC_BUILDOS_ANDROID)
+    .modGate                         = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
+#else
 // only _NP (non-portable) type available in CG tools which we're using
     .modGate                         = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
-//    .modGate                         = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
+#endif
     .refCount                        = 0
 };
 

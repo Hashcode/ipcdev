@@ -31,14 +31,79 @@
 
 LOCAL_PATH:= $(call my-dir)
 
+##### MessageQApp #####
 include $(CLEAR_VARS)
+
+IPC_ROOT := ../../..
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
+                     $(LOCAL_PATH)/$(IPC_ROOT)/packages
 
 LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
 LOCAL_MODULE_TAGS:= optional
 
-LOCAL_SRC_FILES:= packages/ti/ipc/mm/MmRpc.c
-LOCAL_SHARED_LIBRARIES := \
-    liblog
+LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQApp.c
 
-LOCAL_MODULE:= libipc
-include $(BUILD_SHARED_LIBRARY)
+LOCAL_SHARED_LIBRARIES := \
+    liblog libtiipcutils libtiipc
+
+LOCAL_MODULE:= messageQApp
+include $(BUILD_EXECUTABLE)
+
+##### MessageQBench #####
+include $(CLEAR_VARS)
+
+IPC_ROOT := ../../..
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
+                     $(LOCAL_PATH)/$(IPC_ROOT)/packages
+
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_MODULE_TAGS:= optional
+
+LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQBench.c
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog libtiipcutils libtiipc
+
+LOCAL_MODULE:= messageQBench
+include $(BUILD_EXECUTABLE)
+
+##### MessageQMulti #####
+include $(CLEAR_VARS)
+
+IPC_ROOT := ../../..
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
+                     $(LOCAL_PATH)/$(IPC_ROOT)/packages
+
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_MODULE_TAGS:= optional
+
+LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/MessageQMulti.c
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog libtiipcutils libtiipc
+
+LOCAL_MODULE:= messageQMulti
+include $(BUILD_EXECUTABLE)
+
+##### NameServerApp #####
+include $(CLEAR_VARS)
+
+IPC_ROOT := ../../..
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include \
+                     $(LOCAL_PATH)/$(IPC_ROOT)/hlos_common/include \
+                     $(LOCAL_PATH)/$(IPC_ROOT)/packages
+
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_MODULE_TAGS:= optional
+
+LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/NameServerApp.c
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog libtiipcutils libtiipc
+
+LOCAL_MODULE:= nameServerApp
+include $(BUILD_EXECUTABLE)

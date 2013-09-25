@@ -76,8 +76,14 @@ extern FILE *logPtr;
 
 
 /* LAD commmand FIFO strings: */
+#if defined (IPC_BUILDOS_ANDROID)
+#define LAD_COMMANDFIFO         "/data/local/tmp/LAD/LADCMDS"
+#define LAD_WORKINGDIR          "/data/local/tmp/LAD/"
+#else
 #define LAD_COMMANDFIFO         "/tmp/LAD/LADCMDS"
 #define LAD_WORKINGDIR          "/tmp/LAD/"
+#endif
+
 #define LAD_RESPONSEFIFOPATH    LAD_WORKINGDIR
 #define LAD_PROTOCOLVERSION     "03000000"    /*  MMSSRRRR */
 

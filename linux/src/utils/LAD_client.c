@@ -63,9 +63,13 @@ static _LAD_ClientInfo clientInfo[LAD_MAXNUMCLIENTS];
 
 static LAD_Status initWrappers(Void);
 static Bool openCommandFIFO(Void);
+
+#if defined(IPC_BUILDOS_ANDROID)
+static pthread_mutex_t modGate  = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+#else
 // only _NP (non-portable) type available in CG tools which we're using
 static pthread_mutex_t modGate  = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-// static pthread_mutex_t modGate  = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+#endif
 
 
 /*

@@ -143,7 +143,11 @@ static MessageQ_ModuleObject MessageQ_state =
     .queues                 = NULL,
     .numQueues              = 2u,
     .canFreeQueues          = FALSE,
+#if defined(IPC_BUILDOS_ANDROID)
+    .gate                   = PTHREAD_RECURSIVE_MUTEX_INITIALIZER,
+#else
     .gate                   = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP,
+#endif
     .defaultCfg.traceFlag   = FALSE,
     .defaultCfg.maxRuntimeEntries = 32u,
     .defaultCfg.maxNameLen    = 32u,
