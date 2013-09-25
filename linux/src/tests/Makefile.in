@@ -37,10 +37,11 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
-	NameServerApp$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
-	$(am__EXEEXT_1) $(am__EXEEXT_3) $(am__EXEEXT_1) \
-	$(am__EXEEXT_4) $(am__EXEEXT_1) $(am__EXEEXT_1) \
-	$(am__EXEEXT_1) $(am__EXEEXT_5) $(am__EXEEXT_6)
+	NameServerApp$(EXEEXT) Msgq100$(EXEEXT) $(am__EXEEXT_1) \
+	$(am__EXEEXT_2) $(am__EXEEXT_1) $(am__EXEEXT_3) \
+	$(am__EXEEXT_1) $(am__EXEEXT_4) $(am__EXEEXT_1) \
+	$(am__EXEEXT_1) $(am__EXEEXT_1) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6)
 
 # Add platform specific bin application's here
 @OMAP54XX_SMP_TRUE@am__append_1 = 
@@ -93,6 +94,9 @@ am_MessageQMulti_OBJECTS = $(am__objects_1) MessageQMulti.$(OBJEXT)
 MessageQMulti_OBJECTS = $(am_MessageQMulti_OBJECTS)
 MessageQMulti_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_2)
+am_Msgq100_OBJECTS = $(am__objects_1) Msgq100.$(OBJEXT)
+Msgq100_OBJECTS = $(am_Msgq100_OBJECTS)
+Msgq100_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am__objects_2 = NameServerApp.$(OBJEXT)
 am_NameServerApp_OBJECTS = $(am__objects_2)
 NameServerApp_OBJECTS = $(am_NameServerApp_OBJECTS)
@@ -124,13 +128,13 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
-	$(MessageQMulti_SOURCES) $(NameServerApp_SOURCES) \
-	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(MessageQMulti_SOURCES) $(Msgq100_SOURCES) \
+	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
 DIST_SOURCES = $(MessageQApp_SOURCES) $(MessageQBench_SOURCES) \
-	$(MessageQMulti_SOURCES) $(NameServerApp_SOURCES) \
-	$(mmrpc_test_SOURCES) $(nano_test_SOURCES) \
-	$(ping_rpmsg_SOURCES)
+	$(MessageQMulti_SOURCES) $(Msgq100_SOURCES) \
+	$(NameServerApp_SOURCES) $(mmrpc_test_SOURCES) \
+	$(nano_test_SOURCES) $(ping_rpmsg_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -299,6 +303,9 @@ NameServerApp_SOURCES = $(nameServer_common_sources)
 
 # list of sources for the 'nano_test' binary
 nano_test_SOURCES = $(common_sources) nano_test.c
+
+# list of sources for the 'Msgq100' binary
+Msgq100_SOURCES = $(common_sources) Msgq100.c
 common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
                 $(top_builddir)/linux/src/utils/libtiipcutils.la
 
@@ -336,6 +343,11 @@ NameServerApp_LDADD = $(common_libraries) \
 # the additional libraries needed to link nano_test
 nano_test_LDADD = $(common_libraries) \
                 $(CMEM_INSTALL_DIR)/src/cmem/api/.libs/libticmem.a \
+                $(AM_LDFLAGS)
+
+
+# the additional libraries needed to link Msgq100
+Msgq100_LDADD = $(common_libraries) \
                 $(AM_LDFLAGS)
 
 all: all-am
@@ -408,6 +420,9 @@ MessageQBench$(EXEEXT): $(MessageQBench_OBJECTS) $(MessageQBench_DEPENDENCIES)
 MessageQMulti$(EXEEXT): $(MessageQMulti_OBJECTS) $(MessageQMulti_DEPENDENCIES) 
 	@rm -f MessageQMulti$(EXEEXT)
 	$(LINK) $(MessageQMulti_LDFLAGS) $(MessageQMulti_OBJECTS) $(MessageQMulti_LDADD) $(LIBS)
+Msgq100$(EXEEXT): $(Msgq100_OBJECTS) $(Msgq100_DEPENDENCIES) 
+	@rm -f Msgq100$(EXEEXT)
+	$(LINK) $(Msgq100_LDFLAGS) $(Msgq100_OBJECTS) $(Msgq100_LDADD) $(LIBS)
 NameServerApp$(EXEEXT): $(NameServerApp_OBJECTS) $(NameServerApp_DEPENDENCIES) 
 	@rm -f NameServerApp$(EXEEXT)
 	$(LINK) $(NameServerApp_LDFLAGS) $(NameServerApp_OBJECTS) $(NameServerApp_LDADD) $(LIBS)
@@ -430,6 +445,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQBench.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageQMulti.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Msgq100.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NameServerApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmrpc_test.Po@am__quote@
