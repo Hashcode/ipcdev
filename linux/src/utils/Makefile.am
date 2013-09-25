@@ -40,13 +40,15 @@ AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
 ###############################################################################
 
 # the library names to build (note we are building shared libs)
-lib_LTLIBRARIES = libtiipcutils.la
+lib_LTLIBRARIES = libtiipcutils.la libtiipcutils_lad.la
 
 # where to install the headers on the system
 libtiipcutils_ladir = $(includedir)
+libtiipcutils_lad_ladir = $(includedir)
 
 # the list of header files that belong to the library (to be installed later)
 libtiipcutils_la_HEADERS =
+libtiipcutils_lad_la_HEADERS =
 
 # the sources to add to the library and to add to the source distribution
 libtiipcutils_la_SOURCES =    \
@@ -59,9 +61,24 @@ libtiipcutils_la_SOURCES =    \
                         $(top_srcdir)/packages/ti/ipc/MultiProc.h \
                         LAD_client.c \
                         $(top_srcdir)/hlos_common/src/utils/MultiProc.c \
+                        MultiProc_app.c \
                         SocketFxns.c
+
+libtiipcutils_lad_la_SOURCES =    \
+                        $(libtiipcutils_la_HEADERS) \
+                        $(top_srcdir)/linux/include/ladclient.h \
+                        $(top_srcdir)/linux/include/_lad.h \
+                        $(top_srcdir)/linux/include/_MultiProc.h \
+                        $(top_srcdir)/linux/include/net/rpmsg.h \
+                        $(top_srcdir)/linux/include/ti/ipc/Std.h \
+                        $(top_srcdir)/packages/ti/ipc/MultiProc.h \
+                        LAD_client.c \
+                        $(top_srcdir)/hlos_common/src/utils/MultiProc.c \
+                        SocketFxns.c
+
 
 # Add version info to the shared library
 libtiipcutils_la_LDFLAGS = -version-info 1:0:0
+libtiipcutils_lad_la_LDFLAGS = -version-info 1:0:0
 
 ###############################################################################

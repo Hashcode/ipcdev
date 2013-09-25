@@ -97,8 +97,8 @@ lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
 lad_tci6638_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
 
-common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+common_libraries = -lpthread \
+                $(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 
 # the additional libraries needed to link program
 lad_omap54xx_smp_LDADD = $(common_libraries) \

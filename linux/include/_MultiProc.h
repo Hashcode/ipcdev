@@ -87,6 +87,17 @@ typedef struct MultiProc_Config_tag {
  */
 Void MultiProc_getConfig (MultiProc_Config * cfg);
 
+/*!
+ *  @brief	Initialize the configuration for the MultiProc module.
+ *
+ *		This function is called to initialize the configuration for
+ *              MultiProc.
+ *
+ *  @param	cfg	   Pointer to a populated MultiProc configuration
+ *			   structure.
+ */
+Void _MultiProc_initCfg(MultiProc_Config * cfg);
+
 /* This exported from daemon/MultiProcCfg_<PLATFORM>.c: */
 extern MultiProc_Config _MultiProc_cfg;
 

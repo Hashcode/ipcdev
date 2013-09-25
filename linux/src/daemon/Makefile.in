@@ -73,8 +73,8 @@ am__objects_1 = lad.$(OBJEXT) MessageQ_daemon.$(OBJEXT) \
 	MultiProc_daemon.$(OBJEXT) NameServer_daemon.$(OBJEXT)
 am_lad_dra7xx_OBJECTS = $(am__objects_1) MultiProcCfg_dra7xx.$(OBJEXT)
 lad_dra7xx_OBJECTS = $(am_lad_dra7xx_OBJECTS)
-am__DEPENDENCIES_1 = $(top_builddir)/linux/src/api/libtiipc.la \
-	$(top_builddir)/linux/src/utils/libtiipcutils.la
+am__DEPENDENCIES_1 =  \
+	$(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 am__DEPENDENCIES_2 =
 lad_dra7xx_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2)
 am_lad_omap54xx_smp_OBJECTS = $(am__objects_1) \
@@ -272,8 +272,8 @@ lad_omapl138_SOURCES = $(common_sources) MultiProcCfg_omapl138.c
 lad_tci6614_SOURCES = $(common_sources) MultiProcCfg_tci6614.c
 lad_tci6636_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
 lad_tci6638_SOURCES = $(common_sources) MultiProcCfg_tci6638.c
-common_libraries = -lpthread $(top_builddir)/linux/src/api/libtiipc.la \
-                $(top_builddir)/linux/src/utils/libtiipcutils.la
+common_libraries = -lpthread \
+                $(top_builddir)/linux/src/utils/libtiipcutils_lad.la
 
 
 # the additional libraries needed to link program

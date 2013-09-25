@@ -55,10 +55,9 @@
 
 /* IPC startup/shutdown stuff: */
 #include <ti/ipc/MultiProc.h>
+#include <_MultiProc.h>
 #include <_MessageQ.h>
 #include <_NameServer.h>
-
-MultiProc_Config _MultiProc_cfg;
 
 static LAD_ClientHandle ladHandle;
 
@@ -88,9 +87,12 @@ Int Ipc_start (Void)
         goto exit;
     }
 
-    /* Setup and get MultiProc configuration from LAD */
+    /* 
+     * Get MultiProc configuration from LAD and initialize local MultiProc
+     * config structure.
+     */
     MultiProc_getConfig(&mpCfg);
-    _MultiProc_cfg = mpCfg;
+    _MultiProc_initCfg(&mpCfg);
 
     status = NameServer_setup();
     if (status >= 0) {
