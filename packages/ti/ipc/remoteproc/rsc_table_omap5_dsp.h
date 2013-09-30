@@ -95,11 +95,7 @@
  * Assign fixed RAM addresses to facilitate a fixed MMU table.
  */
 /* This address is derived from current IPU & ION carveouts */
-#ifdef OMAP5
 #define PHYS_MEM_IPC_VRING      0x95000000
-#else
-#define PHYS_MEM_IPC_VRING      0x98800000
-#endif
 
 /* Need to be identical to that of Ducati */
 #define PHYS_MEM_IOBUFS         0xBA300000
