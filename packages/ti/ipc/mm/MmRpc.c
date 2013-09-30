@@ -222,7 +222,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].size = param->param.ptr.size;
                 rpfxn->params[i].data = param->param.ptr.addr;
                 rpfxn->params[i].base = param->param.ptr.addr;
-                rpfxn->params[i].fd = (size_t)param->param.ptr.handle;
+                rpfxn->params[i].fd = param->param.ptr.handle;
                 break;
 
             case MmRpc_ParamType_OffPtr:
@@ -231,7 +231,7 @@ int MmRpc_call(MmRpc_Handle handle, MmRpc_FxnCtx *ctx, int32_t *ret)
                 rpfxn->params[i].data = param->param.offPtr.base +
                         param->param.offPtr.offset;
                 rpfxn->params[i].base = param->param.offPtr.base;
-                rpfxn->params[i].fd = (size_t)param->param.offPtr.handle;
+                rpfxn->params[i].fd = param->param.offPtr.handle;
                 break;
 
             default:
