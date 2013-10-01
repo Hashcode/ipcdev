@@ -64,23 +64,25 @@
         ti_sdo_ipc_nsremote_NameServerRemoteNotify_notifyEventId + \
                     (UInt32)((UInt32)Notify_SYSTEMKEY << 16)
 
+/* private constant values */
+#define NameServerRemoteNotify_RequestMsg       1
+#define NameServerRemoteNotify_ResponseMsg      2
+
 /*
  *************************************************************************
  *                       Instance functions
  *************************************************************************
  */
 Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
-        UInt16 remoteProcId,
-        const NameServerRemoteNotify_Params *params,
+        UInt16 remoteProcId, const NameServerRemoteNotify_Params *params,
         Error_Block *eb)
 {
     Int               offset = 0;
     Int               status;
     Semaphore_Params  semParams;
-    Semaphore_Handle  semRemoteWait;
-    Semaphore_Handle  semMultiBlock;
-    Swi_Handle        swiHandle;
+    Semaphore_Handle  semHandle;
     Swi_Params        swiParams;
+    Swi_Handle        swiHandle;
 
     /* Assert that a NameServerRemoteNotify_Params has been supplied */
     Assert_isTrue(params != NULL, Ipc_A_nullArgument);
@@ -96,15 +98,18 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
     }
 
     obj->regionId = SharedRegion_getId(params->sharedAddr);
+    obj->localState = NameServerRemoteNotify_IDLE;
+    obj->remoteState = NameServerRemoteNotify_IDLE;
 
-    /* Assert that sharedAddr is cache aligned */
+    /* assert that sharedAddr is cache aligned */
     Assert_isTrue(((UInt32)params->sharedAddr %
-                  SharedRegion_getCacheLineSize(obj->regionId) == 0),
-                  Ipc_A_addrNotCacheAligned);
+            SharedRegion_getCacheLineSize(obj->regionId) == 0),
+            Ipc_A_addrNotCacheAligned);
 
-    semRemoteWait = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
-    semMultiBlock = NameServerRemoteNotify_Instance_State_semMultiBlock(obj);
-    swiHandle = NameServerRemoteNotify_Instance_State_swiObj(obj);
+    /* asset message structure size is cache aligned */
+    Assert_isTrue((sizeof(NameServerRemoteNotify_Message) %
+            SharedRegion_getCacheLineSize(obj->regionId)) == 0,
+            NameServerRemoteNotify_A_messageSize);
 
     obj->msg[0] = (NameServerRemoteNotify_Message *)(params->sharedAddr);
     obj->msg[1] = (NameServerRemoteNotify_Message *)((UInt32)obj->msg[0] +
@@ -112,24 +117,35 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
     obj->gate = params->gate;
     obj->remoteProcId = remoteProcId;
 
-    /* construct the semaphore */
+    /* construct the remoteWait semaphore */
+    semHandle = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
     Semaphore_Params_init(&semParams);
-    Semaphore_construct(Semaphore_struct(semRemoteWait), 0, &semParams);
+    Semaphore_construct(Semaphore_struct(semHandle), 0, &semParams);
 
-    /* construct the semaphore */
-    Semaphore_construct(Semaphore_struct(semMultiBlock), 1, &semParams);
+    /* construct the multiBlock semaphore */
+    semHandle = NameServerRemoteNotify_Instance_State_semMultiBlock(obj);
+    Semaphore_Params_init(&semParams);
+    Semaphore_construct(Semaphore_struct(semHandle), 1, &semParams);
 
-    /* swi created with lowest priority and fxn = swiFxn */
+    /* construct swi which handles the request message */
+    swiHandle = NameServerRemoteNotify_Instance_State_swiRequest(obj);
     Swi_Params_init(&swiParams);
     swiParams.arg0 = (UArg)obj;
-    swiParams.priority = 0;
+    swiParams.priority = 0; /* lowest priority */
     Swi_construct(Swi_struct(swiHandle),
-                 (ti_sysbios_knl_Swi_FuncPtr)NameServerRemoteNotify_swiFxn,
-                 &swiParams, eb);
+             (ti_sysbios_knl_Swi_FuncPtr)NameServerRemoteNotify_swiFxnRequest,
+             &swiParams, eb);
+
+    /* construct swi which handles the response message */
+    swiHandle = NameServerRemoteNotify_Instance_State_swiResponse(obj);
+    Swi_Params_init(&swiParams);
+    swiParams.arg0 = (UArg)obj;
+    swiParams.priority = 0; /* lowest priority */
+    Swi_construct(Swi_struct(swiHandle),
+             (ti_sysbios_knl_Swi_FuncPtr)NameServerRemoteNotify_swiFxnResponse,
+             &swiParams, eb);
 
     /* initialize own side of message struct only */
-    obj->msg[offset]->request = 0;
-    obj->msg[offset]->response = 0;
     obj->msg[offset]->requestStatus = 0;
     obj->msg[offset]->value = 0;
     obj->msg[offset]->valueLen = 0;
@@ -147,13 +163,10 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
                     Cache_Type_ALL, TRUE);
     }
 
-    /* register the call back function and event Id with notify */
-    status = Notify_registerEventSingle(
-                remoteProcId,
-                0,
-                NameServerRemoteNotify_notifyEventId,
-                (Notify_FnNotifyCbck)NameServerRemoteNotify_cbFxn,
-                (UArg)swiHandle);
+    /* register notify callback function to handle message notifications */
+    status = Notify_registerEventSingle(remoteProcId, 0,
+            NameServerRemoteNotify_notifyEventId,
+            (Notify_FnNotifyCbck)NameServerRemoteNotify_cbFxn, (UArg)obj);
 
     /* if not successful return */
     if (status < 0) {
@@ -171,11 +184,10 @@ Int NameServerRemoteNotify_Instance_init(NameServerRemoteNotify_Object *obj,
 /*
  *  ======== NameServerRemoteNotify_Instance_finalize ========
  */
-Void NameServerRemoteNotify_Instance_finalize(NameServerRemoteNotify_Object *obj,
-    Int status)
+Void NameServerRemoteNotify_Instance_finalize(
+        NameServerRemoteNotify_Object *obj, Int status)
 {
-    Semaphore_Handle  semRemoteWait;
-    Semaphore_Handle  semMultiBlock;
+    Semaphore_Handle  semHandle;
     Swi_Handle        swiHandle;
 
     if (status == 0) {
@@ -183,23 +195,26 @@ Void NameServerRemoteNotify_Instance_finalize(NameServerRemoteNotify_Object *obj
         ti_sdo_utils_NameServer_unregisterRemoteDriver(obj->remoteProcId);
 
         /* unregister event from Notify module */
-        Notify_unregisterEventSingle(
-                       obj->remoteProcId,
-                       0,
-                       NameServerRemoteNotify_notifyEventId);
+        Notify_unregisterEventSingle(obj->remoteProcId, 0,
+                NameServerRemoteNotify_notifyEventId);
     }
 
-    semRemoteWait = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
-    if (semRemoteWait != NULL) {
-        Semaphore_destruct(Semaphore_struct(semRemoteWait));
+    semHandle = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
+    if (semHandle != NULL) {
+        Semaphore_destruct(Semaphore_struct(semHandle));
     }
 
-    semMultiBlock = NameServerRemoteNotify_Instance_State_semMultiBlock(obj);
-    if (semMultiBlock != NULL) {
-        Semaphore_destruct(Semaphore_struct(semMultiBlock));
+    semHandle = NameServerRemoteNotify_Instance_State_semMultiBlock(obj);
+    if (semHandle != NULL) {
+        Semaphore_destruct(Semaphore_struct(semHandle));
     }
 
-    swiHandle = NameServerRemoteNotify_Instance_State_swiObj(obj);
+    swiHandle = NameServerRemoteNotify_Instance_State_swiRequest(obj);
+    if (swiHandle != NULL) {
+        Swi_destruct(Swi_struct(swiHandle));
+    }
+
+    swiHandle = NameServerRemoteNotify_Instance_State_swiResponse(obj);
     if (swiHandle != NULL) {
         Swi_destruct(Swi_struct(swiHandle));
     }
@@ -249,18 +264,32 @@ Int NameServerRemoteNotify_attach(UInt16 remoteProcId, Ptr sharedAddr)
 /*
  *  ======== NameServerRemoteNotify_cbFxn ========
  */
-Void NameServerRemoteNotify_cbFxn(UInt16 procId,
-                                  UInt16 lineId,
-                                  UInt32 eventId,
-                                  UArg arg,
-                                  UInt32 payload)
+Void NameServerRemoteNotify_cbFxn(UInt16 procId, UInt16 lineId, UInt32 eventId,
+        UArg arg, UInt32 payload)
 {
+    NameServerRemoteNotify_Object *obj;
     Swi_Handle swiHandle;
 
-    /* Swi_Handle was passed as arg in register */
-    swiHandle = (Swi_Handle)arg;
+    obj = (NameServerRemoteNotify_Object *)arg;
 
-    /* post the Swi */
+
+    switch (payload)
+    {
+        case NameServerRemoteNotify_RequestMsg:
+            swiHandle = NameServerRemoteNotify_Instance_State_swiRequest(obj);
+
+            /* set object state (used by ROV) */
+            obj->remoteState = NameServerRemoteNotify_RECEIVE_REQUEST;
+            break;
+
+        case NameServerRemoteNotify_ResponseMsg:
+            swiHandle = NameServerRemoteNotify_Instance_State_swiResponse(obj);
+
+            /* set object state (used by ROV) */
+            obj->localState = NameServerRemoteNotify_RECEIVE_RESPONSE;
+            break;
+    }
+
     Swi_post(swiHandle);
 }
 
@@ -293,24 +322,18 @@ Int NameServerRemoteNotify_detach(UInt16 remoteProcId)
  *  ======== NameServerRemoteNotify_get ========
  */
 Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
-                               String instanceName,
-                               String name,
-                               Ptr value,
-                               UInt32 *valueLen,
-                               ISync_Handle syncHandle,
-                               Error_Block *eb)
+        String instanceName, String name, Ptr value, UInt32 *valueLen,
+        ISync_Handle syncHandle, Error_Block *eb)
 {
     Int len;
     Int retval = NameServer_E_NOTFOUND;
     Int offset = 0;
     Int status;
     Int notifyStatus;
-    IArg key;
     Semaphore_Handle semRemoteWait;
     Semaphore_Handle semMultiBlock;
 
-    Assert_isTrue(*valueLen <= 300,
-                      NameServerRemoteNotify_A_invalidValueLen);
+    Assert_isTrue(*valueLen <= 300, NameServerRemoteNotify_A_invalidValueLen);
 
     semRemoteWait = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
     semMultiBlock = NameServerRemoteNotify_Instance_State_semMultiBlock(obj);
@@ -319,7 +342,7 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
     Semaphore_pend(semMultiBlock, BIOS_WAIT_FOREVER);
 
     if (MultiProc_self() > obj->remoteProcId) {
-            offset = 1;
+        offset = 1;
     }
 
     if (obj->cacheEnable) {
@@ -328,12 +351,7 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
                   Cache_Type_ALL, TRUE);
     }
 
-    /* enter gate so nobody can be modifying message in shared memory */
-    key = GateMP_enter((GateMP_Handle)obj->gate);
-
     /* this is a request message */
-    obj->msg[offset]->request = 1;
-    obj->msg[offset]->response = 0;
     obj->msg[offset]->requestStatus = 0;
     obj->msg[offset]->valueLen = *valueLen;
 
@@ -345,6 +363,9 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
     len = strlen(name);
     strncpy((Char *)obj->msg[offset]->name, name, len + 1);
 
+    /* set object state (used by ROV) */
+    obj->localState = NameServerRemoteNotify_SEND_REQUEST;
+
     if (obj->cacheEnable) {
         Cache_wbInv(obj->msg[offset], sizeof(NameServerRemoteNotify_Message),
                     Cache_Type_ALL, TRUE);
@@ -354,19 +375,12 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
      *  Send the notification to remote processor. Do not wait here since
      *  we hold the GateMP.
      */
-    notifyStatus = Notify_sendEvent(
-                       obj->remoteProcId,
-                       0,
-                       NameServerRemoteNotify_notifyEventId,
-                       0,
-                       FALSE);
-
-    /* now we can leave the gate after we send the notification */
-    GateMP_leave((GateMP_Handle)obj->gate, key);
+    notifyStatus = Notify_sendEvent(obj->remoteProcId, 0,
+            NameServerRemoteNotify_notifyEventId,
+            NameServerRemoteNotify_RequestMsg, TRUE);
 
     if (notifyStatus < 0) {
         /* undo previous options */
-        obj->msg[offset]->request = 0;
         obj->msg[offset]->valueLen = 0;
 
         /* post the semaphore to make sure it doesn't block */
@@ -383,18 +397,14 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
     }
     else {
         /* getting here means we got the notification back */
-        /* enter gate so nobody can be modifying message in shared memory */
-        key = GateMP_enter((GateMP_Handle)obj->gate);
 
         if (obj->cacheEnable) {
             Cache_inv(obj->msg[offset], sizeof(NameServerRemoteNotify_Message),
-                      Cache_Type_ALL, TRUE);
+                    Cache_Type_ALL, TRUE);
         }
 
         /* if successful request then copy to value */
         if (obj->msg[offset]->requestStatus == TRUE) {
-            /* clear out requestStatus */
-            obj->msg[offset]->requestStatus = FALSE;
 
             /* copy to value */
             if (obj->msg[offset]->valueLen == sizeof(UInt32)) {
@@ -412,18 +422,8 @@ Int NameServerRemoteNotify_get(NameServerRemoteNotify_Object *obj,
             retval = NameServer_S_SUCCESS;
         }
 
-        /* clear out the request and response flags */
-        obj->msg[offset]->request  = 0;
-        obj->msg[offset]->response = 0;
-
-        if (obj->cacheEnable) {
-            Cache_wbInv(obj->msg[offset],
-                        sizeof(NameServerRemoteNotify_Message),
-                        Cache_Type_ALL, TRUE);
-        }
-
-        /*  Now we can leave the gate after we send the notification */
-        GateMP_leave((GateMP_Handle)obj->gate, key);
+        /* set object state (used by ROV) */
+        obj->localState = NameServerRemoteNotify_IDLE;
     }
 
     Semaphore_post(semMultiBlock);
@@ -448,14 +448,13 @@ SizeT NameServerRemoteNotify_sharedMemReq(Ptr sharedAddr)
 }
 
 /*
- *  ======== NameServerRemoteNotify_swiFxn ========
+ *  ======== NameServerRemoteNotify_swiFxnRequest ========
  */
-Void NameServerRemoteNotify_swiFxn(UArg arg)
+Void NameServerRemoteNotify_swiFxnRequest(UArg arg)
 {
     Int count = NameServer_E_FAIL;
-    Int offset = 0;
+    Int remoteId;
     UInt32 valueLen;
-    IArg key;
     NameServer_Handle handle;
     NameServerRemoteNotify_Object *obj;
 #ifndef xdc_runtime_Assert_DISABLE_ALL
@@ -464,83 +463,76 @@ Void NameServerRemoteNotify_swiFxn(UArg arg)
 
     obj = (NameServerRemoteNotify_Object *)arg;
 
-    if (MultiProc_self() > obj->remoteProcId) {
-        offset = 1;
-    }
+    /* compute index to remote message */
+    remoteId = (MultiProc_self() > obj->remoteProcId) ? 0 : 1;
 
     if (obj->cacheEnable) {
-        /* invalidate both request and response messages */
-        Cache_inv(obj->msg[0],
-                  sizeof(NameServerRemoteNotify_Message) << 1,
-                  Cache_Type_ALL, TRUE);
+        Cache_inv(obj->msg[remoteId], sizeof(NameServerRemoteNotify_Message),
+                Cache_Type_ALL, TRUE);
     }
 
-    /* in case of request */
-    if (obj->msg[1 - offset]->request == TRUE) {
-        /* get the NameServer handle */
-        handle = NameServer_getHandle(
-                     (String)obj->msg[1 - offset]->instanceName);
-        valueLen = obj->msg[1 - offset]->valueLen;
+    /* get the NameServer handle */
+    handle = NameServer_getHandle((String)obj->msg[remoteId]->instanceName);
+    valueLen = obj->msg[remoteId]->valueLen;
 
-        if (handle != NULL) {
-            /* Search for the NameServer entry */
-            if (valueLen == sizeof(UInt32)) {
-                count = NameServer_getLocalUInt32(handle,
-                    (String)obj->msg[1 - offset]->name,
-                    &obj->msg[1 - offset]->value);
-            }
-            else {
-                count = NameServer_getLocal(handle,
-                    (String)obj->msg[1 - offset]->name,
-                    &obj->msg[1 - offset]->valueBuf, &valueLen);
-            }
+    if (handle != NULL) {
+        /* Search for the NameServer entry */
+        if (valueLen == sizeof(UInt32)) {
+            count = NameServer_getLocalUInt32(handle,
+                (String)obj->msg[remoteId]->name, &obj->msg[remoteId]->value);
         }
-
-        /* enter gate so nobody can be modifying message in shared memory */
-        key = GateMP_enter((GateMP_Handle)obj->gate);
-
-        /*
-         *  If an entry was found, set requestStatus to TRUE
-         *  and valueLen to the size of data that was copied.
-         */
-        if (count == NameServer_S_SUCCESS) {
-            obj->msg[1 - offset]->requestStatus = TRUE;
-            obj->msg[1 - offset]->valueLen = valueLen;
+        else {
+            count = NameServer_getLocal(handle,
+                (String)obj->msg[remoteId]->name,
+                &obj->msg[remoteId]->valueBuf, &valueLen);
         }
+    }
 
-        /* Send a response back */
-        obj->msg[1 - offset]->response = TRUE;
-        obj->msg[1 - offset]->request = FALSE;
+    /*
+     *  If an entry was found, set requestStatus to TRUE
+     *  and valueLen to the size of data that was copied.
+     */
+    if (count == NameServer_S_SUCCESS) {
+        obj->msg[remoteId]->requestStatus = TRUE;
+        obj->msg[remoteId]->valueLen = valueLen;
+    }
 
-        if (obj->cacheEnable) {
-            Cache_wbInv(obj->msg[1 - offset],
-                        sizeof(NameServerRemoteNotify_Message),
-                        Cache_Type_ALL, TRUE);
-        }
+    /* set object state (used by ROV) */
+    obj->remoteState = NameServerRemoteNotify_SEND_RESPONSE;
 
-        /* now we can leave the gate */
-        GateMP_leave((GateMP_Handle)obj->gate, key);
+    if (obj->cacheEnable) {
+        Cache_wbInv(obj->msg[remoteId], sizeof(NameServerRemoteNotify_Message),
+                Cache_Type_ALL, TRUE);
+    }
 
-        /*
-         *  The Notify line must be active at this point for this processor to
-         *  have received a request.  Do not wait here since we are in a Swi.
-         */
+    /* must wait to prevent dropped events, even though this is a swi */
 #ifndef xdc_runtime_Assert_DISABLE_ALL
-        status =
+    status =
 #endif
-        Notify_sendEvent(obj->remoteProcId,
-                0, NameServerRemoteNotify_notifyEventId, 0, FALSE);
-        /* The NS query could fail, but the reply should never fail */
-        Assert_isTrue(status >= 0, Ipc_A_internal);
+    Notify_sendEvent(obj->remoteProcId, 0,
+            NameServerRemoteNotify_notifyEventId,
+            NameServerRemoteNotify_ResponseMsg, TRUE);
 
-    }
+    /* The NS query could fail, but the reply should never fail */
+    Assert_isTrue(status >= 0, Ipc_A_internal);
 
-    /* in case of response */
-    if (obj->msg[offset]->response == TRUE) {
-        /* post the Semaphore */
-        Semaphore_post(
-            NameServerRemoteNotify_Instance_State_semRemoteWait(obj));
-    }
+    /* set object state (used by ROV) */
+    obj->remoteState = NameServerRemoteNotify_IDLE;
+}
+
+/*
+ *  ======== NameServerRemoteNotify_swiFxnResponse ========
+ */
+Void NameServerRemoteNotify_swiFxnResponse(UArg arg)
+{
+    NameServerRemoteNotify_Object *obj;
+    Semaphore_Handle  sem;
+
+    obj = (NameServerRemoteNotify_Object *)arg;
+
+    /* post the semaphore to unblock waiting task */
+    sem = NameServerRemoteNotify_Instance_State_semRemoteWait(obj);
+    Semaphore_post(sem);
 }
 
 /*

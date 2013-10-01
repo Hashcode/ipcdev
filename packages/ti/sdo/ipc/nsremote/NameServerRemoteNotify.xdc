@@ -92,14 +92,12 @@ module NameServerRemoteNotify inherits INameServerRemote
 
     /* structure in shared memory for retrieving value */
     struct Message {
-        Bits32  request;            /* if this is a request set to 1    */
-        Bits32  response;           /* if this is a response set to 1   */
         Bits32  requestStatus;      /* if request sucessful set to 1    */
         Bits32  value;              /* holds value if len <= 4          */
         Bits32  valueLen;           /* len of value                     */
         Bits32  instanceName[8];    /* name of NameServer instance      */
         Bits32  name[8];            /* name of NameServer entry         */
-        Bits32  valueBuf[75];       /* supports up to 300-byte value    */
+        Bits32  valueBuf[77];       /* padded to fill 128-B cache line  */
     };
 
     /*!
@@ -107,6 +105,15 @@ module NameServerRemoteNotify inherits INameServerRemote
      */
     config xdc.runtime.Assert.Id A_invalidValueLen =
         {msg: "A_invalidValueLen: Invalid valueLen (too large)"};
+
+    /*!
+     *  Message structure size is not aligned on cache line size.
+     *
+     *  The message structure size must be an exact multiple of the
+     *  cache line size.
+     */
+    config xdc.runtime.Assert.Id A_messageSize =
+        {msg: "A_messageSize: message size not aligned with cache line size."};
 
     /*!
      *  ======== notifyEventId ========
@@ -174,22 +181,48 @@ internal:
                UInt32 payload);
 
     /*!
-     *  ======== swiFxn ========
-     *  The swi function that will be executed during the call back.
+     *  ======== swiFxnRequest ========
+     *  The swi function which handles a request message
      *
-     *  @param(arg)     argument to swi function
+     *  @param(arg)     pointer to the instance object
      */
-    Void swiFxn(UArg arg);
+    Void swiFxnRequest(UArg arg);
+
+    /*!
+     *  ======== swiFxnResponse ========
+     *  The swi function that which handles a response message
+     *
+     *  @param(arg)     pointer to the instance object
+     */
+    Void swiFxnResponse(UArg arg);
+
+    /*! no pending messages */
+    const UInt8 IDLE = 0;
+
+    /*! sending a request message to another processor */
+    const UInt8 SEND_REQUEST = 1;
+
+    /*! receiving a response message (in reply to a sent request) */
+    const UInt8 RECEIVE_RESPONSE = 2;
+
+    /*! receiving a request from a remote processor (unsolicited message) */
+    const UInt8 RECEIVE_REQUEST = 1;
+
+    /*! sending a response message (in reply to a received request) */
+    const UInt8 SEND_RESPONSE = 2;
 
     /* instance state */
     struct Instance_State {
         Message             *msg[2];        /* Ptrs to messages in shared mem */
         UInt16              regionId;       /* SharedRegion ID                */
+        UInt8               localState;     /* state of local message         */
+        UInt8               remoteState;    /* state of remote message        */
         GateMP.Handle       gate;           /* remote and local gate protect  */
-        Semaphore.Object    semRemoteWait;  /* sem to wait on remote proc     */
-        Semaphore.Object    semMultiBlock;  /* sem to block multiple threads  */
-        Swi.Object          swiObj;         /* instance swi object            */
         UInt16              remoteProcId;   /* remote MultiProc id            */
         Bool                cacheEnable;    /* cacheability                   */
+        Semaphore.Object    semRemoteWait;  /* sem to wait on remote proc     */
+        Semaphore.Object    semMultiBlock;  /* sem to block multiple threads  */
+        Swi.Object          swiRequest;     /* handle a request message       */
+        Swi.Object          swiResponse;    /* handle a response message      */
     };
 }

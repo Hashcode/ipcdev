@@ -130,102 +130,113 @@ function viewInitBasic(view, obj)
     }
     catch(e) {
         Program.displayError(view, 'remoteProcName',
-                             "Problem retrieving proc name: " + e);
+                "Problem retrieving proc name: " + e);
     }
 
     if (MultiProc.self$view() > obj.remoteProcId) {
-        var offset = 1;
+        var localId = 1;
+        var remoteId = 0;
     }
     else {
-        var offset = 0;
+        var localId = 0;
+        var remoteId = 1;
     }
-    var localId = offset;
-    var remoteId = 1 - offset;
 
+    /*
+     *  process local message state
+     */
     try {
-        var localMsg = Program.fetchStruct(
-                NSRN.Message$fetchDesc,
-                $addr(obj.msg[localId])); /* msg[0] belongs to local core */
+        var localMsg = Program.fetchStruct(NSRN.Message$fetchDesc,
+                $addr(obj.msg[localId]));
     }
     catch(e) {
-        Program.displayError(view, "localRequestStatus", "Problem " +
-            "retrieving local request status ");
+        Program.displayError(view, "localRequestStatus",
+                "Problem retrieving local request status");
         return;
     }
 
-    if (localMsg.request == 1 || localMsg.response == 1) {
-        if (localMsg.request == 1) {
-            /* Request */
-            view.localRequestStatus = "Receiving a request";
-        }
-        else {
-            /* Response */
-            view.localRequestStatus = "Sending a response ";
-            if (localMsg.requestStatus == 1) {
-                view.localRequestStatus += "(found)";
-                if (localMsg.valueLen <= 4) {
-                    view.localValue = "0x" +
-                        Number(localMsg.value).toString(16);
-                }
-                else {
-                    view.localValue = "Value at 0x" +
-                        Number(Number(obj.msg[localId]) +
-                        NSRN.Message.$offsetof("valueBuf")).toString(16);
-                }
-            }
-            else {
-                view.localRequestStatus += "(not found)";
-            }
-        }
+    view.localValue = "";
 
+    if (obj.localState == NSRN.IDLE) {
+        view.localRequestStatus = "Idle";
+        view.localInstanceName = "";
+        view.localName = "";
+    }
+    else {
         view.localInstanceName = fetchString(obj.msg[localId], "instanceName");
         view.localName = fetchString(obj.msg[localId], "name");
     }
-    else {
-        view.localRequestStatus = "Idle";
+
+    if (obj.localState == NSRN.SEND_REQUEST) {
+        view.localRequestStatus = "Sending a request";
     }
 
+    if (obj.localState == NSRN.RECEIVE_RESPONSE) {
+        view.localRequestStatus = "Receiving a response";
+
+        if (localMsg.requestStatus == 1) {
+            view.localRequestStatus += " (found)";
+
+            if (localMsg.valueLen <= 4) {
+                view.localValue = "0x"+Number(localMsg.value).toString(16);
+            }
+            else {
+                view.localValue = "Value at 0x" +
+                    Number(Number(obj.msg[localId]) +
+                    NSRN.Message.$offsetof("valueBuf")).toString(16);
+            }
+        }
+        else {
+            view.localRequestStatus += " (not found)";
+        }
+    }
+
+    /*
+     *  process remote message state
+     */
     try {
-        var remoteMsg = Program.fetchStruct(
-                NSRN.Message$fetchDesc,
+        var remoteMsg = Program.fetchStruct(NSRN.Message$fetchDesc,
                 $addr(obj.msg[remoteId]));
     }
     catch(e) {
-        Program.displayError(view, "localRequestStatus", "Problem " +
-            "retrieving remote request status ");
+        Program.displayError(view, "localRequestStatus",
+                "Problem retrieving remote request status");
         return;
     }
 
-    if (remoteMsg.request == 1 || remoteMsg.response == 1) {
-        if (remoteMsg.request == 1) {
-            /* Request */
-            view.remoteRequestStatus = "Receiving a request";
-        }
-        else {
-            /* Response */
-            view.remoteRequestStatus = "Sending a response ";
-            if (remoteMsg.requestStatus == 1) {
-                view.remoteRequestStatus += "(found)";
+    view.remoteValue = "";
 
-                if (remoteMsg.valueLen <= 4) {
-                    view.remoteValue = "0x" +
-                        Number(remoteMsg.value).toString(16);
-                }
-                else {
-                    view.remoteValue = "Value at 0x" +
-                        Number(Number(obj.msg[remoteId]) +
-                        NSRN.Message.$offsetof("valueBuf")).toString(16);
-                }
-            }
-            else {
-                view.remoteRequestStatus += "(not found)";
-            }
-        }
-
-        view.remoteInstanceName = fetchString(obj.msg[remoteId], "instanceName");
-        view.remoteName = fetchString(obj.msg[remoteId], "name");
+    if (obj.remoteState == NSRN.IDLE) {
+        view.remoteRequestStatus = "Idle";
+        view.remoteInstanceName = "";
+        view.remoteName = "";
     }
     else {
-        view.remoteRequestStatus = "Idle";
+        view.remoteInstanceName = fetchString(obj.msg[remoteId],"instanceName");
+        view.remoteName = fetchString(obj.msg[remoteId], "name");
+    }
+
+    if (obj.remoteState == NSRN.RECEIVE_REQUEST) {
+        view.remoteRequestStatus = "Receiving a request";
+    }
+
+    if (obj.remoteState == NSRN.SEND_RESPONSE) {
+        view.remoteRequestStatus = "Sending a response";
+
+        if (remoteMsg.requestStatus == 1) {
+            view.remoteRequestStatus += " (found)";
+
+            if (remoteMsg.valueLen <= 4) {
+                view.remoteValue = "0x"+Number(remoteMsg.value).toString(16);
+            }
+            else {
+                view.remoteValue = "Value at 0x" +
+                    Number(Number(obj.msg[remoteId]) +
+                    NSRN.Message.$offsetof("valueBuf")).toString(16);
+            }
+        }
+        else {
+            view.remoteRequestStatus += " (not found)";
+        }
     }
 }
