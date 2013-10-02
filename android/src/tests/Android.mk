@@ -107,3 +107,21 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE:= nameServerApp
 include $(BUILD_EXECUTABLE)
+
+##### ping_rpmsg #####
+include $(CLEAR_VARS)
+
+IPC_ROOT := ../../..
+
+LOCAL_C_INCLUDES +=  $(LOCAL_PATH)/$(IPC_ROOT)/linux/include
+
+LOCAL_CFLAGS += -DIPC_BUILDOS_ANDROID
+LOCAL_MODULE_TAGS:= optional
+
+LOCAL_SRC_FILES:= $(IPC_ROOT)/linux/src/tests/ping_rpmsg.c
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog
+
+LOCAL_MODULE:= ping_rpmsg
+include $(BUILD_EXECUTABLE)
