@@ -288,6 +288,7 @@ var notifySetupDelegates = {
     'F28M3.*'           : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'LM3.*'             : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull', },
     'Vayu'              : { del: 'ti.sdo.ipc.family.vayu.NotifySetup', },
+    'OMAP5430'          : { del: 'ti.sdo.ipc.notifyDrivers.NotifySetupNull' }
 
 };
 setDeviceAliases(notifySetupDelegates, deviceAliases);
