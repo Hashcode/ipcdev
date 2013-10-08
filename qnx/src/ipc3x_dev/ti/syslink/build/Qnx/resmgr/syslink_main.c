@@ -574,17 +574,8 @@ Int syslink_error_cb (UInt16 procId, ProcMgr_Handle handle,
 #define IPU_MEM_SIZE  104 * 1024 * 1024
 #define IPU_MEM_ALIGN 0x1000000
 #endif
-#else
-// only need mem for DEVMEM entries, rest is allocated dynamically
-#define IPU_MEM_SIZE  90 * 1024 * 1024
-#define IPU_MEM_ALIGN 0x0
-
 #endif
 
-unsigned int syslink_ipu_mem_size = IPU_MEM_SIZE;
-#if defined(SYSLINK_PLATFORM_OMAP5430)
-unsigned int syslink_dsp_mem_size = IPU_MEM_SIZE;
-#endif
 
 /*
  * Initialize the syslink ipc
@@ -596,7 +587,7 @@ unsigned int syslink_dsp_mem_size = IPU_MEM_SIZE;
 int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover)
 {
     int status = 0;
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP4430)
     int32_t ret = 0;
     uint32_t len = 0;
 #ifndef SYSLINK_CARVEOUT
@@ -611,7 +602,7 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
     UInt16 procId;
     int i;
 
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP4430)
     /* Map a contiguous memory section for ipu - currently hard-coded */
     if (!recover) {
 #ifdef SYSLINK_CARVEOUT
@@ -621,9 +612,6 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
                               NOFD,
                               IPU_MEM_PHYS);
 #else
-#if defined(SYSLINK_PLATFORM_OMAP5430)
-        dev->da_tesla_virt =
-#endif
         dev->da_virt = mmap64(NULL, IPU_MEM_SIZE + IPU_MEM_ALIGN,
                               PROT_NOCACHE | PROT_READ | PROT_WRITE,
                               MAP_ANON | MAP_PHYS | MAP_SHARED,
@@ -655,17 +643,12 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
         else if (len != IPU_MEM_SIZE + IPU_MEM_ALIGN)
             status = ENOMEM;
         else {
-#if defined(SYSLINK_PLATFORM_OMAP4430)
             pa = (paddr + IPU_MEM_ALIGN - 1) / IPU_MEM_ALIGN * IPU_MEM_ALIGN;
             if ((pa - paddr) < 0x900000)
                 pa += 0x900000;
             else
                 pa -= 0x700000;
             da = dev->da_virt + (pa - paddr);
-#else
-            pa = paddr;
-            da = dev->da_virt;
-#endif
         }
 #endif
         if (status != 0)
@@ -673,12 +656,6 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
     }
 #endif
 
-#if defined(SYSLINK_PLATFORM_OMAP5430)
-    if (status >= 0) {
-        iCfg.pAddr_dsp = (uint32_t)pa;
-        iCfg.vAddr_dsp = (uint32_t)da;
-    }
-#endif
     if (status >= 0) {
         if (!recover) {
             /* Set up the MemoryOS module */
@@ -688,7 +665,7 @@ int init_ipc(syslink_dev_t * dev, syslink_firmware_info * firmware, bool recover
         }
 
         /* Setup IPC and platform-specific items */
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP4430)
 #ifdef SYSLINK_CARVEOUT
         iCfg.vAddr = (uint32_t)dev->da_virt;
         iCfg.pAddr = (uint32_t)paddr;
@@ -885,7 +862,7 @@ osalthreadcreate_fail:
 ipcsetup_fail:
     MemoryOS_destroy();
 memoryos_fail:
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP4430)
     if (dev->da_virt != MAP_FAILED)
 #ifdef SYSLINK_CARVEOUT
         munmap(dev->da_virt, IPU_MEM_SIZE);
@@ -989,7 +966,7 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
         if (status < 0) {
             printf("MemoryOS_destroy() failed 0x%x", status);
         }
-#if defined(SYSLINK_PLATFORM_OMAP4430) || defined(SYSLINK_PLATFORM_OMAP5430)
+#if defined(SYSLINK_PLATFORM_OMAP4430)
         if (dev->da_virt != MAP_FAILED) {
 #ifdef SYSLINK_CARVEOUT
             status = munmap(dev->da_virt, IPU_MEM_SIZE);
