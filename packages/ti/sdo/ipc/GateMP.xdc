@@ -64,7 +64,7 @@ import ti.sdo.ipc.interfaces.IGateMPSupport;
  *  Documentation for all runtime APIs, instance configuration parameters,
  *  error codes macros and type definitions available to the application
  *  integrator can be found in the
- *  <A HREF="../../../../doxygen/html/files.html">Doxygen documenation</A>
+ *  <A HREF="../../../../doxygen/html/files.html">Doxygen documentation</A>
  *  for the IPC product.  However, the documentation presented on this page
  *  should be referred to for information specific to the RTSC module, such as
  *  module configuration, Errors, and Asserts.
@@ -156,7 +156,7 @@ module GateMP
      *  Assert raised when calling GateMP_close with the wrong handle
      */
     config Assert.Id A_invalidClose  = {
-        msg: "A_invalidContext: Calling GateMP_close with the wrong handle"
+        msg: "A_invalidClose: Calling GateMP_close with the wrong handle"
     };
 
     /*!
@@ -296,7 +296,7 @@ module GateMP
     metaonly config String tableSection = null;
 
     /*!
-     *  ======== remoteSystemProxy ========
+     *  ======== RemoteSystemProxy ========
      *  System remote gate proxy
      *
      *  By default, GateMP instances use the 'System' proxy for locking between
@@ -363,7 +363,7 @@ module GateMP
     /*!
      *  ======== openRegion0Reserved ========
      *  @_nodoc
-     *  Open shared memory reserved for GateP in region 0.
+     *  Open shared memory reserved for GateMP in region 0.
      */
     Void openRegion0Reserved(Ptr sharedAddr);
 
