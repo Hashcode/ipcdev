@@ -30,10 +30,10 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-ifeq ("$(PLATFORM)","omap5432")
+ifeq ("$(PLATFORM)","OMAP54XX")
     SYSLINK_PLATFORM=omap5430
-else ifeq ("$(PLATFORM)","vayu")
-    SYSLINK_PLATFORM=$(PLATFORM)
+else ifeq ("$(PLATFORM)","DRA7XX")
+    SYSLINK_PLATFORM=vayu
 endif
 
 all:  utils ipc3x_dev libs tests

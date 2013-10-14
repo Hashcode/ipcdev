@@ -39,11 +39,11 @@
 #
 DEPOT ?= _your_depot_folder_
 
-# Optional: platform to build
+# Platform to build for
 #   Supported platforms (choose one):
-#       omapl138, omap54xx_smp, dra7xx, tci6636, tci6638
+#       OMAPL138, OMAP54XX, DRA7XX, TCI6638, TCI6638
 #
-# Note, this is used for both Linux and BIOS builds
+# Note, this is used for Linux, QNX and BIOS builds
 #
 PLATFORM ?=
 
@@ -79,10 +79,6 @@ QNX_INSTALL_DIR ?=
 # Destination for target binaries
 #
 DESTDIR ?=
-
-# List of supported devices (choose one): omap5432, vayu, simvayu
-#
-DEVICE ?= _device_
 
 #################### IPC Bios ####################
 

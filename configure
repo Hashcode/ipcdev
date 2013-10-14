@@ -1063,9 +1063,9 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
-  PLATFORM    Platform to build. Options are: 'omapl138' 'omap54xx_smp'
-              'tci6636' 'tci6638' and 'dra7xx'. If not defined all platforms
-              will be built.
+  PLATFORM    Platform to build. Options are: 'OMAPL138' 'OMAP54XX' 'TCI6636'
+              'TCI6638' and 'DRA7XX'. If not defined all platforms will be
+              built.
   CMEM_INSTALL_DIR
               Installation path directory to the CMEM libraries
   KERNEL_INSTALL_DIR
@@ -16782,27 +16782,27 @@ done
 
 
 # Test platform variable for setting
-if test "x$PLATFORM" = "xomapl138"; then
+if test "x$PLATFORM" = "xOMAPL138"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xtci6614"; then
+  if test "x$PLATFORM" = "xTCI6614"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xtci6636"; then
+  if test "x$PLATFORM" = "xTCI6636"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xtci6638"; then
+  if test "x$PLATFORM" = "xTCI6638"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xomap54xx_smp"; then
+  if test "x$PLATFORM" = "xOMAP54XX"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
-  if test "x$PLATFORM" = "xdra7xx"; then
+  if test "x$PLATFORM" = "xDRA7XX"; then
   { echo "$as_me:$LINENO: PLATFORM is set to ${PLATFORM}" >&5
 echo "$as_me: PLATFORM is set to ${PLATFORM}" >&6;}
 else
@@ -16851,7 +16851,7 @@ fi
 # Define specific variables to be used in Makefile.am
 
 
-if test "x$PLATFORM" = "xomapl138"; then
+if test "x$PLATFORM" = "xOMAPL138"; then
   OMAPL138_TRUE=
   OMAPL138_FALSE='#'
 else
@@ -16861,7 +16861,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xtci6614"; then
+if test "x$PLATFORM" = "xTCI6614"; then
   TCI6614_TRUE=
   TCI6614_FALSE='#'
 else
@@ -16871,7 +16871,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xtci6636"; then
+if test "x$PLATFORM" = "xTCI6636"; then
   TCI6636_TRUE=
   TCI6636_FALSE='#'
 else
@@ -16881,7 +16881,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xtci6638"; then
+if test "x$PLATFORM" = "xTCI6638"; then
   TCI6638_TRUE=
   TCI6638_FALSE='#'
 else
@@ -16891,7 +16891,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xomap54xx_smp"; then
+if test "x$PLATFORM" = "xOMAP54XX"; then
   OMAP54XX_SMP_TRUE=
   OMAP54XX_SMP_FALSE='#'
 else
@@ -16901,7 +16901,7 @@ fi
 
 
 
-if test "x$PLATFORM" = "xdra7xx"; then
+if test "x$PLATFORM" = "xDRA7XX"; then
   DRA7XX_TRUE=
   DRA7XX_FALSE='#'
 else

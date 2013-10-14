@@ -173,22 +173,22 @@ for (arg = 0; arg < arguments.length; arg++) {
 
     /* Add appropriate platforms to build for based on target name */
     if (targetName.match(/elf\.C674/)) {
-        if (platform == 'omapl138') {
+        if (platform == 'OMAPL138') {
             target.platforms.$add("ti.platforms.evmOMAPL138:DSP");
         }
     }
 
     if (targetName.match(/elf\.C66$/)) {
         switch (platform) {
-            case 'tci6636':
+            case 'TCI6636':
                 target.platforms.$add("ti.platforms.evmTCI6636K2H");
                 break;
 
-            case 'tci6638':
+            case 'TCI6638':
                 target.platforms.$add("ti.platforms.evmTCI6638K2K");
                 break;
 
-            case 'dra7xx':
+            case 'DRA7XX':
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp1");
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp2");
                 break;
@@ -200,18 +200,18 @@ for (arg = 0; arg < arguments.length; arg++) {
     }
 
     if (targetName.match(/elf\.C64T/)) {
-        if (platform == 'omap54xx_smp') {
+        if (platform == 'OMAP54XX') {
             target.platforms.$add("ti.platforms.sdp5430:DSP");
         }
     }
 
     if (targetName.match(/elf\.M4$/)) {
         switch (platform) {
-            case 'omap54xx_smp':
+            case 'OMAP54XX':
                 target.platforms.$add("ti.platforms.sdp5430:IPU");
                 break;
 
-            case 'dra7xx':
+            case 'DRA7XX':
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu2");
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu1");
                 break;
