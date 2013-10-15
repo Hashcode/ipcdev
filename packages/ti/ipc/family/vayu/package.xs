@@ -51,6 +51,15 @@ function close()
     xdc.useModule('ti.sysbios.hal.Cache');
     xdc.useModule('ti.sysbios.knl.Semaphore');
     xdc.useModule('ti.sysbios.knl.Swi');
+
+    /* bring in target specific modules */
+    var targIsaChain = "/" + prog.build.target.getISAChain().join("/") + "/";
+    if (targIsaChain.match("/64P/")) {
+        xdc.useModule('ti.sdo.ipc.family.vayu.InterruptDsp');
+    }
+    else if (targIsaChain.match("/v7M/")) {
+        xdc.useModule('ti.sdo.ipc.family.vayu.InterruptIpu');
+    }
 }
 
 /*
