@@ -531,7 +531,7 @@ for (var i = 0; i < Build.targets.length; i++) {
 
         /* NameServerApp */
         Pkg.addExecutable(name + "/NameServerApp", targ, platform, {
-            cfgScript: "rpmsg_transport",
+            cfgScript: "nameserverapp",
         }).addObjects(["NameServerApp.c"]);
 
         /* nano_test - demonstrates passing ptrs using CMEM */
