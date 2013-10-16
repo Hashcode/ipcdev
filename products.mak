@@ -56,8 +56,7 @@ TOOLCHAIN_LONGNAME ?= arm-none-linux-gnueabi
 TOOLCHAIN_INSTALL_DIR ?= $(DEPOT)/_your_arm_code_gen_install_
 TOOLCHAIN_PREFIX ?= $(TOOLCHAIN_INSTALL_DIR)/bin/$(TOOLCHAIN_LONGNAME)-
 
-# Optional: Path to Linux Kernel - needed to build the MmRpc user libraries
-# (for devices that support it)
+# Path to Linux Kernel - needed to build the IPC user libraries
 #
 KERNEL_INSTALL_DIR ?=
 
