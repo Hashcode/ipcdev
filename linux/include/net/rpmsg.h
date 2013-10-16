@@ -41,9 +41,13 @@
 
 /* user space needs this */
 #ifndef AF_RPMSG
+#include <linux/version.h>
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,9,0)
 #define AF_RPMSG        40
-#define PF_RPMSG        AF_RPMSG
-#endif
+#else
+#define AF_RPMSG        41
+#endif /* LINUX_VERSION_CODE */
+#endif /* AF_RPMSG */
 
 /* Connection and socket states */
 enum {
@@ -61,16 +65,4 @@ struct sockaddr_rpmsg {
 
 #define RPMSG_LOCALHOST ((__u32) ~0UL)
 
-#ifdef __KERNEL__
-
-#include <net/sock.h>
-#include <linux/rpmsg.h>
-
-struct rpmsg_socket {
-        struct sock sk;
-        struct rpmsg_channel *rpdev;
-        bool unregister_rpdev;
-};
-
-#endif /* __KERNEL__ */
 #endif /* __NET_RPMSG_H */
