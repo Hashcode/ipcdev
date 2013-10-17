@@ -376,13 +376,20 @@ Int16 VirtQueue_getAvailBuf(VirtQueue_Handle vq, Void **buf, Int *len)
         (IArg)vq, vq->last_avail_idx, vq->vring.avail->idx, vq->vring.num,
         (IArg)&vq->vring.avail, (IArg)vq->vring.avail);
 
+    /*  Clear flag here to avoid race condition with remote processor.
+     *  This is a negative flag, clearing it means that we want to
+     *  receive an interrupt when a buffer has been added to the pool.
+     */
+    vq->vring.used->flags &= ~VRING_USED_F_NO_NOTIFY;
+
     /* There's nothing available? */
     if (vq->last_avail_idx == vq->vring.avail->idx) {
-        /* We need to know about added buffers */
-        vq->vring.used->flags &= ~VRING_USED_F_NO_NOTIFY;
         head = (-1);
     }
     else {
+        /* No need to be kicked about added buffers anymore */
+        vq->vring.used->flags |= VRING_USED_F_NO_NOTIFY;
+
         /*
          * Grab the next descriptor number they're advertising, and increment
          * the index we've seen.
