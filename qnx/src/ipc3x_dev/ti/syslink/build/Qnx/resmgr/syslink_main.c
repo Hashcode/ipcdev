@@ -1315,6 +1315,14 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
+    /*
+     * Mask out all signals before creating a thread pool.
+     * This prevents other threads in the thread pool
+     * from intercepting signals such as SIGTERM.
+     */
+    sigfillset(&set);
+    pthread_sigmask(SIG_BLOCK, &set, NULL);
+
     /* Initialize the thread pool */
     memset (&tattr, 0x00, sizeof (thread_pool_attr_t));
     tattr.handle = dev->dpp;
@@ -1404,8 +1412,7 @@ int main(int argc, char *argv[])
         trace_active = FALSE;
     }
 
-    /* Mask out unnecessary signals */
-    sigfillset (&set);
+    /* Unmask signals to be caught */
     sigdelset (&set, SIGINT);
     sigdelset (&set, SIGTERM);
     pthread_sigmask (SIG_BLOCK, &set, NULL);
