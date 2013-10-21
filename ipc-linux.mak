@@ -35,6 +35,18 @@ include products.mak
 
 .PHONY: config config-static config-shared
 
+# If you need to add any compile flags to the build of IPC user libraries,
+# you can use the CFLAGS option to the configure script.
+#
+# For example, in the very rare case where your kernel's AF_RPMSG
+# definition isn't correctly detected by IPC (see
+# linux/include/net/rpmsg.h), you can provide your kernel's definition
+# of AF_RPMSG by adding this CFLAGS line to the configure commands below
+# to force the value of AF_RPMSG to 42:
+#
+#            CFLAGS="-DAF_RPMSG=42"
+
+
 config:
 	@echo "Configuring Linux Ipc ..."
 	./configure --host=$(TOOLCHAIN_LONGNAME) \

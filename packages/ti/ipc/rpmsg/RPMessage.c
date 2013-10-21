@@ -260,6 +260,7 @@ Void RPMessage_init(UInt16 remoteProcId)
 {
     GateHwi_Params gatePrms;
     HeapBuf_Params prms;
+    Semaphore_Params semParams;
     int     i;
     Registry_Result result;
     Bool    isHost;
@@ -298,7 +299,10 @@ Void RPMessage_init(UInt16 remoteProcId)
     if (module.heap == 0) {
        System_abort("RPMessage_init: HeapBuf_create returned 0\n");
     }
-    transport.semHandle_toHost = Semaphore_create(0, NULL, NULL);
+
+    Semaphore_Params_init(&semParams);
+    semParams.mode = Semaphore_Mode_BINARY;
+    transport.semHandle_toHost = Semaphore_create(0, &semParams, NULL);
 
     isHost = (MultiProc_self() == MultiProc_getId("HOST"));
 

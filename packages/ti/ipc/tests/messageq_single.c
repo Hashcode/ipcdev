@@ -64,7 +64,8 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
     Char             localQueueName[64];
     UInt16 procId;
     Int status;
-    UInt16 msgId;
+    UInt32 i;
+    UInt32 msgId;
     UInt32 start;
     UInt32 end;
     Uint32 numLoops;
@@ -104,31 +105,35 @@ Void tsk1Fxn(UArg arg0, UArg arg1)
         MessageQ_put(remoteQueueId, msg);
 
         start = Clock_getTicks();
-        for (msgId = 0; msgId < numLoops; msgId++) {
+
+        for (i = 1; i <= numLoops; i++) {
             status = MessageQ_get(messageQ, &msg, MessageQ_FOREVER);
             Assert_isTrue(status == MessageQ_S_SUCCESS, NULL);
 
+            params = MessageQ_payload(msg);
+            msgId = params[0];
+
             if (print) {
                 System_printf("Got msg #%d (%d bytes) from procId %d\n",
-                    MessageQ_getMsgId(msg), MessageQ_getMsgSize(msg), procId);
+                    msgId, MessageQ_getMsgSize(msg), procId);
             }
 
-            Assert_isTrue(MessageQ_getMsgId(msg) == msgId, NULL);
+            Assert_isTrue(msgId == i, NULL);
 
             if (print) {
-                System_printf("Sending msg Id #%d to procId %d\n", msgId,
-                              procId);
+                System_printf("Sending msg Id #%d to procId %d\n", i, procId);
             }
 
             status = MessageQ_put(remoteQueueId, msg);
             Assert_isTrue(status == MessageQ_S_SUCCESS, NULL);
         }
+
         end = Clock_getTicks();
 
         if (!print) {
             System_printf("%d iterations took %d ticks or %d usecs/msg\n",
-                          numLoops,
-            end - start, ((end - start) * Clock_tickPeriod) / numLoops);
+                    numLoops, end - start,
+                    ((end - start) * Clock_tickPeriod) / numLoops);
         }
     }
 }

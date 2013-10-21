@@ -147,6 +147,7 @@ AMTAR = @AMTAR@
 # additional include paths necessary to compile the program
 AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
         -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
+        -I$(KERNEL_INSTALL_DIR)/include/generated/uapi \
         -I$(DRM_PREFIX)/usr/include \
         -I$(DRM_PREFIX)/usr/include/libdrm \
         -I$(DRM_PREFIX)/usr/include/omap \

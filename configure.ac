@@ -89,6 +89,10 @@ AS_IF([test "x$PLATFORM" = "xOMAPL138"],
   [AC_MSG_NOTICE([PLATFORM is not set. All supported platforms will be built ....])],
   [AC_MSG_ERROR([PLATFORM is set to "${PLATFORM}": run ./configure --help for available PLATFORM options])])])])])])])])
 
+# Test for required KERNEL path
+AS_IF([test "x$KERNEL_INSTALL_DIR" = "x"],
+  [AC_MSG_ERROR([Kernel path for ${PLATFORM} is not set])])
+
 # Ignore KERNEL path when no platform is set
 AS_IF([test "x$PLATFORM" = "x"], [KERNEL_INSTALL_DIR=])
 AS_IF([test "x$PLATFORM" = "x"], [DRM_PREFIX=])
