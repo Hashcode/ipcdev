@@ -197,14 +197,6 @@ var List      = xdc.useModule('ti.sdo.utils.List');
 xdc.useModule('ti.sysbios.xdcruntime.GateThreadSupport');
 var GateSwi   = xdc.useModule('ti.sysbios.gates.GateSwi');
 
-var Task          = xdc.useModule('ti.sysbios.knl.Task');
-var params = new Task.Params;
-params.instance.name = "ping";
-params.arg0= 51;
-//params.arg0= 61;
-Program.global.tsk1 = Task.create('&pingTaskFxn', params);
-Task.deleteTerminatedTasks = true;
-
 var Assert = xdc.useModule('xdc.runtime.Assert');
 var Defaults = xdc.useModule('xdc.runtime.Defaults');
 var Diags = xdc.useModule('xdc.runtime.Diags');

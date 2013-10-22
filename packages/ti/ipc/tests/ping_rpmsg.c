@@ -92,7 +92,15 @@ Void pingTaskFxn(UArg arg0, UArg arg1)
 
 Int main(Int argc, char* argv[])
 {
+    Task_Params params;
+
     System_printf("%s starting..\n", MultiProc_getName(MultiProc_self()));
+
+    /* Create a Task to respond to the ping from the Host side */
+    Task_Params_init(&params);
+    params.instance->name = "ping";
+    params.arg0 = 51;
+    Task_create(pingTaskFxn, &params, NULL);
 
     BIOS_start();
 
