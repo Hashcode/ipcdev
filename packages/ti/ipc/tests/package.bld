@@ -492,6 +492,12 @@ for (var i = 0; i < Build.targets.length; i++) {
             defs: extraDefs
         }).addObjects(["ping_rpmsg.c"]);
 
+        /* ping_tasks */
+        Pkg.addExecutable(name + "/ping_tasks", targ, platform, {
+            cfgScript: "ping_rpmsg",
+            defs: extraDefs
+        }).addObjects(["ping_tasks.c", "ping_tasks_main.c"]);
+
         /* gatempapp */
         if (platform.match(/^ti\.platform\.vayu\.dsp1/) ||
                 platform.match(/^ti\.platforms\.evmDRA7XX:dsp1$/)) {
