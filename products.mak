@@ -41,7 +41,7 @@ DEPOT ?= _your_depot_folder_
 
 # Platform to build for
 #   Supported platforms (choose one):
-#       OMAPL138, OMAP54XX, DRA7XX, TCI6638, TCI6638
+#       OMAPL138, OMAP54XX, DRA7XX, TCI6636, TCI6638
 #
 # Note, this is used for Linux, QNX and BIOS builds
 #
