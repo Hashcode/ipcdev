@@ -161,6 +161,12 @@ module TransportCirc inherits IMessageQTransport
      */
     config UInt maxMsgSizeInBytes = 128;
 
+    /*!
+     *  ======== swiPriority ========
+     *  The priority of the Transport Swi object created
+     */
+    config UInt swiPriority = 1;
+
     /*! @_nodoc
      *  ======== sharedMemReq ========
      *  Amount of shared memory required for creation of each instance
@@ -210,12 +216,6 @@ instance:
      *  remote processor its communicating with.
      */
     config Ptr writeAddr = null;
-
-    /*!
-     *  ======== swiPriority ========
-     *  The priority of the Transport Swi object created
-     */
-    config UInt swiPriority = 1;
 
 internal:
 
