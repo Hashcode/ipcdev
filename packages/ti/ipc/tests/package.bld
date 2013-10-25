@@ -482,7 +482,7 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* Vayu and OMAP5 require MmRpc and therefore use RPMSG_NS_2_0 */
         if (platform.match(/^ti\.platform\.vayu/) ||
                 platform.match(/^ti\.platforms\.evmDRA7XX/) ||
-                platform.match(/^ti\.platform\.sdp5430$/)) {
+                platform.match(/^ti\.platforms\.sdp5430/)) {
             extraDefs = " -DRPMSG_NS_2_0";
         }
 
