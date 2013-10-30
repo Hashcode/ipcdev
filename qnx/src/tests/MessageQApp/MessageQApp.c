@@ -56,8 +56,8 @@
 
 typedef struct SyncMsg {
     MessageQ_MsgHeader header;
-    unsigned long numLoops;
-    unsigned long print;
+    UInt32 numLoops;  /* also used for msgId */
+    UInt32 print;
 } SyncMsg ;
 
 Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
@@ -65,10 +65,11 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
     Int32                    status = 0;
     MessageQ_Msg             msg = NULL;
     MessageQ_Params          msgParams;
-    UInt16                   i;
+    UInt32                   i;
     MessageQ_QueueId         queueId = MessageQ_INVALIDMESSAGEQ;
     MessageQ_Handle          msgqHandle;
     char                     remoteQueueName[64];
+    UInt32                   msgId;
 
     printf("Entered MessageQApp_execute\n");
 
@@ -110,15 +111,15 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
     /* handshake with remote to set the number of loops */
     MessageQ_setReplyQueue(msgqHandle, msg);
     ((SyncMsg *)msg)->numLoops = numLoops;
-    ((SyncMsg *)msg)->print = TRUE;
+    ((SyncMsg *)msg)->print = FALSE;
     MessageQ_put(queueId, msg);
     MessageQ_get(msgqHandle, &msg, MessageQ_FOREVER);
 
     printf("Exchanging %d messages with remote processor %s...\n",
            numLoops, MultiProc_getName(procId));
 
-    for (i = 0 ; i < numLoops; i++) {
-        MessageQ_setMsgId(msg, i);
+    for (i = 1 ; i <= numLoops; i++) {
+        ((SyncMsg *)msg)->numLoops = i;
 
         /* Have the remote proc reply to this message queue */
         MessageQ_setReplyQueue(msgqHandle, msg);
@@ -130,26 +131,33 @@ Int MessageQApp_execute(UInt32 numLoops, UInt16 procId)
         }
 
         status = MessageQ_get(msgqHandle, &msg, MessageQ_FOREVER);
+
         if (status < 0) {
             printf("Error in MessageQ_get [%d]\n", status);
             break;
         }
         else {
-            printf("MessageQ_get #%d Msg = 0x%x\n", i, (UInt)msg);
-
-            /* Validate the returned message. */
-            if ((msg != NULL) && (MessageQ_getMsgId (msg) != i)) {
+            /* validate the returned message */
+            msgId = ((SyncMsg *)msg)->numLoops;
+            if ((msg != NULL) && (msgId != i)) {
                 printf("Data integrity failure!\n"
                         "    Expected %d\n"
                         "    Received %d\n",
-                        i, MessageQ_getMsgId(msg));
+                        i, msgId);
                 break;
             }
         }
 
-        printf("Exchanged %d messages with remote processor %s\n",
-            (i+1), MultiProc_getName(procId));
+        if (numLoops <= 200) {
+            printf("MessageQ_get #%d Msg = 0x%x\n", i, (UInt)msg);
+        }
+        else if ((i % 1000) == 0) {
+            printf("MessageQ_get #%d Msg = 0x%x\n", i, (UInt)msg);
+        }
     }
+
+    printf("Exchanged %d messages with remote processor %s\n",
+        (i-1), MultiProc_getName(procId));
 
     if (status >= 0) {
        printf("Sample application successfully completed!\n");
@@ -198,15 +206,14 @@ int main (int argc, char ** argv)
 
     status = Ipc_start();
 
-    if (status >= 0) {
-        if (procId >= MultiProc_getNumProcessors()) {
-            printf("ProcId must be less than %d\n",
-                MultiProc_getNumProcessors());
-            Ipc_stop();
-            exit(0);
-        }
-        printf("Using numLoops: %d; procId : %d\n", numLoops, procId);
+    if (procId >= MultiProc_getNumProcessors()) {
+        printf("ProcId must be less than %d\n", MultiProc_getNumProcessors());
+        Ipc_stop();
+        exit(0);
+    }
+    printf("Using numLoops: %d; procId : %d\n", numLoops, procId);
 
+    if (status >= 0) {
         MessageQApp_execute(numLoops, procId);
         Ipc_stop();
     }
