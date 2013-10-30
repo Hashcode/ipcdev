@@ -71,9 +71,9 @@ Examples:\n\
 
 typedef struct SyncMsg {
     MessageQ_MsgHeader header;
-    unsigned long numLoops;
-    unsigned long print;
-} SyncMsg ;
+    UInt32 numLoops;
+    UInt32 print;
+} SyncMsg;
 
 /* private functions */
 static int Main_main(Void);
@@ -269,7 +269,7 @@ int Main_main(Void)
 
     /* allocate and send all messages */
     for (p = 0; p < Main_procCount; p++) {
-        for (j = 0; j < NUM_LOOPS_DFLT; j++) {
+        for (j = 1; j <= NUM_LOOPS_DFLT; j++) {
 
             /* allocate message */
             msg = MessageQ_alloc(HEAPID, sizeof(SyncMsg));
@@ -281,8 +281,8 @@ int Main_main(Void)
             }
 
             /* fill in message */
-            MessageQ_setMsgId(msg, j);
             MessageQ_setReplyQueue(hostQ, msg);
+            ((SyncMsg *)msg)->numLoops = j;
 
             /* send the messages */
             status = MessageQ_put(Main_msgQueAry[p], msg);
@@ -299,11 +299,11 @@ int Main_main(Void)
     /* delay here to allow for return message deliver */
     printf("Waiting...");
     sleep(3);
-    printf("done.");
+    printf("done.\n");
 
     /* receive and free all messages */
     for (p = 0; p < Main_procCount; p++) {
-        for (j = 0; j < NUM_LOOPS_DFLT; j++) {
+        for (j = 1; j <= NUM_LOOPS_DFLT; j++) {
 
             /* receive message, timeout 2 sec */
             status = MessageQ_get(hostQ, &msg, 2000);
@@ -337,7 +337,7 @@ cleanup:
     MessageQ_delete(&hostQ);
 
 leave:
-    printf("Leaving Main_main(), status=%d", status);
+    printf("Leaving Main_main(), status=%d\n", status);
 
     return(status);
 }
