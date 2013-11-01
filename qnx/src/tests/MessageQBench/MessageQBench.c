@@ -37,29 +37,32 @@
  *  ============================================================================
  */
 
-/*
- * opkg --tmp-dir ~/tmp install util-linux-ng
- * chrt -f ./MessageQBench
- */
+/* Standard headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/param.h>
 
+/* IPC Headers */
 #include <ti/ipc/Std.h>
 #include <ti/ipc/Ipc.h>
 #include <ti/ipc/MessageQ.h>
 
-#define MessageQ_payload(m) ((void *)((char *)(m) + sizeof(MessageQ_MsgHeader)))
 #define MINPAYLOADSIZE      (2 * sizeof(UInt32))
 
-/* App defines: Must match on remote proc side: */
-#define NUM_LOOPS_DFLT           1000  /* Number of transfers to be tested. */
+/* App defines:  Must match on remote proc side: */
 #define HEAPID              0u
-#define PROC_ID_DFLT        1     /* Host is zero, remote cores start at 1 */
 #define SLAVE_MESSAGEQNAME  "SLAVE"
 #define MPU_MESSAGEQNAME    "HOST"
 
+#define PROC_ID_DFLT        1     /* Host is zero, remote cores start at 1 */
+#define NUM_LOOPS_DFLT      1000  /* Number of transfers to be tested. */
+
+typedef struct SyncMsg {
+    MessageQ_MsgHeader header;
+    UInt32 numLoops;  /* also used for msgId */
+    UInt32 print;
+} SyncMsg ;
 
 long diff(struct timespec start, struct timespec end)
 {
@@ -81,31 +84,31 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
     Int32                    status     = 0;
     MessageQ_Msg             msg        = NULL;
     MessageQ_Params          msgParams;
-    UInt16                   i;
+    UInt32                   i;
     MessageQ_QueueId         queueId = MessageQ_INVALIDMESSAGEQ;
     MessageQ_Handle          msgqHandle;
     char                     remoteQueueName[64];
     struct timespec          start, end;
     long                     elapsed;
-    UInt32 *params;
+    UInt32                   msgId;
 
-    printf ("Entered MessageQApp_execute\n");
+    printf("Entered MessageQApp_execute\n");
 
     /* Create the local Message Queue for receiving. */
     MessageQ_Params_init(&msgParams);
     msgqHandle = MessageQ_create(MPU_MESSAGEQNAME, &msgParams);
     if (msgqHandle == NULL) {
-        printf ("Error in MessageQ_create\n");
+        printf("Error in MessageQ_create\n");
         goto exit;
     }
     else {
-        printf ("Local MessageQId: 0x%x\n", MessageQ_getQueueId(msgqHandle));
+        printf("Local MessageQId: 0x%x\n", MessageQ_getQueueId(msgqHandle));
     }
 
     sprintf(remoteQueueName, "%s_%s", SLAVE_MESSAGEQNAME,
              MultiProc_getName(procId));
 
-    /* Poll until remote side has its messageQ created before we send: */
+    /* Poll until remote side has it's messageQ created before we send: */
     do {
         status = MessageQ_open(remoteQueueName, &queueId);
         sleep (1);
@@ -115,10 +118,11 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
         printf("Error in MessageQ_open [%d]\n", status);
         goto cleanup;
     }
+    else {
+        printf("Remote queueId  [0x%x]\n", queueId);
+    }
 
-    printf("Remote queueId  [0x%x]\n", queueId);
-
-    msg = MessageQ_alloc(HEAPID, sizeof(MessageQ_MsgHeader) + payloadSize);
+    msg = MessageQ_alloc(HEAPID, sizeof(SyncMsg) + payloadSize);
     if (msg == NULL) {
         printf("Error in MessageQ_alloc\n");
         MessageQ_close(&queueId);
@@ -127,9 +131,8 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
 
     /* handshake with remote to set the number of loops */
     MessageQ_setReplyQueue(msgqHandle, msg);
-    params = MessageQ_payload(msg);
-    params[0] = numLoops;
-    params[1] = FALSE;
+    ((SyncMsg *)msg)->numLoops = numLoops;
+    ((SyncMsg *)msg)->print = FALSE;
     MessageQ_put(queueId, msg);
     MessageQ_get(msgqHandle, &msg, MessageQ_FOREVER);
 
@@ -138,8 +141,8 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    for (i = 0; i < numLoops; i++) {
-        MessageQ_setMsgId(msg, i);
+    for (i = 1 ; i <= numLoops; i++) {
+        ((SyncMsg *)msg)->numLoops = i;
 
         /* Have the remote proc reply to this message queue */
         MessageQ_setReplyQueue(msgqHandle, msg);
@@ -151,17 +154,19 @@ Int MessageQApp_execute(UInt32 numLoops, UInt32 payloadSize, UInt16 procId)
         }
 
         status = MessageQ_get(msgqHandle, &msg, MessageQ_FOREVER);
+
         if (status < 0) {
             printf("Error in MessageQ_get [%d]\n", status);
             break;
         }
         else {
-            /* Validate the returned message. */
-            if ((msg != NULL) && (MessageQ_getMsgId(msg) != i)) {
-                printf ("Data integrity failure!\n"
+            /* Validate the returned message */
+            msgId = ((SyncMsg *)msg)->numLoops;
+            if ((msg != NULL) && (msgId != i)) {
+                printf("Data integrity failure!\n"
                         "    Expected %d\n"
                         "    Received %d\n",
-                        i, MessageQ_getMsgId (msg));
+                        i, msgId);
                 break;
             }
         }
@@ -220,21 +225,20 @@ int main (int argc, char * argv[])
 
     status = Ipc_start();
 
-    if (status >= 0) {
-        if (procId >= MultiProc_getNumProcessors()) {
-            printf("ProcId must be less than %d\n",
-                MultiProc_getNumProcessors());
-            Ipc_stop();
-            exit(0);
-        }
-        printf("Using numLoops: %d; payloadSize: %d, procId : %d\n",
+    if (procId >= MultiProc_getNumProcessors()) {
+        printf("ProcId must be less than %d\n", MultiProc_getNumProcessors());
+        Ipc_stop();
+        exit(0);
+    }
+    printf("Using numLoops: %d; payloadSize: %d, procId : %d\n",
             numLoops, payloadSize, procId);
 
+    if (status >= 0) {
         MessageQApp_execute(numLoops, payloadSize, procId);
         Ipc_stop();
     }
     else {
-        fprintf(stderr, "Ipc_start failed: status = %d\n", status);
+        printf("Ipc_start failed: status = %d\n", status);
     }
 
     return (status);

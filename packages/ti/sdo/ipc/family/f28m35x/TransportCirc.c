@@ -86,7 +86,7 @@ Int TransportCirc_Instance_init(TransportCirc_Object *obj,
     /* construct the swi with lowest priority */
     Swi_Params_init(&swiParams);
     swiParams.arg0 = (UArg)obj;
-    swiParams.priority = params->swiPriority;
+    swiParams.priority = TransportCirc_swiPriority;
     Swi_construct(Swi_struct(swiHandle),
                  (Swi_FuncPtr)TransportCirc_swiFxn,
                  &swiParams, eb);
