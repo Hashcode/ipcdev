@@ -206,17 +206,6 @@ UInt16 MultiProc_getNumProcsInCluster(Void);
 UInt16 MultiProc_self(Void);
 
 /*!
- *  @brief      Sets executing processor's base id of the cluster
- *
- *  @param      baseId  The MultiProc base id of the cluster
- *
- *  @return     MultiProc status:
- *              - #MultiProc_S_SUCCESS: successfully set base id of cluster
- *              - #MultiProc_E_FAIL:    failed to set base id of cluster
- */
-Int MultiProc_setBaseIdOfCluster(UInt16 baseId);
-
-/*!
  *  @brief      Sets executing processor's MultiProc id
  *
  *  @param      id  MultiProc id

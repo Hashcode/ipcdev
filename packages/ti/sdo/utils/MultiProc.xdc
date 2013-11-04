@@ -176,12 +176,13 @@ module MultiProc
 
     /*!
      *  ======== baseIdOfCluster ========
-     *  The base id of the cluster.
+     *  The base processor ID of the cluster.
      *
-     *  Using this base id, the id of each processor in the cluster
-     *  is set based up its position in {@link #setConfig}. When more
-     *  more than one cluster exists in the system, this parameter must
-     *  be set before calling {@link #setConfig}.
+     *  The ID of each processor in a cluster is computed by adding
+     *  its position in the name list of {@link @setConfig} to the
+     *  base ID of the cluster. When more than one cluster exists in
+     *  the system, this parameter must be set before calling
+     *  {@link #setConfig}.
      */
     metaonly config UInt16 baseIdOfCluster = 0;
 

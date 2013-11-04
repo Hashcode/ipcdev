@@ -50,7 +50,6 @@
     #pragma FUNC_EXT_CALLED(MultiProc_getNumProcessors);
     #pragma FUNC_EXT_CALLED(MultiProc_getNumProcsInCluster);
     #pragma FUNC_EXT_CALLED(MultiProc_self);
-    #pragma FUNC_EXT_CALLED(MultiProc_setBaseIdOfCluster);
     #pragma FUNC_EXT_CALLED(MultiProc_setLocalId);
 #endif
 
@@ -130,30 +129,6 @@ UInt16 MultiProc_getNumProcsInCluster()
 UInt16 MultiProc_self()
 {
     return (MultiProc_module->id);
-}
-
-/*
- *  ======== MultiProc_setBaseIdOfCluster ========
- */
-Int MultiProc_setBaseIdOfCluster(UInt16 baseId)
-{
-    /* baseId + numProcsInCluster must be less than the number of processors */
-    Assert_isTrue(((baseId + ti_sdo_utils_MultiProc_numProcsInCluster)
-            < ti_sdo_utils_MultiProc_numProcessors),
-            ti_sdo_utils_MultiProc_A_invalidMultiProcId);
-
-    /*
-     *  Check the following
-     *  1. Make sure the call is made before module startup
-     */
-    if (Startup_rtsDone() == FALSE) {
-       /* It is ok to set clusterBaseId */
-        MultiProc_module->baseIdOfCluster = baseId;
-
-        return (MultiProc_S_SUCCESS);
-    }
-
-    return (MultiProc_E_FAIL);
 }
 
 /*
