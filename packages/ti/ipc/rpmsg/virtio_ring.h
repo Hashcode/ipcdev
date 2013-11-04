@@ -130,15 +130,16 @@ static inline void vring_init(struct vring *vr, unsigned int num, void *p,
 {
     vr->num = num;
     vr->desc = p;
-    vr->avail = (struct vring_avail *)
-                    ((unsigned)p + (num * sizeof(struct vring_desc)));
+    vr->avail = (struct vring_avail *)(size_t)
+                    ((size_t)p + (num * sizeof(struct vring_desc)));
     /*
      * Suppress Coverity Error: Indexing "vr->avail->ring" with "num".
      * This should be OK, because this is just address calculation:
      */
     /* coverity[index_parm] */
-    vr->used = (void *)(((unsigned long)&vr->avail->ring[num] + pagesize-1)
-                & ~(pagesize - 1));
+    vr->used = (struct vring_used *)(size_t)
+                   (((size_t)&vr->avail->ring[num] + pagesize-1) &
+                   ~(pagesize - 1));
 }
 
 static inline unsigned vring_size(unsigned int num, unsigned long pagesize)
