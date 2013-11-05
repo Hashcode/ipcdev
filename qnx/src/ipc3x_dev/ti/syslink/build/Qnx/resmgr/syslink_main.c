@@ -80,9 +80,6 @@
 #include <ti/syslink/ProcMgr.h>
 #include <Bitops.h>
 #include <RscTable.h>
-#if (_NTO_VERSION >= 800)
-#include <slog2.h>
-#endif
 
 #include <ti-ipc.h>
 
@@ -92,25 +89,13 @@
             | PROCMGR_AOP_DENY      \
             | PROCMGR_AOP_LOCK
 
-// Ducati trace to slog2 static variables and defines
-#define TRACE_BUFFER_SIZE               4096
-// polling interval in microseconds
-#define TRACE_POLLING_INTERVAL_US       1000000
 
-#if (_NTO_VERSION >= 800)
-static int verbosity = SLOG2_ERROR;
-static slog2_buffer_t buffer_handle;
-#else
 static int verbosity = 2;
-#endif
+
 
 #if defined(SYSLINK_PLATFORM_VAYU)
 static bool gatempEnabled = false;
 #endif
-static char trace_buffer[TRACE_BUFFER_SIZE];
-static pthread_mutex_t trace_mutex = PTHREAD_MUTEX_INITIALIZER;
-static Bool trace_active;
-static pthread_t thread_traces;
 
 // Syslink hibernation global variables
 Bool syslink_hib_enable = TRUE;
@@ -175,22 +160,6 @@ int syslink_read(resmgr_context_t *ctp, io_read_t *msg, syslink_ocb_t *ocb)
     if (proc_traces[procid].va == NULL) {
         return (ENOSYS);
     }
-
-    /* need to abort ducati trace thread if it is running as only want one reader */
-    pthread_mutex_lock(&trace_mutex);
-    if (trace_active == TRUE) {
-        trace_active = FALSE;
-        pthread_mutex_unlock(&trace_mutex);
-        // Wake up if waiting on hibernation
-        pthread_mutex_lock(&syslink_hib_mutex);
-        syslink_hib_hibernating = FALSE;
-        pthread_cond_broadcast(&syslink_hib_cond);
-        pthread_mutex_unlock(&syslink_hib_mutex);
-        pthread_join(thread_traces, NULL);
-    } else {
-        pthread_mutex_unlock(&trace_mutex);
-    }
-
     if (ocb->ocb.offset == 0) {
         ocb->widx = *(proc_traces[procid].widx);
         ocb->ridx = *(proc_traces[procid].ridx);
@@ -984,176 +953,6 @@ int deinit_ipc(syslink_dev_t * dev, bool recover)
 }
 
 
-/* Read next line of available data for given 'core' and store it in buffer.
- * Returns the number of bytes that were written or -1 on error
- */
-static int readNextTrace(int core, char* buffer, int bufSize)
-{
-    char* readPtr;
-    uint32_t readBytes, ridx, widx;
-    syslink_trace_info* tinfo = &proc_traces[core];
-
-    /* Make sure it is valid */
-    if ( (tinfo == NULL) || (tinfo->va == NULL) ) {
-        return -1;
-    }
-
-    /* Check to see if something to read */
-    if (tinfo->ridx == tinfo->widx) {
-        return 0;
-    }
-
-    readPtr = (char*) tinfo->va;
-    ridx = *tinfo->ridx;
-    widx = *tinfo->widx;
-
-    /* If first read, make sure that core is ready by validating ridx, widx */
-    if ( (tinfo->firstRead == TRUE) && ((ridx != 0) || (widx >= tinfo->len)) ) {
-        // not ready - will try again later
-        return 0;
-    }
-
-    /* Sanity check ridx/widx to make sure they point inside the buffer */
-    if ( (ridx >= tinfo->len) || (widx >= tinfo->len) ) {
-        Osal_printf("C%d: widx=%d, ridx=%d, len=%d - out of range",
-            core, widx, ridx, tinfo->len);
-        return -1;
-    }
-
-    readBytes = 0;
-    tinfo->firstRead = FALSE;
-    /* Read until we hit newline indicating end of trace */
-    while ( (readPtr[ridx] != '\n') && (ridx != widx) && (readBytes < bufSize)) {
-        buffer[readBytes] = readPtr[ridx];
-        readBytes++;
-        ridx++;
-        // Check for wrap-around
-        if (ridx == tinfo->len) {
-            ridx = 0;
-        }
-    }
-
-    /* If did not find newline, abort since either not enough info or no room in buffer */
-    if (readPtr[ridx] != '\n') {
-        if (readBytes >= bufSize) {
-            Osal_printf("C%d: Insufficient size of buffer; read %d, buf %d",
-                core, readBytes, bufSize);
-            return -1;
-        }
-        return 0;
-    }
-
-    /* Newline may not be valid data if this was not ready to be read */
-    if (ridx == widx) {
-        return 0;
-    }
-
-    /* We read a full line - null terminate and update ridx to mark data read */
-    if (readBytes < bufSize) {
-        buffer[readBytes] = '\0';
-    } else {
-        Osal_printf("C%d: No room to write NULL character", core);
-        return -1;
-    }
-    readBytes++;
-    ridx++;
-    if (ridx == tinfo->len) {
-        ridx = 0;
-    }
-    *tinfo->ridx = ridx;
-
-    return readBytes;
-}
-
-/* Thread reading ducati traces and writing them out to slog2 */
-static void *ducatiTraceThread(void *parm)
-{
-    int32_t bytesRead;
-    int core;
-    int err;
-    Bool exit = FALSE;
-
-    pthread_setname_np(0, "ducati-trace");
-
-    pthread_mutex_lock(&trace_mutex);
-    while ( (trace_active == TRUE) && (exit == FALSE) ) {
-        for (core = 0; core < MultiProc_MAXPROCESSORS; core++) {
-            while ((bytesRead = readNextTrace(core, trace_buffer, TRACE_BUFFER_SIZE)) > 0) {
-#if (_NTO_VERSION >= 800)
-                slog2f(buffer_handle, 0, 0, "C%d:%s", core, trace_buffer);
-#else
-                slogf(42, _SLOG_NOTICE, "C%d:%s", core, trace_buffer);
-#endif
-                if (trace_active == FALSE) {
-                    break;
-                }
-            }
-            // Abort trace logger on errors as these should not occur
-            if (bytesRead < 0) {
-                trace_active = FALSE;
-            }
-            if (trace_active == FALSE) {
-                break;
-            }
-        }
-        if (trace_active == FALSE) {
-            continue;
-        }
-        pthread_mutex_unlock(&trace_mutex);
-
-        // No interrupts/events to trigger reading traces, so need to periodically poll
-        usleep(TRACE_POLLING_INTERVAL_US);
-
-        // If we are in hibernation, wait on condvar for end of hibernation
-        pthread_mutex_lock(&syslink_hib_mutex);
-        while ((syslink_hib_enable == TRUE) && (syslink_hib_hibernating == TRUE) ) {
-            err = pthread_cond_wait(&syslink_hib_cond, &syslink_hib_mutex);
-            if (err != EOK) {
-                Osal_printf("pthread_cond_wait failed with err=%d", err);
-                exit = TRUE;
-                break;
-            }
-        }
-        pthread_mutex_unlock(&syslink_hib_mutex);
-
-        pthread_mutex_lock(&trace_mutex);
-    }
-    pthread_mutex_unlock(&trace_mutex);
-    Osal_printf("ducati trace thread exited");
-    return NULL;
-}
-
-/* Initialize slog2 for Ducati traces */
-static int init_ducati_slog2(void)
-{
-#if (_NTO_VERSION >= 800)
-    slog2_buffer_set_config_t buffer_config;
-    const char * buffer_set_name = "ducati";
-    const char * buffer_name = "ducati_buffer";
-
-    // Use command line verbosity for default verbosity level
-    uint8_t verbosity_level = (uint8_t) verbosity;
-    if ( verbosity_level > SLOG2_DEBUG2) {
-        verbosity_level = SLOG2_DEBUG2;
-    }
-
-    // Initialize the buffer configuration
-    buffer_config.buffer_set_name = (char *) buffer_set_name;
-    buffer_config.num_buffers = 1;
-    buffer_config.verbosity_level = verbosity_level;
-    buffer_config.buffer_config[0].buffer_name = (char *) buffer_name;
-    buffer_config.buffer_config[0].num_pages = 8;
-
-    // Register the Buffer Set
-    if( slog2_register( &buffer_config, &buffer_handle, 0 ) == -1 ) {
-        Osal_printf("syslink error registering slogger2 buffer for Ducati!");
-        return -1;
-    }
-#endif
-
-    return 0;
-}
-
 /** print usage */
 static Void printUsage (Char * app)
 {
@@ -1401,17 +1200,6 @@ int main(int argc, char *argv[])
     /* start the thread pool */
     thread_pool_start(dev->tpool);
 
-    /* Init slog2 and thread for Ducati traces */
-    if (init_ducati_slog2() != 0) {
-        return -1;
-    }
-    trace_active = TRUE;
-    status = pthread_create (&thread_traces, NULL, ducatiTraceThread, NULL);
-    if (status != EOK) {
-        Osal_printf("pthread_create for trace thread failed err=%d", status);
-        trace_active = FALSE;
-    }
-
     /* Unmask signals to be caught */
     sigdelset (&set, SIGINT);
     sigdelset (&set, SIGTERM);
@@ -1445,23 +1233,6 @@ int main(int argc, char *argv[])
 
 done:
     GT_0trace(curTrace, GT_4CLASS, "Syslink resource manager exiting \n");
-    /* Stop ducatiTraceThread if running */
-    pthread_mutex_lock(&trace_mutex);
-    if (trace_active) {
-        trace_active = FALSE;
-        pthread_mutex_unlock(&trace_mutex);
-        // Wake up if waiting on hibernation
-        pthread_mutex_lock(&syslink_hib_mutex);
-        syslink_hib_hibernating = FALSE;
-        pthread_cond_broadcast(&syslink_hib_cond);
-        pthread_mutex_unlock(&syslink_hib_mutex);
-        error = pthread_join(thread_traces, NULL);
-        if (error < 0) {
-            Osal_printf("syslink: pthread_join failed with err=%d", error);
-        }
-    } else {
-        pthread_mutex_unlock(&trace_mutex);
-    }
 
     error = thread_pool_destroy(dev->tpool);
     if (error < 0)
