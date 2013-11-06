@@ -29,18 +29,19 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.bld ========
- *
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList_64P = [
-      "Interrupt",
-      "MultiProcSetup",
-      "NotifySetup",
-      "NotifyCircSetup",
+    "Interrupt.c",
+    "MultiProcSetup.c",
+    "NotifySetup.c",
+    "NotifyCircSetup.c"
 ];
 
 var trgFilter_64P = {
@@ -48,18 +49,22 @@ var trgFilter_64P = {
         list: [ "64P", "64P_big_endian", "66" ]
 };
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList_64P, undefined, trgFilter_64P, arguments);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList_64P, undefined, trgFilter_64P, arguments);
+    IpcBuild.buildLibs(objList_64P, undefined, trgFilter_64P, ["profile=smp"]);
+}
 
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList_64P, undefined, trgFilter_64P, ["profile=smp"]);
-
-Pkg.otherFiles = [ "package.bld" ];
+Pkg.otherFiles = [
+    "package.bld",
+    "Interrupt.c",
+    "MultiProcSetup.c",
+    "NotifyCircSetup.c",
+    "NotifySetup.c"
+];
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;
 Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");
 
 Pkg.generatedFiles.$add("lib/");

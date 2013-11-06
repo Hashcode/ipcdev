@@ -32,29 +32,29 @@
 
 /*
  *  ======== package.bld ========
- *
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList_0 = [
-    "GateMPSupportNull",
-    "GatePeterson",
-    "GatePetersonN"
+    "GateMPSupportNull.c",
+    "GatePeterson.c",
+    "GatePetersonN.c"
 ];
 
 var objList_3 = [
-    "GateHWSem",
-    "GateHWSpinlock",
+    "GateHWSem.c",
+    "GateHWSpinlock.c"
 ].concat(objList_0);
 
 var objList_1 = [
-    "GateAAMonitor",
-    "GateAAMonitor_asm",
+    "GateAAMonitor.c",
+    "GateAAMonitor_asm.s64P"
 ].concat(objList_3);
 
 var objList_2 = [
-    "GateHWSpinlock",
+    "GateHWSpinlock.c"
 ].concat(objList_0);
 
 var trgFilter_1 = {
@@ -77,19 +77,29 @@ var trgFilter_0 = {
     list: trgFilter_1.list.concat(trgFilter_2.list).concat(trgFilter_3.list)
 };
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, arguments);
-IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, arguments);
-IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, arguments);
-IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, arguments);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, arguments);
+    IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, arguments);
+    IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, arguments);
+    IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, arguments);
+    IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, ["profile=smp"]);
+}
 
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList_0, undefined, trgFilter_0, ["profile=smp"]);
-IpcBuild.buildLibs(objList_1, undefined, trgFilter_1, ["profile=smp"]);
-IpcBuild.buildLibs(objList_2, undefined, trgFilter_2, ["profile=smp"]);
-IpcBuild.buildLibs(objList_3, undefined, trgFilter_3, ["profile=smp"]);
-
-Pkg.otherFiles = [ "package.bld" ];
+Pkg.otherFiles = [
+    "package.bld",
+    "GateMPSupportNull.c",
+    "GatePeterson.c",
+    "GatePetersonN.c",
+    "GateHWSem.c",
+    "GateHWSpinlock.c",
+    "GateAAMonitor.c",
+    "GateAAMonitor_asm.s64P",
+    "GateHWSpinlock.c"
+];
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;

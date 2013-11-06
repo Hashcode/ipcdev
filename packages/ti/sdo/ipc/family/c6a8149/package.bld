@@ -29,68 +29,77 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.bld ========
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList_common = [
-      "NotifySetup",
-      "NotifyCircSetup",
-      "NotifyMbxSetup",
-      "NotifyDriverMbx",
+    "NotifySetup.c",
+    "NotifyCircSetup.c",
+    "NotifyMbxSetup.c",
+    "NotifyDriverMbx.c"
 ];
 
 var objList_674 = [
-      "InterruptDsp",
+    "InterruptDsp.c"
 ].concat(objList_common);
 
 var trgFilter_674 = {
-        field: "isa",
-        list: [ "674" ]
+    field: "isa",
+    list: [ "674" ]
 };
 
 var objList_m3 = [
-      "InterruptDucati",
+    "InterruptDucati.c"
 ].concat(objList_common);
 
 var trgFilter_m3 = {
-        field: "isa",
-        list: [ "v7M" ]
+    field: "isa",
+    list: [ "v7M" ]
 };
 
 var objList_a8f = [
-      "InterruptHost",
+    "InterruptHost.c"
 ].concat(objList_common);
 
 var trgFilter_a8f = {
-        field: "isa",
-        list: [ "v7A" ]
+    field: "isa",
+    list: [ "v7A" ]
 };
 
 var objList_arp32 = [
-      "InterruptEve",
+    "InterruptEve.c"
 ].concat(objList_common);
 
 var trgFilter_arp32 = {
-        field: "isa",
-        list: [ "arp32" ]
+    field: "isa",
+    list: [ "arp32" ]
 };
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, arguments);
-IpcBuild.buildLibs(objList_m3, undefined, trgFilter_m3, arguments);
-IpcBuild.buildLibs(objList_a8f, undefined, trgFilter_a8f, arguments);
-IpcBuild.buildLibs(objList_arp32, undefined, trgFilter_arp32, arguments);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, arguments);
+    IpcBuild.buildLibs(objList_m3, undefined, trgFilter_m3, arguments);
+    IpcBuild.buildLibs(objList_a8f, undefined, trgFilter_a8f, arguments);
+    IpcBuild.buildLibs(objList_arp32, undefined, trgFilter_arp32, arguments);
+    IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_m3, undefined, trgFilter_m3, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_a8f, undefined, trgFilter_a8f, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_arp32, undefined, trgFilter_arp32,
+            ["profile=smp"]);
+}
 
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, ["profile=smp"]);
-IpcBuild.buildLibs(objList_m3, undefined, trgFilter_m3, ["profile=smp"]);
-IpcBuild.buildLibs(objList_a8f, undefined, trgFilter_a8f, ["profile=smp"]);
-IpcBuild.buildLibs(objList_arp32, undefined, trgFilter_arp32, ["profile=smp"]);
-
-Pkg.otherFiles = [ "package.bld" ];
+Pkg.otherFiles = [
+    "package.bld",
+    "InterruptDsp.c",
+    "InterruptDucati.c",
+    "InterruptHost.c",
+    "InterruptEve.c"
+].concat(objList_common);
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;

@@ -29,33 +29,11 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
- *
  */
 
-
-/*
- *  ======== Package.getLibs ========
- *  This function is called when a program's configuration files are
- *  being generated and it returns the name of a library appropriate
- *  for the program's configuration.
+/* Empty placeholder for package functions. Currently, this
+ * package does not provide any target libraries.
  */
-
-function getLibs(prog)
-{
-    var Build = xdc.module("ti.sdo.ipc.Build");
-
-    /* use shared getLibs() */
-    return (Build.getLibs(this));
-}
-
-/*
- *  ======== package.close ========
- */
-function close()
-{
-    if (xdc.om.$name != 'cfg') {
-        return;
-    }
-}

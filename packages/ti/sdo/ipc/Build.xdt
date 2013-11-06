@@ -31,38 +31,44 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 %%}
-%/*
-% *  ======== Build.xdt ========
-% */
-%var BIOS = xdc.module("ti.sysbios.BIOS");
-%var Build = xdc.module("ti.sdo.ipc.Build");
-%if (BIOS.libType == BIOS.LibType_Custom) {
 %%{
-    /* get the specified output directory (saved when BIOS was "used") */
+/*
+ *  ======== Build.xdt ========
+ */
+var Build = xdc.module('ti.sdo.ipc.Build');
+var tplt = "";
+
+if ((Build.libType == Build.LibType_Custom) ||
+        (Build.libType == Build.LibType_Debug)) {
+
+    /* get the specified output directory, set in module$use() */
     var outputDir = this.$private.outputDir;
 
-    /* generate makefile from makefile.xdt
-     *    $args[0] = the RTSC target, so the makefile knows how to run the
-     *               compiler and archiver
+    /* generate makefile from template
+     * $args[0] = the RTSC target, so the makefile knows how to
+     *            run the compiler and archiver
      */
-    print("generating custom ti.sdo.ipc library makefile ... ");
-%%}
+    print("generating custom ti.sdo.ipc library makefile ...");
 
-%if (Program.build.target.$name.match(/gnu/) &&
-%    (Program.build.target.name.match(/A15/) ||
-%     Program.build.target.name.match(/A9/)  ||
-%     Program.build.target.name.match(/A8/))) {
-%%{
-    var tplt = xdc.loadTemplate(this.$package.packageBase + "/makefile_gccArmLto.xdt");
-%%}
-%}
-%else {
-%%{
-    var tplt = xdc.loadTemplate(this.$package.packageBase + "/makefile.xdt");
-%%}
-%}
+    if (Program.build.target.$name.match(/gnu/) &&
+        (Program.build.target.name.match(/M3/) ||
+         Program.build.target.name.match(/M4/) ||
+         Program.build.target.name.match(/M4F/) ||
+         Program.build.target.name.match(/A15/) ||
+         Program.build.target.name.match(/A9/)  ||
+         Program.build.target.name.match(/A8/))) {
 
-%%{
+        tplt = xdc.loadTemplate(this.$package.packageBase +
+                "/makefile_gccArmLto.xdt");
+    }
+    else if (Program.build.target.$name.match(/iar/)) {
+        throw new Error("IAR not supported by IPC");
+    }
+    else {
+        tplt = xdc.loadTemplate(this.$package.packageBase + "/makefile.xdt");
+    }
+
+    /* expand the template */
     tplt.genFile(outputDir + "/makefile", this, [Program.build.target]);
+}
 %%}
-%}

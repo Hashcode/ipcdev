@@ -33,23 +33,24 @@
 /*
  *  ======== package.bld ========
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList = [
-      "Notify",
-      "GateMP",
-      "Ipc",
-      "MessageQ",
-      "SharedRegion",
-      "ListMP",
+    "Notify.c",
+    "GateMP.c",
+    "Ipc.c",
+    "MessageQ.c",
+    "SharedRegion.c",
+    "ListMP.c"
 ];
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList, undefined, null, arguments);
-
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList, undefined, null, arguments);
+    IpcBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+}
 
 Pkg.otherFiles = [
     "package.bld",
@@ -62,38 +63,39 @@ Pkg.otherFiles = [
     "_Ipc.h",
     "Ipc.c",
     "makefile.xdt",
+    "debugMakefile.xdt",
     "makefile_gccArmLto.xdt",
     "instrumented.cfg.xs", "nonInstrumented.cfg.xs",
     "instrumented.cfg", "nonInstrumented.cfg",
-    "smpInstrumented.cfg", "smpNonInstrumented.cfg",
-];
+    "smpInstrumented.cfg", "smpNonInstrumented.cfg"
+].concat(objList);
 
 var testArray = [
     {   name: 'instrumented',
-        config: "instrumented",
-        libdir: "instrumented",
+        config: "instrumented.cfg",
+        libdir: "instrumented"
     },
     {   name: 'nonInstrumented',
-        config: "nonInstrumented",
-        libdir: "nonInstrumented",
-    },
+        config: "nonInstrumented.cfg",
+        libdir: "nonInstrumented"
+    }
 ];
 
 /* Build non-SMP pre-built libs */
-for each (var targ in Build.targets) {
+for (var t = 0; t < Build.targets.length; t++) {
+    var targ = Build.targets[t];
 
     /* For each test... */
     for each (var test in testArray) {
-
         var platform = test.platform ? test.platform : targ.platform;
 
         var cfg = Pkg.addConfiguration(test.name,
                                         targ, platform, {
                                         cfgScript: test.config,
                                         prelink: false,
-                                        profile: "release",
                                         exportCfg: false,
                                         exportSrc: false,
+                                        profile: "release"
                                      });
 
         var myLib = "lib/ipc/"
@@ -127,9 +129,9 @@ for each (var targ in Build.targets) {
                                         targ, platform, {
                                         cfgScript: test.config,
                                         prelink: false,
-                                        profile: "release",
                                         exportCfg: false,
                                         exportSrc: false,
+                                        profile: "release"
                                      });
 
         var myLib = "lib/smpipc/"

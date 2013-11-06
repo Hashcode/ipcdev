@@ -33,22 +33,22 @@
 /*
  *  ======== package.bld ========
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var UtilsBuild = xdc.loadCapsule("ti/sdo/utils/Build.xs");
 
 var objList = [
-    "NameServer",
-    "NameServerRemoteNull",
-    "List",
-    "MultiProc",
+    "NameServer.c",
+    "NameServerRemoteNull.c",
+    "List.c",
+    "MultiProc.c"
 ];
 
-
-/* generate makefiles */
-UtilsBuild.buildLibs(objList, undefined, null, arguments);
-
-/* generate smp makefiles */
-UtilsBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    UtilsBuild.buildLibs(objList, undefined, null, arguments);
+    UtilsBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+}
 
 Pkg.otherFiles = [
     "package.bld",
@@ -56,38 +56,39 @@ Pkg.otherFiles = [
     "_NameServer.h",
     "UTILS.c",
     "makefile.xdt",
+    "debugMakefile.xdt",
     "makefile_gccArmLto.xdt",
     "instrumented.cfg.xs", "nonInstrumented.cfg.xs",
     "instrumented.cfg", "nonInstrumented.cfg",
-    "smpInstrumented.cfg", "smpNonInstrumented.cfg",
-];
+    "smpInstrumented.cfg", "smpNonInstrumented.cfg"
+].concat(objList);
 
 var testArray = [
     {   name: 'instrumented',
-        config: "instrumented",
-        libdir: "instrumented",
+        config: "instrumented.cfg",
+        libdir: "instrumented"
     },
     {   name: 'nonInstrumented',
-        config: "nonInstrumented",
-        libdir: "nonInstrumented",
-    },
+        config: "nonInstrumented.cfg",
+        libdir: "nonInstrumented"
+    }
 ];
 
 /* Build non-SMP pre-built libs */
-for each (var targ in Build.targets) {
+for (var t = 0; t < Build.targets.length; t++) {
+    var targ = Build.targets[t];
 
     /* For each test... */
     for each (var test in testArray) {
-
         var platform = test.platform ? test.platform : targ.platform;
 
         var cfg = Pkg.addConfiguration(test.name,
                                         targ, platform, {
                                         cfgScript: test.config,
                                         prelink: false,
-                                        profile: "release",
                                         exportCfg: false,
                                         exportSrc: false,
+                                        profile: "release"
                                      });
 
         var myLib = "lib/utils/"
@@ -121,9 +122,9 @@ for each (var targ in Build.targets) {
                                         targ, platform, {
                                         cfgScript: test.config,
                                         prelink: false,
-                                        profile: "release",
                                         exportCfg: false,
                                         exportSrc: false,
+                                        profile: "release"
                                      });
 
         var myLib = "lib/smputils/"
@@ -132,7 +133,6 @@ for each (var targ in Build.targets) {
         Pkg.otherFiles[Pkg.otherFiles.length++] = myLib;
     }
 }
-
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;

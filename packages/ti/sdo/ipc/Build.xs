@@ -36,38 +36,159 @@
 
 var BIOS = null;
 var Build = null;
+var Ipc = null;
+
+var custom28xOpts = " -q -mo ";
+var custom6xOpts = " -q -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 ";
+var customARP32xOpts = " -q --gen_func_subsections ";
+var customArmOpts = " -q -ms --opt_for_speed=2 ";
+var customGnuArmM3Opts = " ";
+var customGnuArmM4Opts = " ";
+var customGnuArmM4FOpts = " ";
+var customGnuArmA9Opts = " ";
+var customGnuArmA8Opts = " ";
+var customGnuArmA15Opts = " ";
+
+var ccOptsList = {
+    "ti.targets.C28_large"                      : custom28xOpts,
+    "ti.targets.C28_float"                      : custom28xOpts,
+    "ti.targets.C64P"                           : custom6xOpts,
+    "ti.targets.elf.C64P"                       : custom6xOpts,
+    "ti.targets.C64P_big_endian"                : custom6xOpts,
+    "ti.targets.elf.C64P_big_endian"            : custom6xOpts,
+    "ti.targets.C674"                           : custom6xOpts,
+    "ti.targets.elf.C674"                       : custom6xOpts,
+    "ti.targets.elf.C67P"                       : custom6xOpts,
+    "ti.targets.elf.C64T"                       : custom6xOpts,
+    "ti.targets.elf.C66"                        : custom6xOpts,
+    "ti.targets.elf.C66_big_endian"             : custom6xOpts,
+    "ti.targets.arp32.elf.ARP32"                : customARP32xOpts,
+    "ti.targets.arp32.elf.ARP32_far"            : customARP32xOpts,
+    "ti.targets.arm.elf.Arm9"                   : customArmOpts,
+    "ti.targets.arm.elf.A8F"                    : customArmOpts,
+    "ti.targets.arm.elf.A8Fnv"                  : customArmOpts,
+    "ti.targets.arm.elf.M3"                     : customArmOpts,
+    "ti.targets.arm.elf.M4"                     : customArmOpts,
+    "ti.targets.arm.elf.M4F"                    : customArmOpts,
+    "gnu.targets.arm.M3"                        : customGnuArmM3Opts,
+    "gnu.targets.arm.M4"                        : customGnuArmM4Opts,
+    "gnu.targets.arm.M4F"                       : customGnuArmM4FOpts,
+    "gnu.targets.arm.A8F"                       : customGnuArmA8Opts,
+    "gnu.targets.arm.A9F"                       : customGnuArmA9Opts,
+    "gnu.targets.arm.A15F"                      : customGnuArmA15Opts,
+};
+
+/*
+ *  ======== module$meta$init ========
+ */
+function module$meta$init()
+{
+    /* Only process during "cfg" phase */
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
+    Build = this;
+
+    /*
+     * Set default verbose level for custom build flow
+     * User can override this in their cfg file.
+     */
+    var SourceDir = xdc.module("xdc.cfg.SourceDir");
+    SourceDir.verbose = 2;
+
+    /* register onSet hooks */
+    var GetSet = xdc.module("xdc.services.getset.GetSet");
+    GetSet.onSet(this, "libType", _setLibType);
+
+    /* Construct default customCCOpts value.
+     * User can override this in their cfg file.
+     */
+    Build.customCCOpts = Build.getDefaultCustomCCOpts();
+}
 
 /*
  *  ======== module$use ========
  */
 function module$use()
 {
+//  Build = this;
     BIOS = xdc.module("ti.sysbios.BIOS");
-    Build = this;
+    var profile;
 
     /* inform ti.sdo.utils.Build *not* to contribute libraries */
-    xdc.module("ti.sdo.utils.Build").doBuild = false;
+//  xdc.module("ti.sdo.utils.Build").doBuild = false;
+
+    /* if Build.libType is undefined, use BIOS.libType */
+    if (Build.libType == undefined) {
+        switch (BIOS.libType) {
+            case BIOS.LibType_Instrumented:
+                Build.libType = Build.LibType_Instrumented;
+                break;
+            case BIOS.LibType_NonInstrumented:
+                Build.libType = Build.LibType_NonInstrumented;
+                break;
+            case BIOS.LibType_Custom:
+                Build.libType = Build.LibType_Custom;
+                break;
+            case BIOS.LibType_Debug:
+                Build.libType = Build.LibType_Debug;
+                break;
+        }
+    }
+
+    /*  Get the profile associated with the ti.sdo.ipc package. The
+     *  profile may be specified per package with a line like this
+     *  in your .cfg script:
+     *
+     *  xdc.loadPackage('ti.sdo.ipc').profile = "release";
+     */
+    if (this.$package.profile != undefined) {
+        profile = this.$package.profile;
+    }
+    else {
+        profile = Program.build.profile;
+    }
+
+    /* gracefully handle non-supported whole_program profiles */
+    if (profile.match(/whole_program/) &&
+            (Build.libType != Build.LibType_Debug)) {
+
+        /* allow build to proceed */
+        Build.libType = Build.LibType_Debug;
+        /* but warning the user */
+        Build.$logWarning(
+            "The '" + profile + "' build profile will not be supported " +
+            "in future releases of IPC. Use 'release' or 'debug' profiles " +
+            "together with the 'Build.libType' configuration parameter to " +
+            "specify your preferred library. See the compatibility section " +
+            "of your IPC release notes for more information.",
+            "Profile Deprecation Warning", Build);
+    }
 
     /* inform getLibs() about location of library */
-    switch (BIOS.libType) {
-        case BIOS.LibType_Instrumented:
+    switch (Build.libType) {
+        case Build.LibType_Instrumented:
             this.$private.libraryName = "/ipc.a" + Program.build.target.suffix;
-            this.$private.outputDir = this.$package.packageBase + "lib/"
-                        + (BIOS.smpEnabled ? "smpipc/instrumented/" : "ipc/instrumented/");
+            this.$private.outputDir = this.$package.packageBase + "lib/" +
+                (BIOS.smpEnabled ? "smpipc/instrumented/":"ipc/instrumented/");
             break;
 
-        case BIOS.LibType_NonInstrumented:
+        case Build.LibType_NonInstrumented:
             this.$private.libraryName = "/ipc.a" + Program.build.target.suffix;
-            this.$private.outputDir = this.$package.packageBase + "lib/"
-                        + (BIOS.smpEnabled ? "smpipc/nonInstrumented/" : "ipc/nonInstrumented/");
+            this.$private.outputDir = this.$package.packageBase + "lib/" +
+                (BIOS.smpEnabled ? "smpipc/nonInstrumented/" :
+                "ipc/nonInstrumented/");
             break;
 
-        case BIOS.LibType_Custom:
+        case Build.LibType_Debug:
+        case Build.LibType_Custom:
             this.$private.libraryName = "/ipc.a" + Program.build.target.suffix;
             var SourceDir = xdc.useModule("xdc.cfg.SourceDir");
             /* if building a pre-built library */
             if (BIOS.buildingAppLib == false) {
-                var appName = Program.name.substring(0, Program.name.lastIndexOf('.'));
+                var appName = Program.name.substring(0,
+                        Program.name.lastIndexOf('.'));
                 this.$private.libDir = this.$package.packageBase + Build.libDir;
                 if (!java.io.File(this.$private.libDir).exists()) {
                     java.io.File(this.$private.libDir).mkdir();
@@ -85,10 +206,13 @@ function module$use()
             }
             else {
                 var curPath = java.io.File(".").getCanonicalPath();
-                /* If package.bld world AND building an application OR pre-built lib */
+                /* If package.bld world AND building an application OR
+                 * pre-built lib... */
                 if (java.io.File(curPath).getName() != "configPkg") {
-                    var appName = Program.name.substring(0, Program.name.lastIndexOf('.'));
-                    appName = appName + "_p" + Program.build.target.suffix + ".src";
+                    var appName = Program.name.substring(0,
+                            Program.name.lastIndexOf('.'));
+                    appName = appName + "_p" + Program.build.target.suffix +
+                            ".src";
                     SourceDir.outputDir = "package/cfg/" + appName;
                     SourceDir.toBuildDir = ".";
                     var src = SourceDir.create("ipc");
@@ -98,15 +222,17 @@ function module$use()
                 /* Here ONLY if building an application in CCS world */
                 else {
                     /* request output source directory for generated files */
-                    var appName = Program.name.substring(0, Program.name.lastIndexOf('.'));
-                    appName = appName + "_" + Program.name.substr(Program.name.lastIndexOf('.')+1);
+                    var appName = Program.name.substring(0,
+                            Program.name.lastIndexOf('.'));
+                    appName = appName + "_" + Program.name.substr(
+                            Program.name.lastIndexOf('.')+1);
                     SourceDir.toBuildDir = "..";
                     var src = SourceDir.create("ipc/");
                     src.libraryName = this.$private.libraryName.substring(1);
 
-                    /* save this directory in our private state (to be read during
-                    * generation, see Gen.xdt)
-                    */
+                    /*  save this directory in our private state (to be
+                     *  read during generation, see Gen.xdt)
+                     */
                     this.$private.outputDir = src.getGenSourceDir();
                 }
             }
@@ -115,9 +241,92 @@ function module$use()
 }
 
 /*
+ *  ======== module$validate ========
+ *  Some redundant tests are here to catch changes since
+ *  module$static$init() and instance$static$init().
+ */
+function module$validate()
+{
+    var Defaults = xdc.module('xdc.runtime.Defaults');
+    var Diags = xdc.module("xdc.runtime.Diags");
+    var libType = getEnumString(Build.libType);
+
+    switch (Build.libType) {
+        case Build.LibType_Instrumented:
+            if (Build.assertsEnabled == false) {
+                Build.$logWarning(
+                        "Build.assertsEnabled must be set to true when " +
+                        "Build.libType == Build." + libType + ". " + "Set " +
+                        "Build.libType = Build.LibType_Custom to build a " +
+                        "custom library or update your configuration.",
+                        Build, "assertsEnabled");
+            }
+            if (Build.logsEnabled == false) {
+                Build.$logWarning(
+                        "Build.logsEnabled must be set to true when " +
+                        "Build.libType == Build." + libType + ". " + "Set " +
+                        "Build.libType = Build.LibType_Custom to build a " +
+                        "custom library or update your configuration.",
+                        Build, "logsEnabled");
+            }
+            break;
+
+        case Build.LibType_NonInstrumented:
+            if ((Build.assertsEnabled == true) &&
+                    Build.$written("assertsEnabled")){
+                Build.$logWarning(
+                        "Build.assertsEnabled must be set to false when " +
+                        "Build.libType == Build." + libType + ". " + "Set " +
+                        "Build.libType = Build.LibType_Custom to build a " +
+                        "custom library or update your configuration.",
+                        Build, "assertsEnabled");
+            }
+            if ((Build.logsEnabled == true) && Build.$written("logsEnabled")) {
+                Build.$logWarning(
+                        "Build.logsEnabled must be set to false when " +
+                        "Build.libType == Build." + libType + ". " + "Set " +
+                        "Build.libType = Build.LibType_Custom to build a " +
+                        "custom library or update your configuration.",
+                        Build, "logsEnabled");
+            }
+            break;
+
+        case Build.LibType_Custom:
+            if ((Build.assertsEnabled == true)
+                && (Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF)
+                && (Defaults.common$.diags_INTERNAL == Diags.ALWAYS_OFF)) {
+                Build.$logWarning(
+                        "Build.assertsEnabled should be set to 'false' when " +
+                        "Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF.",
+                        Build, "assertsEnabled");
+            }
+            break;
+    }
+}
+
+/*
+ *  ======== getEnumString ========
+ *  Return the enum value as a string.
+ *
+ *  Example usage:
+ *  If obj contains an enumeration type property "Enum enumProp"
+ *
+ *  view.enumString = getEnumString(obj.enumProp);
+ */
+function getEnumString(enumProperty)
+{
+    /*  Split the string into tokens in order to get rid of the
+     *  huge package path that precedes the enum string name.
+     *  Return the last two tokens concatenated with "_".
+     */
+    var enumStrArray = String(enumProperty).split(".");
+    var len = enumStrArray.length;
+    return (enumStrArray[len - 1]);
+}
+
+/*
  * Add pre-built Instrumented and Non-Intrumented release libs
  */
-
 var ipcSources  =  "ipc/GateMP.c " +
                    "ipc/ListMP.c " +
                    "ipc/SharedRegion.c " +
@@ -160,8 +369,8 @@ var commonSources = ipcSources +
                     heapsSources +
                     notifyDriverSources +
                     nsremoteSources +
-                    transportsSources +
-                    utilsSources;
+                    transportsSources;
+//                  utilsSources;
 
 var C64PSources  =
                    "ipc/gates/GateAAMonitor.c " +
@@ -305,16 +514,22 @@ var cList = {
     "ti.targets.C28_large"              : commonSources + C28Sources,
     "ti.targets.C28_float"              : commonSources + C28Sources,
 
-    "ti.targets.C64P"                   : commonSources + C647xSources + C64PSources,
-    "ti.targets.C64P_big_endian"        : commonSources + C647xSources + C64PSources,
+    "ti.targets.C64P"                   : commonSources + C647xSources +
+                                                C64PSources,
+    "ti.targets.C64P_big_endian"        : commonSources + C647xSources +
+                                                C64PSources,
     "ti.targets.C674"                   : commonSources + C674Sources,
 
-    "ti.targets.elf.C64P"               : commonSources + C647xSources + C64PSources,
-    "ti.targets.elf.C64P_big_endian"    : commonSources + C647xSources + C64PSources,
+    "ti.targets.elf.C64P"               : commonSources + C647xSources +
+                                                C64PSources,
+    "ti.targets.elf.C64P_big_endian"    : commonSources + C647xSources +
+                                                C64PSources,
     "ti.targets.elf.C674"               : commonSources + C674Sources,
     "ti.targets.elf.C64T"               : commonSources + C64TSources,
-    "ti.targets.elf.C66"                : commonSources + C647xSources + C66Sources,
-    "ti.targets.elf.C66_big_endian"     : commonSources + C647xSources + C66Sources,
+    "ti.targets.elf.C66"                : commonSources + C647xSources +
+                                                C66Sources,
+    "ti.targets.elf.C66_big_endian"     : commonSources + C647xSources +
+                                                C66Sources,
 
     "ti.targets.arp32.elf.ARP32"        : commonSources + ARP32Sources,
     "ti.targets.arp32.elf.ARP32_far"    : commonSources + ARP32Sources,
@@ -332,6 +547,8 @@ var cList = {
     "gnu.targets.arm.M4"                : commonSources + M4Sources,
     "gnu.targets.arm.M4F"               : commonSources + M4Sources,
 };
+
+var cFiles = { };
 
 var ipcPackages = [
     "ti.sdo.ipc",
@@ -395,7 +612,103 @@ var asmList = {
     "gnu.targets.arm.A15F"              : asmListNone,
 };
 
-var cFiles = {};
+function getDefaultCustomCCOpts()
+{
+    var Build = this;
+
+    /* start with target.cc.opts */
+    var customCCOpts = Program.build.target.cc.opts;
+
+    /* add target unique custom ccOpts */
+    if (!(ccOptsList[Program.build.target.$name] === undefined)) {
+        customCCOpts += ccOptsList[Program.build.target.$name];
+    }
+
+    /* gnu targets need to pick up ccOpts.prefix and suffix */
+    if (Program.build.target.$name.match(/gnu/)) {
+        customCCOpts += " -O3 ";
+        customCCOpts += " " + Program.build.target.ccOpts.prefix + " ";
+        customCCOpts += " " + Program.build.target.ccOpts.suffix + " ";
+    }
+    else if (Program.build.target.$name.match(/iar/)) {
+        throw new Error("IAR not supported by IPC");
+    }
+    else {
+        /* ti targets do program level compile */
+        customCCOpts += " --program_level_compile -o3 -g " +
+                "--optimize_with_debug ";
+    }
+
+    /* undo optimizations if this is a debug build */
+    if (Build.libType == Build.LibType_Debug) {
+        if (Program.build.target.$name.match(/gnu/)) {
+            customCCOpts = customCCOpts.replace("-O3","");
+            /* add in stack frames for stack back trace */
+            customCCOpts += " -mapcs ";
+        }
+        else {
+            customCCOpts = customCCOpts.replace(" -o3","");
+            customCCOpts = customCCOpts.replace(" --optimize_with_debug","");
+            if (Program.build.target.$name.match(/arm/)) {
+                customCCOpts = customCCOpts.replace(" --opt_for_speed=2","");
+            }
+        }
+    }
+
+    return (customCCOpts);
+}
+
+/*
+ *  ======== getDefs ========
+ */
+function getDefs()
+{
+    var Build = this;
+    var Defaults = xdc.module('xdc.runtime.Defaults');
+    var Diags = xdc.module("xdc.runtime.Diags");
+    var BIOS = xdc.module("ti.sysbios.BIOS");
+    var MessageQ = xdc.module("ti.sdo.ipc.MessageQ");
+
+    var defs = "";
+
+    if ((Build.assertsEnabled == false) ||
+        ((Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF)
+            && (Defaults.common$.diags_INTERNAL == Diags.ALWAYS_OFF))) {
+        defs += " -Dxdc_runtime_Assert_DISABLE_ALL";
+    }
+
+    if (Build.logsEnabled == false) {
+        defs += " -Dxdc_runtime_Log_DISABLE_ALL";
+    }
+
+    defs += " -Dti_sdo_ipc_MessageQ_traceFlag__D=" +
+            (MessageQ.traceFlag ? "TRUE" : "FALSE");
+
+    var InterruptDucati =
+            xdc.module("ti.sdo.ipc.family.ti81xx.InterruptDucati");
+
+    /* If we truely know which platform we're building against,
+     * add these application specific -D's
+     */
+    if (BIOS.buildingAppLib == true) {
+        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_videoProcId__D="
+                + InterruptDucati.videoProcId;
+        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_hostProcId__D="
+                + InterruptDucati.hostProcId;
+        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_vpssProcId__D="
+                + InterruptDucati.vpssProcId;
+        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_dspProcId__D="
+                + InterruptDucati.dspProcId;
+        defs +=
+            " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_ducatiCtrlBaseAddr__D="
+            + InterruptDucati.ducatiCtrlBaseAddr;
+        defs +=
+            " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_mailboxBaseAddr__D="
+            + InterruptDucati.mailboxBaseAddr;
+    }
+
+    return (defs);
+}
 
 /*
  *  ======== getCFiles ========
@@ -462,76 +775,33 @@ function getAsmFiles(target)
 }
 
 /*
- *  ======== getDefs ========
- */
-function getDefs()
-{
-    var Defaults = xdc.module('xdc.runtime.Defaults');
-    var Diags = xdc.module("xdc.runtime.Diags");
-    var BIOS = xdc.module("ti.sysbios.BIOS");
-    var MessageQ = xdc.module("ti.sdo.ipc.MessageQ");
-
-    var defs = "";
-
-    if ((BIOS.assertsEnabled == false) ||
-        ((Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF)
-            && (Defaults.common$.diags_INTERNAL == Diags.ALWAYS_OFF))) {
-        defs += " -Dxdc_runtime_Assert_DISABLE_ALL";
-    }
-
-    if (BIOS.logsEnabled == false) {
-        defs += " -Dxdc_runtime_Log_DISABLE_ALL";
-    }
-
-    defs += " -Dti_sdo_ipc_MessageQ_traceFlag__D=" + (MessageQ.traceFlag ? "TRUE" : "FALSE");
-
-    var InterruptDucati = xdc.module("ti.sdo.ipc.family.ti81xx.InterruptDucati");
-
-    /*
-     * If we truely know which platform we're building against,
-     * add these application specific -D's
-     */
-    if (BIOS.buildingAppLib == true) {
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_videoProcId__D=" + InterruptDucati.videoProcId;
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_hostProcId__D=" + InterruptDucati.hostProcId;
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_vpssProcId__D=" + InterruptDucati.vpssProcId;
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_dspProcId__D=" + InterruptDucati.dspProcId;
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_ducatiCtrlBaseAddr__D=" + InterruptDucati.ducatiCtrlBaseAddr;
-        defs += " -Dti_sdo_ipc_family_ti81xx_InterruptDucati_mailboxBaseAddr__D=" + InterruptDucati.mailboxBaseAddr;
-    }
-
-    return (defs);
-}
-
-/*
  *  ======== getLibs ========
+ *  This function called by all IPC packages except ti.sdo.ipc package.
  */
 function getLibs(pkg)
 {
-    var BIOS = xdc.module("ti.sysbios.BIOS");
+    var Build = this;
+    var libPath = "";
+    var name = "";
+    var suffix;
 
-    if (BIOS.libType != BIOS.LibType_Debug) {
-        return null;
+    switch (Build.libType) {
+        case Build.LibType_Custom:
+        case Build.LibType_Instrumented:
+        case Build.LibType_NonInstrumented:
+        case Build.LibType_Debug:
+            return null;
+
+        case Build.LibType_PkgLib:
+            throw new Error("internal error: Build.getLibs() called with " +
+                    "incorret context (libType == PkgLib)");
+            break;
+
+        default:
+            throw new Error("Build.libType not supported: " + Build.libType);
+            break;
     }
-
-    var lib = "";
-    var name = pkg.$name + ".a" + prog.build.target.suffix;
-
-    if (BIOS.smpEnabled == true) {
-        lib = "lib/smpipc/debug/" + name;
-    }
-    else {
-        lib = "lib/ipc/debug/" + name;
-    }
-
-    if (java.io.File(pkg.packageBase + lib).exists()) {
-        return lib;
-    }
-
-    /* could not find any library, throw exception */
-    throw Error("Library not found: " + name);
 }
-
 
 /*
  *  ======== getProfiles ========
@@ -563,7 +833,7 @@ function getProfiles(xdcArgs)
 /*
  *  ======== buildLibs ========
  *  This function generates the makefile goals for the libraries
- *  produced by a ti.sysbios package.
+ *  produced by a package.
  */
 function buildLibs(objList, relList, filter, xdcArgs)
 {
@@ -616,7 +886,6 @@ function buildLibs(objList, relList, filter, xdcArgs)
         }
     }
 }
-
 
 /*
  *  ======== supportsTarget ========
@@ -677,4 +946,41 @@ function supportsTarget(target, filter)
     }
 
     return (false);
+}
+
+/*
+ *  ======== _setLibType ========
+ *  The "real-time" setter setLibType function
+ *  This function is called whenever libType changes.
+ */
+function _setLibType(field, val)
+{
+    var Build = this;
+
+    if (val == Build.LibType_Instrumented) {
+        Build.assertsEnabled = true;
+        Build.logsEnabled = true;
+    }
+    else if (val == Build.LibType_NonInstrumented) {
+        Build.assertsEnabled = false;
+        Build.logsEnabled = false;
+    }
+    else if (val == Build.LibType_Custom) {
+        Build.assertsEnabled = true;
+        Build.logsEnabled = true;
+    }
+    else if (val == Build.LibType_Debug) {
+        Build.assertsEnabled = true;
+        Build.logsEnabled = true;
+    }
+    else if (val == Build.LibType_PkgLib) {
+        Build.assertsEnabled = true;
+        Build.logsEnabled = true;
+    }
+    else {
+        print(Build.$name + ": unknown libType setting: " + val);
+    }
+
+    /* re-construct default Build.customCCOpts */
+    Build.customCCOpts = Build.getDefaultCustomCCOpts();
 }

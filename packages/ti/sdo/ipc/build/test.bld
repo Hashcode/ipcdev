@@ -283,7 +283,7 @@ function getPlatform(xdcArgs)
         if (index != -1) {
             platform.name = xdcArgs[i].substring(index + 9, xdcArgs[i].length);
             if (platform.name == "default") {
-                return (platform)
+                return (platform);
             }
             else if (platform.name == "all") {
                 platform.useDefaultPlatform = false;

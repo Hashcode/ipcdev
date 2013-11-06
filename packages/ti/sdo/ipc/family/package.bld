@@ -29,29 +29,17 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.bld ========
- *
  */
-
-//Pkg.makePrologue = "include custom.mak";
-xdc.loadCapsule('procNamesDocGen.xs');
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
-
-var objList = [
-];
-
-/* generate makefiles */
-IpcBuild.buildLibs(objList, undefined, null, arguments);
-
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+xdc.loadCapsule('procNamesDocGen.xs');
 
 Pkg.otherFiles = [ "package.bld", "doc-files", "procNamesDocGen.xs" ];
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;
 Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");

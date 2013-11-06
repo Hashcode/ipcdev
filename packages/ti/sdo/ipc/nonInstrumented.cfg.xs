@@ -29,20 +29,37 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== nonInstrumented.cfg.xs ========
- *
  */
 
 var BIOS = xdc.module('ti.sysbios.BIOS');
-
-BIOS.libType = BIOS.LibType_Custom;
 BIOS.buildingAppLib = false;
-BIOS.assertsEnabled = false;
-BIOS.logsEnabled = false;
 
-var SourceDir = xdc.module("xdc.cfg.SourceDir");
+var Build = xdc.module('ti.sdo.ipc.Build');
+Build.libType = Build.LibType_Custom;
+Build.assertsEnabled = false;
+Build.logsEnabled = false;
+
+var SourceDir = xdc.module('xdc.cfg.SourceDir');
 SourceDir.verbose = 1;
+
+/* remove all symbolic debug info */
+if (Program.build.target.$name.match(/gnu/)) {
+    Build.customCCOpts = Build.customCCOpts.replace("-g","");
+}
+else if (Program.build.target.$name.match(/iar/)) {
+    throw new Error("IAR not supported by IPC");
+}
+else {
+    Build.customCCOpts = Build.customCCOpts.replace("-g","");
+    Build.customCCOpts = Build.customCCOpts.replace("--optimize_with_debug","");
+    Build.customCCOpts += "--symdebug:none ";
+    /* suppress warnings regarding .asmfunc and .endasmfunc */
+    Build.customCCOpts +=
+            "--asm_define\".asmfunc= \" --asm_define\".endasmfunc= \" ";
+}
 
 /* suppress un-placed sections warning from m3 Hwi.meta$init() */
 if (Program.sectMap[".vecs"] !== undefined) {

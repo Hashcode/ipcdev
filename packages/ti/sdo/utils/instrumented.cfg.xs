@@ -30,6 +30,10 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ *  ======== instrumented.cfg.xs ========
+ */
+
 var BIOS = xdc.module('ti.sysbios.BIOS');
 
 BIOS.libType = BIOS.LibType_Custom;
@@ -39,6 +43,18 @@ BIOS.logsEnabled = true;
 
 var SourceDir = xdc.module("xdc.cfg.SourceDir");
 SourceDir.verbose = 1;
+
+/* remove all symbolic debug info */
+if (Program.build.target.$name.match(/gnu/)) {
+    BIOS.customCCOpts = BIOS.customCCOpts.replace("-g","");
+}
+else if (!Program.build.target.$name.match(/iar/)) {
+    BIOS.customCCOpts = BIOS.customCCOpts.replace("-g","");
+    BIOS.customCCOpts = BIOS.customCCOpts.replace("--optimize_with_debug","");
+    BIOS.customCCOpts += "--symdebug:none ";
+    /* suppress warnings regarding .asmfunc and .endasmfunc */
+    BIOS.customCCOpts += "--asm_define\".asmfunc= \" --asm_define\".endasmfunc= \" ";
+}
 
 /* suppress un-placed sections warning from m3 Hwi.meta$init() */
 if (Program.sectMap[".vecs"] !== undefined) {

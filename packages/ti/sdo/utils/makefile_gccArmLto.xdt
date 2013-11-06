@@ -104,7 +104,12 @@ endef
 
 %var LIB = "utils.a" + TARGET.suffix;
 
+%if (BIOS.buildingAppLib == false) {
+all: `Build.$private.libDir``LIB`
+%}
+%else {
 all: `LIB`
+%}
 
 %var sources = Build.getAsmFiles(TARGET.$name);
 %for each (var s in sources) {
@@ -129,9 +134,12 @@ all: `LIB`
 	@echo ar`TARGET.suffix` $^ ...
 	@-$(call RM, $@)
 	@$(AR) $@ $^
+
 %if (BIOS.buildingAppLib == false) {
+`Build.$private.libDir``LIB`: `LIB`
+	@echo cp `LIB`
 	@-$(call RM, "`Build.$private.libDir``LIB`")
-	$(CP) `LIB` "`Build.$private.libDir``LIB`"
+	@$(CP) `LIB` "`Build.$private.libDir``LIB`"
 %}
 
 clean:

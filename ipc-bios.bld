@@ -115,6 +115,7 @@ var lnkOpts = {
 
 var platform = "";
 var smpEnabled = true;
+var Bld_goal = "";
 
 /* initialize local vars with those set in xdcpaths.mak (via XDCARGS) */
 for (arg = 0; arg < arguments.length; arg++) {
@@ -133,6 +134,15 @@ for (arg = 0; arg < arguments.length; arg++) {
         smpEnabled = configParts[0].split("=")[1].match(/^1$/);
         continue;
     }
+    else if (configParts[0].split("=")[0] == "GOAL") {
+        Bld_goal = configParts[0].split("=")[1];
+        continue;
+    }
+
+    if (platform == "") {
+        platform = "NONE";
+    }
+
     /*
      * Get the compiler's installation directory.
      * For "ti.targets.elf.C674=/vendors/c6x/7.2.0", we get "/vendors/c6x/7.2.0"
@@ -193,6 +203,10 @@ for (arg = 0; arg < arguments.length; arg++) {
                 target.platforms.$add("ti.platforms.evmDRA7XX:dsp2");
                 break;
 
+            case 'NONE':
+                /* okay, no platform specified */
+                break;
+
             default:
                 print("Unknown platform, skipping " + platform);
                 break;
@@ -214,6 +228,10 @@ for (arg = 0; arg < arguments.length; arg++) {
             case 'DRA7XX':
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu2");
                 target.platforms.$add("ti.platforms.evmDRA7XX:ipu1");
+                break;
+
+            case 'NONE':
+                /* okay, no platform specified */
                 break;
 
             default:

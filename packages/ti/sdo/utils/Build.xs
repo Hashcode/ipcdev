@@ -37,6 +37,66 @@
 var BIOS = null;
 var Build = null;
 
+var custom28xOpts = " -q -mo ";
+var custom6xOpts = " -q -mi10 -mo -pdr -pden -pds=238 -pds=880 -pds1110 ";
+var customARP32xOpts = " -q --gen_func_subsections ";
+var customArmOpts = " -q -ms --opt_for_speed=2 ";
+var customGnuArmM3Opts = " ";
+var customGnuArmM4Opts = " ";
+var customGnuArmM4FOpts = " ";
+var customGnuArmA9Opts = " ";
+var customGnuArmA8Opts = " ";
+var customGnuArmA15Opts = " ";
+
+var ccOptsList = {
+    "ti.targets.C28_large"                      : custom28xOpts,
+    "ti.targets.C28_float"                      : custom28xOpts,
+    "ti.targets.C64P"                           : custom6xOpts,
+    "ti.targets.elf.C64P"                       : custom6xOpts,
+    "ti.targets.C64P_big_endian"                : custom6xOpts,
+    "ti.targets.elf.C64P_big_endian"            : custom6xOpts,
+    "ti.targets.C674"                           : custom6xOpts,
+    "ti.targets.elf.C674"                       : custom6xOpts,
+    "ti.targets.elf.C67P"                       : custom6xOpts,
+    "ti.targets.elf.C64T"                       : custom6xOpts,
+    "ti.targets.elf.C66"                        : custom6xOpts,
+    "ti.targets.elf.C66_big_endian"             : custom6xOpts,
+    "ti.targets.arp32.elf.ARP32"                : customARP32xOpts,
+    "ti.targets.arp32.elf.ARP32_far"            : customARP32xOpts,
+    "ti.targets.arm.elf.Arm9"                   : customArmOpts,
+    "ti.targets.arm.elf.A8F"                    : customArmOpts,
+    "ti.targets.arm.elf.A8Fnv"                  : customArmOpts,
+    "ti.targets.arm.elf.M3"                     : customArmOpts,
+    "ti.targets.arm.elf.M4"                     : customArmOpts,
+    "ti.targets.arm.elf.M4F"                    : customArmOpts,
+    "gnu.targets.arm.M3"                        : customGnuArmM3Opts,
+    "gnu.targets.arm.M4"                        : customGnuArmM4Opts,
+    "gnu.targets.arm.M4F"                       : customGnuArmM4FOpts,
+    "gnu.targets.arm.A8F"                       : customGnuArmA8Opts,
+    "gnu.targets.arm.A9F"                       : customGnuArmA9Opts,
+    "gnu.targets.arm.A15F"                      : customGnuArmA15Opts,
+};
+
+/*
+ *  ======== module$meta$init ========
+ */
+function module$meta$init()
+{
+    /* Only process during "cfg" phase */
+    if (xdc.om.$name != "cfg") {
+        return;
+    }
+
+    Build = this;
+
+    /*
+     * Set default verbose level for custom build flow
+     * User can override this in their cfg file.
+     */
+    var SourceDir = xdc.module("xdc.cfg.SourceDir");
+    SourceDir.verbose = 2;
+}
+
 /*
  *  ======== module$use ========
  */
@@ -45,10 +105,41 @@ function module$use()
     BIOS = xdc.module("ti.sysbios.BIOS");
     Build = this;
 
-    if (!Build.doBuild) {
-        return;
+//  if (!Build.doBuild) {
+//      return;
+//  }
+
+    /*
+     * Get the profile associated with the ti.sdo.ipc package.
+     * The profile can be specified on a per package basis with a line like
+     * this in your .cfg script:
+     *
+     * xdc.loadPackage('ti.sysbios').profile = "release";
+     */
+    if (this.$package.profile != undefined) {
+        profile = this.$package.profile;
+    }
+    else {
+        profile = Program.build.profile;
     }
 
+    /*
+     * Gracefully handle non-supported whole_program profiles
+     */
+    if (profile.match(/whole_program/)
+        && (BIOS.libType != BIOS.LibType_Debug)) {
+        /* allow build to proceed */
+        BIOS.libType = BIOS.LibType_Debug;
+        /* but warning the user */
+        BIOS.$logWarning("The '" + profile +
+            "' build profile will not be supported " +
+            "in future releases of SYS/BIOS.  " +
+            "Use 'release' or 'debug' profiles together with the " +
+            "'BIOS.libType' configuration parameter to specify your " +
+            "preferred library.  See the compatibility section of " +
+            "your SYS/BIOS release notes for more information.",
+            "Profile Deprecation Warning", BIOS);
+    }
     /* inform getLibs() about location of library */
     switch (BIOS.libType) {
         case BIOS.LibType_Instrumented:
@@ -63,6 +154,7 @@ function module$use()
                         + (BIOS.smpEnabled ? "smputils/nonInstrumented/" : "utils/nonInstrumented/");
             break;
 
+        case BIOS.LibType_Debug:
         case BIOS.LibType_Custom:
             this.$private.libraryName = "/utils.a" + Program.build.target.suffix;
             var SourceDir = xdc.useModule("xdc.cfg.SourceDir");
@@ -114,10 +206,10 @@ function module$use()
             break;
     }
 }
+
 /*
  * Add pre-built Instrumented and Non-Intrumented release libs
  */
-
 var utilsSources = "utils/MultiProc.c " +
                    "utils/List.c " +
                    "utils/NameServerRemoteNull.c " +
@@ -133,6 +225,76 @@ var asmListNone = [
 var cFiles = {
     "ti.sdo.io.DriverTypes" :
         { cSources: [] },
+}
+
+function getDefaultCustomCCOpts()
+{
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+
+    /* start with target.cc.opts */
+    var customCCOpts = Program.build.target.cc.opts;
+
+    /* add target unique custom ccOpts */
+    if (!(ccOptsList[Program.build.target.$name] === undefined)) {
+        customCCOpts += ccOptsList[Program.build.target.$name];
+    }
+
+    /* Gnu targets need to pick up ccOpts.prefix and suffix */
+    if (Program.build.target.$name.match(/gnu/)) {
+        customCCOpts += " -O3 ";
+        customCCOpts += " " + Program.build.target.ccOpts.prefix + " ";
+        customCCOpts += " " + Program.build.target.ccOpts.suffix + " ";
+    }
+    else if (Program.build.target.$name.match(/iar/)) {
+        customCCOpts += " --mfc ";
+    }
+    else {
+        /* ti targets do program level compile */
+        customCCOpts += " --program_level_compile -o3 -g " +
+                "--optimize_with_debug ";
+    }
+
+    /* undo optimizations if this is a Debug build */
+    if (BIOS.libType == BIOS.LibType_Debug) {
+        if (Program.build.target.$name.match(/gnu/)) {
+            customCCOpts = customCCOpts.replace("-O3","");
+            /* add in stack frames for stack back trace */
+            customCCOpts += " -mapcs ";
+        }
+        else {
+            customCCOpts = customCCOpts.replace(" -o3","");
+            customCCOpts = customCCOpts.replace(" --optimize_with_debug","");
+            if (Program.build.target.$name.match(/arm/)) {
+                customCCOpts = customCCOpts.replace(" --opt_for_speed=2","");
+            }
+        }
+    }
+
+    return (customCCOpts);
+}
+
+/*
+ *  ======== getDefs ========
+ */
+function getDefs()
+{
+    var Defaults = xdc.module('xdc.runtime.Defaults');
+    var Diags = xdc.module("xdc.runtime.Diags");
+    var BIOS = xdc.module("ti.sysbios.BIOS");
+
+    var defs = "";
+
+    if ((BIOS.assertsEnabled == false) ||
+        ((Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF)
+            && (Defaults.common$.diags_INTERNAL == Diags.ALWAYS_OFF))) {
+        defs += " -Dxdc_runtime_Assert_DISABLE_ALL";
+    }
+
+    if (BIOS.logsEnabled == false) {
+        defs += " -Dxdc_runtime_Log_DISABLE_ALL";
+    }
+
+    return (defs);
 }
 
 /*
@@ -198,56 +360,23 @@ function getAsmFiles(target)
 }
 
 /*
- *  ======== getDefs ========
- */
-function getDefs()
-{
-    var Defaults = xdc.module('xdc.runtime.Defaults');
-    var Diags = xdc.module("xdc.runtime.Diags");
-    var BIOS = xdc.module("ti.sysbios.BIOS");
-
-    var defs = "";
-
-    if ((BIOS.assertsEnabled == false) ||
-        ((Defaults.common$.diags_ASSERT == Diags.ALWAYS_OFF)
-            && (Defaults.common$.diags_INTERNAL == Diags.ALWAYS_OFF))) {
-        defs += " -Dxdc_runtime_Assert_DISABLE_ALL";
-    }
-
-    if (BIOS.logsEnabled == false) {
-        defs += " -Dxdc_runtime_Log_DISABLE_ALL";
-    }
-
-    return (defs);
-}
-
-/*
  *  ======== getLibs ========
  */
 function getLibs(pkg)
 {
     var BIOS = xdc.module("ti.sysbios.BIOS");
 
-    if (BIOS.libType != BIOS.LibType_Debug) {
-        return null;
-    }
+    switch (BIOS.libType) {
+        case BIOS.LibType_Custom:
+        case BIOS.LibType_Instrumented:
+        case BIOS.LibType_NonInstrumented:
+        case BIOS.LibType_Debug:
+            return null;
 
-    var lib = "";
-    var name = pkg.$name + ".a" + prog.build.target.suffix;
-
-    if (BIOS.smpEnabled == true) {
-        lib = "lib/smputils/debug/" + name;
+        default:
+            throw new Error("BIOS.libType not supported: " + BIOS.libType);
+            break;
     }
-    else {
-        lib = "lib/utils/debug/" + name;
-    }
-
-    if (java.io.File(pkg.packageBase + lib).exists()) {
-        return lib;
-    }
-
-    /* could not find any library, throw exception */
-    throw Error("Library not found: " + name);
 }
 
 /*
@@ -280,12 +409,14 @@ function getProfiles(xdcArgs)
 /*
  *  ======== buildLibs ========
  *  This function generates the makefile goals for the libraries
- *  produced by a ti.sysbios package.
+ *  produced by a package.
  */
 function buildLibs(objList, relList, filter, xdcArgs)
 {
-    for (var i = 0; i < xdc.module('xdc.bld.BuildEnvironment').targets.length; i++) {
-        var targ = xdc.module('xdc.bld.BuildEnvironment').targets[i];
+    var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+
+    for (var i = 0; i < Build.targets.length; i++) {
+        var targ = Build.targets[i];
 
         /* skip target if not supported */
         if (!supportsTarget(targ, filter)) {
@@ -331,7 +462,6 @@ function buildLibs(objList, relList, filter, xdcArgs)
         }
     }
 }
-
 
 /*
  *  ======== supportsTarget ========

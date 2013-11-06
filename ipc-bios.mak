@@ -96,6 +96,10 @@ XDCARGS= \
     gnu.targets.arm.A8F=\"$(gnu.targets.arm.A8F)\" \
     gnu.targets.arm.A15F=\"$(gnu.targets.arm.A15F)\"
 
+ifeq ($(MAKECMDGOALS),release)
+    XDCARGS += GOAL=release
+endif
+
 #
 # Get list of packages to rebuild. Remove examples from the list.
 #
@@ -137,19 +141,19 @@ XDC = $(XDC_INSTALL_DIR)/xdc XDCARGS="$(XDCARGS)" XDCBUILDCFG=./ipc-bios.bld
 ######################################################
 
 all:
-	@ echo building ipc packages ...
+	@echo building ipc packages ...
 # build everything in the Bios IPC package
-	@ $(XDC) -P $(LIST)
+	@$(XDC) -P $(LIST)
 
 libs:
 	@echo "#"
 	@echo "# Making $@ ..."
-	$(XDC) .dlls -P $(LIST)
+	@$(XDC) .dlls -P $(LIST)
 
 release:
-	@ echo building ipc packages ...
+	@echo building ipc packages ...
 # create a XDC release for the Bios IPC package
-	@ $(XDC) release -P $(LIST)
+	@$(XDC) release -P $(LIST)
 
 clean:
 	@ echo cleaning ipc packages ...

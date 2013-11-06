@@ -29,17 +29,18 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.bld ========
- *
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList_674 = [
-    "InterruptDsp",
-    "NotifySetup",
-    "NotifyCircSetup",
+    "InterruptDsp.c",
+    "NotifySetup.c",
+    "NotifyCircSetup.c"
 ];
 
 var trgFilter_674 = {
@@ -48,9 +49,9 @@ var trgFilter_674 = {
 };
 
 var objList_v5T = [
-    "InterruptArm",
-    "NotifySetup",
-    "NotifyCircSetup",
+    "InterruptArm.c",
+    "NotifySetup.c",
+    "NotifyCircSetup.c"
 ];
 
 var trgFilter_v5T = {
@@ -58,21 +59,24 @@ var trgFilter_v5T = {
     list: [ "v5T" ]
 };
 
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, arguments);
+    IpcBuild.buildLibs(objList_v5T, undefined, trgFilter_v5T, arguments);
+    IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, ["profile=smp"]);
+    IpcBuild.buildLibs(objList_v5T, undefined, trgFilter_v5T, ["profile=smp"]);
+}
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, arguments);
-IpcBuild.buildLibs(objList_v5T, undefined, trgFilter_v5T, arguments);
-
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList_674, undefined, trgFilter_674, ["profile=smp"]);
-IpcBuild.buildLibs(objList_v5T, undefined, trgFilter_v5T, ["profile=smp"]);
-
-Pkg.otherFiles = [ "package.bld" ];
+Pkg.otherFiles = [
+    "package.bld",
+    "InterruptDsp.c",
+    "InterruptArm.c",
+    "NotifySetup.c",
+    "NotifyCircSetup.c"
+];
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;
 Pkg.attrs.exportCfg = true;
-
-Pkg.generatedFiles.$add("lib/");
 
 Pkg.generatedFiles.$add("lib/");

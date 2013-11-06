@@ -29,9 +29,31 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
+ *
  */
+
+/*
+ *  ======== package.close ========
+ */
+function close()
+{
+    if (xdc.om.$name != 'cfg') {
+        return;
+    }
+
+    /* Force the Build module to get used if any module
+     * in this package is used.
+     */
+    for (var mod in this.$modules) {
+        if (this.$modules[mod].$used == true) {
+            xdc.useModule('ti.sdo.utils.Build');
+            break;
+        }
+    }
+}
 
 /*
  *  ======== Package.getLibs ========
@@ -53,6 +75,7 @@ function getLibs(prog)
 
     var name = this.$name + ".a" + suffix;
     var lib = "";
+    var libdir = "";
 
     var BIOS = xdc.module("ti.sysbios.BIOS");
     var Build = xdc.module("ti.sdo.utils.Build");
@@ -68,44 +91,21 @@ function getLibs(prog)
         case BIOS.LibType_Instrumented:
         case BIOS.LibType_NonInstrumented:
         case BIOS.LibType_Custom:
-            if (Build.$used && Build.doBuild) {
+        case BIOS.LibType_Debug:
+//          if (Build.$used && Build.doBuild) {
+            if (Build.$used) {
                 lib = Build.$private.outputDir + Build.$private.libraryName;
                 return ("!" + String(java.io.File(lib).getCanonicalPath()));
             }
-            else {
-                return null;
-            }
+//          else {
+//              return null;
+//          }
             break;
 
-        case BIOS.LibType_Debug:
-            lib = libdir + "debug/" + name;
-            if (java.io.File(this.packageBase + lib).exists()) {
-                return lib;
-            }
-            break;
+        default:
+            throw new Error("unknown BIOS.libType: " + BIOS.libType);
     }
 
     /* could not find any library, throw exception */
     throw Error("Library not found: " + name);
-}
-
-/*
- *  ======== package.close ========
- */
-function close()
-{
-    if (xdc.om.$name != 'cfg') {
-        return;
-    }
-
-    /*
-     * Force the Build module to get used if any module
-     * in this package is used
-     */
-    for (var mod in this.$modules) {
-        if (this.$modules[mod].$used == true) {
-            xdc.useModule('ti.sdo.utils.Build');
-            break;
-        }
-    }
 }

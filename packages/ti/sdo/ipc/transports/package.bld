@@ -29,30 +29,33 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.bld ========
- *
  */
-
+var Build = xdc.useModule('xdc.bld.BuildEnvironment');
+var Pkg = xdc.useModule('xdc.bld.PackageContents');
 var IpcBuild = xdc.loadCapsule("ti/sdo/ipc/Build.xs");
 
 var objList = [
-      "TransportShm",
-      "TransportShmSetup",
-      "TransportShmCirc",
-      "TransportShmCircSetup",
-      "TransportShmNotify",
-      "TransportShmNotifySetup",
-      "TransportNullSetup",
+    "TransportShm.c",
+    "TransportShmSetup.c",
+    "TransportShmCirc.c",
+    "TransportShmCircSetup.c",
+    "TransportShmNotify.c",
+    "TransportShmNotifySetup.c",
+    "TransportNullSetup.c"
 ];
 
-/* generate makefiles */
-IpcBuild.buildLibs(objList, undefined, null, arguments);
+/* if not building a product release, build package libraries */
+if (Bld_goal != "release") {
+    IpcBuild.buildLibs(objList, undefined, null, arguments);
+    IpcBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
+}
 
-/* generate smp makefiles */
-IpcBuild.buildLibs(objList, undefined, null, ["profile=smp"]);
-
-Pkg.otherFiles = [ "package.bld" ];
+Pkg.otherFiles = [
+    "package.bld"
+].concat(objList);
 
 /* include source files in the release package */
 Pkg.attrs.exportSrc = true;

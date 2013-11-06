@@ -29,8 +29,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== Build.xdc ========
+ *  @_nodoc
  *  metaonly module to support building various package/product libraries
  *
  */
@@ -52,6 +54,11 @@ metaonly module Build
      *  ======== libDir ========
      */
     config String libDir = null;
+
+    /*!
+     *  ======== getDefaultCustomCCOpts ========
+     */
+    String getDefaultCustomCCOpts();
 
     /*!
      *  ======== getDefs ========

@@ -39,23 +39,30 @@ var BIOS = xdc.module("ti.sysbios.BIOS");
 var Build = xdc.module("ti.sdo.utils.Build");
 var tplt = "";
 
-if ((BIOS.libType == BIOS.LibType_Custom) &&
-        (Build.$private.outputDir != undefined)) {
+if (((BIOS.libType == BIOS.LibType_Custom) ||
+    (BIOS.libType == BIOS.LibType_Debug)) &&
+    (Build.$private.outputDir != undefined)) {
 
     if (Build.doBuild) {
-        /* generate makefile from makefile.xdt
-         *    $args[0] = the RTSC target, so the makefile knows how to run the
-         *               compiler and archiver
+        /* generate makefile from template
+         * $args[0] = the RTSC target, so the makefile knows how to
+         *            run the compiler and archiver
          */
-        print("generating custom ti.sdo.utils library makefile ... ");
+        print("generating custom ti.sdo.utils library makefile ...");
 
         if (Program.build.target.$name.match(/gnu/) &&
-            (Program.build.target.name.match(/A15/) ||
+            (Program.build.target.name.match(/M3/) ||
+             Program.build.target.name.match(/M4/) ||
+             Program.build.target.name.match(/M4F/) ||
+             Program.build.target.name.match(/A15/) ||
              Program.build.target.name.match(/A9/)  ||
              Program.build.target.name.match(/A8/))) {
 
             tplt = xdc.loadTemplate(this.$package.packageBase +
                     "/makefile_gccArmLto.xdt");
+        }
+        else if (Program.build.target.$name.match(/iar/)) {
+            throw new Error("IAR not supported by IPC");
         }
         else {
             tplt = xdc.loadTemplate(this.$package.packageBase +
@@ -75,3 +82,4 @@ if ((BIOS.libType == BIOS.LibType_Custom) &&
     tplt.genFile(Build.$private.outputDir + "/makefile", this,
             [Program.build.target]);
 }
+%%}

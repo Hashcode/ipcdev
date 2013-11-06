@@ -29,11 +29,25 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
  *
  */
 
+var Build = null;
+
+/*
+ *  ======== package.close ========
+ */
+function close()
+{
+    if (xdc.om.$name != 'cfg') {
+        return;
+    }
+
+    Build = xdc.useModule('ti.sdo.ipc.Build');
+}
 
 /*
  *  ======== Package.getLibs ========
@@ -41,11 +55,26 @@
  *  being generated and it returns the name of a library appropriate
  *  for the program's configuration.
  */
-
 function getLibs(prog)
 {
-    var Build = xdc.module("ti.sdo.ipc.Build");
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    var libPath;
+    var suffix;
 
-    /* use shared getLibs() */
-    return (Build.getLibs(this));
+    if (Build.libType == Build.LibType_PkgLib) {
+        /* lib path defined in Build.buildLibs() */
+        libPath = (BIOS.smpEnabled ? "lib/smpipc/debug" : "lib/ipc/debug");
+
+        /* find a compatible suffix */
+        if ("findSuffix" in prog.build.target) {
+            suffix = prog.build.target.findSuffix(this);
+        }
+        else {
+            suffix = prog.build.target.suffix;
+        }
+        return (libPath + "/" + this.$name + ".a" + suffix);
+    }
+    else {
+        return (Build.getLibs(this));
+    }
 }

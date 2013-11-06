@@ -29,26 +29,13 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
  *
  */
 
-
-/*
- *  ======== Package.getLibs ========
- *  This function is called when a program's configuration files are
- *  being generated and it returns the name of a library appropriate
- *  for the program's configuration.
- */
-
-function getLibs(prog)
-{
-    var Build = xdc.module("ti.sdo.ipc.Build");
-
-    /* use shared getLibs() */
-    return (Build.getLibs(this));
-}
+var Build = null;
 
 /*
  *  ======== package.close ========
@@ -59,14 +46,35 @@ function close()
         return;
     }
 
-    /*
-     * Force the Build module to get used if any module
-     * in this package is used
-     */
-    for (var mod in this.$modules) {
-        if (this.$modules[mod].$used == true) {
-            xdc.useModule('ti.sdo.ipc.Build');
-            break;
+    Build = xdc.useModule('ti.sdo.ipc.Build');
+}
+
+/*
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
+ */
+function getLibs(prog)
+{
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    var libPath;
+    var suffix;
+
+    if (Build.libType == Build.LibType_PkgLib) {
+        /* lib path defined in Build.buildLibs() */
+        libPath = (BIOS.smpEnabled ? "lib/smpipc/debug" : "lib/ipc/debug");
+
+        /* find a compatible suffix */
+        if ("findSuffix" in prog.build.target) {
+            suffix = prog.build.target.findSuffix(this);
         }
+        else {
+            suffix = prog.build.target.suffix;
+        }
+        return (libPath + "/" + this.$name + ".a" + suffix);
+    }
+    else {
+        return (Build.getLibs(this));
     }
 }

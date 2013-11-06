@@ -29,63 +29,10 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*
  *  ======== package.xs ========
- *
  */
-
-
-/*
- *  ======== Package.getLibs ========
- *  This function is called when a program's configuration files are
- *  being generated and it returns the name of a library appropriate
- *  for the program's configuration.
- */
-
-function getLibs(prog)
-{
-    var name = this.$name + ".a" + prog.build.target.suffix;
-    var lib = "";
-    var libdir = "";
-
-    var BIOS = xdc.module("ti.sysbios.BIOS");
-    var Build = xdc.module("ti.sdo.ipc.Build");
-
-    if (BIOS.smpEnabled == true) {
-        libdir = "lib/smpipc/";
-    }
-    else {
-        libdir = "lib/ipc/";
-    }
-
-    switch (BIOS.libType) {
-        case BIOS.LibType_Instrumented:
-        case BIOS.LibType_NonInstrumented:
-        case BIOS.LibType_Custom:
-            if (Build.$used == false) return (null);
-            lib = Build.$private.outputDir + Build.$private.libraryName;
-            return ("!" + String(java.io.File(lib).getCanonicalPath()));
-            break;
-
-        case BIOS.LibType_Debug:
-            lib = libdir + "debug/" + name;
-            if (java.io.File(this.packageBase + lib).exists()) {
-                return lib;
-            }
-            break;
-    }
-
-    /* could not find any library, throw exception */
-    throw Error("Library not found: " + name);
-}
-
-/*
- *  ======== Package.getSects ========
- */
-function getSects()
-{
-    return "ti/sdo/ipc/linkcmd.xdt";
-}
 
 /*
  *  ======== package.close ========
@@ -96,9 +43,8 @@ function close()
         return;
     }
 
-    /*
-     * Force the Build module to get used if any module
-     * in this package is used
+    /* Force the Build module to get used if any module
+     * in this package is used.
      */
     for (var mod in this.$modules) {
         if (this.$modules[mod].$used == true) {
@@ -106,4 +52,54 @@ function close()
             break;
         }
     }
+}
+
+/*
+ *  ======== Package.getLibs ========
+ *  This function is called when a program's configuration files are
+ *  being generated and it returns the name of a library appropriate
+ *  for the program's configuration.
+ */
+function getLibs(prog)
+{
+    var BIOS = xdc.module('ti.sysbios.BIOS');
+    var lib;
+    var libPath;
+    var suffix;
+
+    var Build = xdc.module('ti.sdo.ipc.Build');
+
+    switch (Build.libType) {
+        case Build.LibType_Instrumented:
+        case Build.LibType_NonInstrumented:
+        case Build.LibType_Custom:
+        case Build.LibType_Debug:
+            if (Build.$used == false) return (null);
+            lib = Build.$private.outputDir + Build.$private.libraryName;
+            return ("!" + String(java.io.File(lib).getCanonicalPath()));
+
+        case Build.LibType_PkgLib:
+            /* lib path defined in Build.buildLibs() */
+            libPath = (BIOS.smpEnabled ? "lib/smpipc/debug" : "lib/ipc/debug");
+
+            /* find a compatible suffix */
+            if ("findSuffix" in prog.build.target) {
+                suffix = prog.build.target.findSuffix(this);
+            }
+            else {
+                suffix = prog.build.target.suffix;
+            }
+            return (libPath + "/" + this.$name + ".a" + suffix);
+
+        default:
+            throw new Error("unknown Build.libType: " + Build.libType);
+    }
+}
+
+/*
+ *  ======== Package.getSects ========
+ */
+function getSects()
+{
+    return "ti/sdo/ipc/linkcmd.xdt";
 }
