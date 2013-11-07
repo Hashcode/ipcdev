@@ -35,6 +35,14 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@DRM_TRUE@am__append_1 = \
+@DRM_TRUE@        -I$(DRM_PREFIX)/usr/include \
+@DRM_TRUE@        -I$(DRM_PREFIX)/usr/include/libdrm \
+@DRM_TRUE@        -I$(DRM_PREFIX)/usr/include/omap
+
+@CMEM_TRUE@am__append_2 = \
+@CMEM_TRUE@        -I$(CMEM_INSTALL_DIR)/include
+
 bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	MessageQBench$(EXEEXT) MessageQMulti$(EXEEXT) \
 	NameServerApp$(EXEEXT) Msgq100$(EXEEXT) $(am__EXEEXT_1) \
@@ -44,23 +52,23 @@ bin_PROGRAMS = ping_rpmsg$(EXEEXT) MessageQApp$(EXEEXT) \
 	$(am__EXEEXT_6)
 
 # Add platform specific bin application's here
-@OMAP54XX_SMP_TRUE@am__append_1 = 
-@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_2 = mmrpc_test
+@OMAP54XX_SMP_TRUE@am__append_3 = 
+@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_TRUE@am__append_4 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_3 = 
-@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_4 = mmrpc_test
+@DRA7XX_TRUE@@OMAP54XX_SMP_FALSE@am__append_5 = 
+@DRA7XX_TRUE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@am__append_6 = mmrpc_test
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_5 = 
-@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_6 = nano_test
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_7 = 
+@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_TRUE@am__append_8 = nano_test
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_7 = 
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_TRUE@am__append_9 = 
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@am__append_8 = 
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_TRUE@am__append_10 = 
 # Add platform specific bin application's here
-@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_9 = 
+@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_TRUE@am__append_11 = 
 # Add platform independent apps here or above in bin_PROGRAMS
-@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_10 = nano_test
-@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_11 = mmrpc_test
+@CMEM_TRUE@@DRA7XX_FALSE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_12 = nano_test
+@DRA7XX_FALSE@@DRM_TRUE@@KDIR_TRUE@@OMAP54XX_SMP_FALSE@@OMAPL138_FALSE@@TCI6614_FALSE@@TCI6636_FALSE@@TCI6638_FALSE@am__append_13 = mmrpc_test
 subdir = linux/src/tests
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -145,14 +153,10 @@ AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
-        -I$(KERNEL_INSTALL_DIR)/include/generated/uapi \
-        -I$(DRM_PREFIX)/usr/include \
-        -I$(DRM_PREFIX)/usr/include/libdrm \
-        -I$(DRM_PREFIX)/usr/include/omap \
-        -D_GNU_SOURCE -Wall @AM_CFLAGS@
-
+AM_CFLAGS = -I$(top_srcdir)/linux/include \
+	-I$(top_srcdir)/hlos_common/include -I$(top_srcdir)/packages \
+	-I$(KERNEL_INSTALL_DIR)/include/generated/uapi -D_GNU_SOURCE \
+	-Wall @AM_CFLAGS@ $(am__append_1) $(am__append_2)
 AM_LDFLAGS = @AM_LDFLAGS@
 AR = @AR@
 AUTOCONF = @AUTOCONF@

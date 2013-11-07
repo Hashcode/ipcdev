@@ -32,13 +32,24 @@
 ##
 
 # additional include paths necessary to compile the program
-AM_CFLAGS = -I$(top_srcdir)/linux/include -I$(top_srcdir)/hlos_common/include \
-        -I$(top_srcdir)/packages -I$(CMEM_INSTALL_DIR)/include \
+AM_CFLAGS = -I$(top_srcdir)/linux/include \
+        -I$(top_srcdir)/hlos_common/include \
+        -I$(top_srcdir)/packages \
         -I$(KERNEL_INSTALL_DIR)/include/generated/uapi \
+        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+
+if DRM
+AM_CFLAGS += \
         -I$(DRM_PREFIX)/usr/include \
         -I$(DRM_PREFIX)/usr/include/libdrm \
-        -I$(DRM_PREFIX)/usr/include/omap \
-        -D_GNU_SOURCE -Wall @AM_CFLAGS@
+        -I$(DRM_PREFIX)/usr/include/omap
+endif
+
+if CMEM
+AM_CFLAGS += \
+        -I$(CMEM_INSTALL_DIR)/include
+endif
+
 VPATH = ../../../packages/ti/ipc/tests
 
 ###############################################################################
