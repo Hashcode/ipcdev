@@ -16828,6 +16828,14 @@ fi
 fi
 
 
+# Test for required KERNEL path
+if test "x$KERNEL_INSTALL_DIR" = "x"; then
+  { { echo "$as_me:$LINENO: error: Kernel path for ${PLATFORM} is not set" >&5
+echo "$as_me: error: Kernel path for ${PLATFORM} is not set" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
 # Ignore KERNEL path when no platform is set
 if test "x$PLATFORM" = "x"; then
   KERNEL_INSTALL_DIR=
