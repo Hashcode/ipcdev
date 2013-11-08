@@ -90,7 +90,7 @@ extern "C" {
 /*!
  *  @brief  Number of static entries in address translation table.
  */
-#define AddrTable_STATIC_COUNT 0
+#define AddrTable_STATIC_COUNT 1
 
 /*!
  *  @brief  Max entries in address translation table.
@@ -135,6 +135,19 @@ static UInt32 AddrTable_count = AddrTable_STATIC_COUNT;
  */
 static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE] =
     {
+        /* L2 RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x10000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,   /* Internal memory is always 'mapped' on the slave */
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
     };
 
 /* =============================================================================
@@ -1028,10 +1041,29 @@ VAYUIPUCORE1PROC_attach(
                                     "VAYUIPUCORE1PROC_attach", status,
                                     "Failed to enable the slave MMU");
                             }
+                            else {
 #endif
-                            GT_0trace(curTrace, GT_2CLASS,
-                                "VAYUIPUCORE1PROC_attach: Slave MMU "
-                                "is configured!");
+                                GT_0trace(curTrace, GT_2CLASS,
+                                    "VAYUIPUCORE1PROC_attach: Slave MMU "
+                                    "is configured!");
+                                /*
+                                 * Pull IPU MMU out of reset to make internal
+                                 * memory "loadable"
+                                 */
+                                status = VAYUIPUCORE1_halResetCtrl(
+                                    object->halObject,
+                                    Processor_ResetCtrlCmd_MMU_Release);
+                                if (status < 0) {
+                                    /*! @retval status */
+                                    GT_setFailureReason(curTrace,
+                                        GT_4CLASS,
+                                        "VAYUIPUCORE1_halResetCtrl",
+                                        status,
+                                        "Reset MMU_Release failed");
+                                }
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                             }
+#endif
                         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
                     }
@@ -1094,6 +1126,19 @@ VAYUIPUCORE1PROC_detach (Processor_Handle handle)
             if (object->params.mmuEnable) {
                 GT_0trace(curTrace, GT_2CLASS,
                     "VAYUIPUCORE1PROC_detach: Disabling Slave MMU ...");
+
+                status = VAYUIPUCORE1_halResetCtrl(object->halObject,
+                    Processor_ResetCtrlCmd_MMU_Reset);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (status < 0) {
+                    /*! @retval status */
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "VAYUIPUCORE1_halResetCtrl",
+                                         status,
+                                         "Reset MMU failed");
+                }
+#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
                 status = VAYUIPU_halMmuCtrl(object->halObject,
                     Processor_MmuCtrlCmd_Disable, NULL);
@@ -1235,20 +1280,7 @@ VAYUIPUCORE1PROC_start (Processor_Handle        handle,
             }
             else {
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
-                if (object->params.mmuEnable) {
-                    status = VAYUIPUCORE1_halResetCtrl(object->halObject,
-                                            Processor_ResetCtrlCmd_MMU_Release);
-                    if (status < 0) {
-                        /*! @retval status */
-                        GT_setFailureReason (curTrace,
-                                             GT_4CLASS,
-                                             "VAYUIPUCORE1_halResetCtrl",
-                                             status,
-                                             "Reset MMU_Release failed");
-                    }
-                    /* No need to call rproc_ipu_setup from here, handled in
-                     * core0 */
-                }
+
                 /* release the slave cpu from reset */
                 if (status >= 0) {
                     status = VAYUIPUCORE1_halResetCtrl(object->halObject,
@@ -1345,21 +1377,7 @@ VAYUIPUCORE1PROC_stop (Processor_Handle handle)
                                      "Failed to place slave in reset");
             }
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
-            if (object->params.mmuEnable) {
-                /* Don't need to call rproc_ipu_destroy, handled in core0 */
-                status = VAYUIPUCORE1_halResetCtrl(object->halObject,
-                                              Processor_ResetCtrlCmd_MMU_Reset);
-#if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
-                if (status < 0) {
-                    /*! @retval status */
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "VAYUIPUCORE1_halResetCtrl",
-                                         status,
-                                         "Reset MMU failed");
-                }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS) */
-            }
+
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE) && defined (SYSLINK_BUILD_HLOS)
     }
@@ -1796,7 +1814,7 @@ VAYUIPUCORE1PROC_map(
 
                 if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)) {
                     found = TRUE;
-                    ai->refCount++;
+                    /* refCount does not need to be incremented for static entries */
                     break;
                 }
             }

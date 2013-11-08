@@ -90,7 +90,7 @@ extern "C" {
 /*!
  *  @brief  Number of static entries in address translation table.
  */
-#define AddrTable_STATIC_COUNT 0
+#define AddrTable_STATIC_COUNT 1
 
 /*!
  *  @brief  Max entries in address translation table.
@@ -135,6 +135,19 @@ static UInt32 AddrTable_count = AddrTable_STATIC_COUNT;
  */
 static ProcMgr_AddrInfo AddrTable[AddrTable_SIZE] =
     {
+        /* L2 RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x10000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
     };
 
 /* =============================================================================
@@ -1031,10 +1044,29 @@ VAYUIPUCORE0PROC_attach(
                                     "VAYUIPUCORE0PROC_attach", status,
                                     "Failed to enable the slave MMU");
                             }
+                            else {
 #endif
-                            GT_0trace(curTrace, GT_2CLASS,
-                                "VAYUIPUCORE0PROC_attach: Slave MMU "
-                                "is configured!");
+                                GT_0trace(curTrace, GT_2CLASS,
+                                    "VAYUIPUCORE0PROC_attach: Slave MMU "
+                                    "is configured!");
+                                /*
+                                 * Pull IPU MMU out of reset to make internal
+                                 * memory "loadable"
+                                 */
+                                status = VAYUIPUCORE0_halResetCtrl(
+                                    object->halObject,
+                                    Processor_ResetCtrlCmd_MMU_Release);
+                                if (status < 0) {
+                                    /*! @retval status */
+                                    GT_setFailureReason(curTrace,
+                                        GT_4CLASS,
+                                        "VAYUIPUCORE0_halResetCtrl",
+                                        status,
+                                        "Reset MMU_Release failed");
+                                }
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                             }
+#endif
                         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
                     }
@@ -1097,6 +1129,19 @@ VAYUIPUCORE0PROC_detach (Processor_Handle handle)
             if (object->params.mmuEnable) {
                 GT_0trace(curTrace, GT_2CLASS,
                     "VAYUIPUCORE0PROC_detach: Disabling Slave MMU ...");
+
+                status = VAYUIPUCORE0_halResetCtrl(object->halObject,
+                    Processor_ResetCtrlCmd_MMU_Reset);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (status < 0) {
+                    /*! @retval status */
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "VAYUIPUCORE0_halResetCtrl",
+                                         status,
+                                         "Reset MMU failed");
+                }
+#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
 
                 status = VAYUIPU_halMmuCtrl(object->halObject,
                                             Processor_MmuCtrlCmd_Disable, NULL);
@@ -1239,28 +1284,16 @@ VAYUIPUCORE0PROC_start (Processor_Handle        handle,
             else {
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
                 if (object->params.mmuEnable) {
-                    status = VAYUIPUCORE0_halResetCtrl(object->halObject,
-                                            Processor_ResetCtrlCmd_MMU_Release);
+                    status = rproc_ipu_setup(object->halObject,
+                                             object->params.memEntries,
+                                             object->params.numMemEntries);
                     if (status < 0) {
                         /*! @retval status */
                         GT_setFailureReason (curTrace,
                                              GT_4CLASS,
                                              "VAYUIPUCORE0_halResetCtrl",
                                              status,
-                                             "Reset MMU_Release failed");
-                    }
-                    else {
-                        status = rproc_ipu_setup(object->halObject,
-                                                 object->params.memEntries,
-                                                 object->params.numMemEntries);
-                        if (status < 0) {
-                            /*! @retval status */
-                            GT_setFailureReason (curTrace,
-                                                 GT_4CLASS,
-                                                 "VAYUIPUCORE0_halResetCtrl",
-                                                 status,
-                                                 "rproc_ipu_setup failed");
-                        }
+                                             "rproc_ipu_setup failed");
                     }
                 }
                 /* release the slave cpu from reset */
@@ -1361,18 +1394,6 @@ VAYUIPUCORE0PROC_stop (Processor_Handle handle)
 #endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
             if (object->params.mmuEnable) {
                 rproc_ipu_destroy(object->halObject);
-                status = VAYUIPUCORE0_halResetCtrl(object->halObject,
-                                              Processor_ResetCtrlCmd_MMU_Reset);
-#if !defined(SYSLINK_BUILD_OPTIMIZE)
-                if (status < 0) {
-                    /*! @retval status */
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "VAYUIPUCORE0_halResetCtrl",
-                                         status,
-                                         "Reset MMU failed");
-                }
-#endif /* #if !defined(SYSLINK_BUILD_OPTIMIZE) */
             }
         }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
@@ -1810,7 +1831,7 @@ VAYUIPUCORE0PROC_map(
 
                 if ((startAddr <= *dstAddr) && (*dstAddr < endAddr)) {
                     found = TRUE;
-                    ai->refCount++;
+                    /* refCount does not need to be incremented for static entries */
                     break;
                 }
             }
