@@ -12,7 +12,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -141,8 +141,7 @@ extern "C" {
 /* Function to control reset operations for this slave device. */
 
 
-Int OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd,
-                                  UInt32 entryPt);
+Int OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd);
 
 
 #if defined (__cplusplus)

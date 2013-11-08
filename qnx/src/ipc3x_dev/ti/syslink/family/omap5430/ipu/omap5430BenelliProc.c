@@ -13,7 +13,7 @@
  *
  *  ============================================================================
  *
- *  Copyright (c) 2010-2011, Texas Instruments Incorporated
+ *  Copyright (c) 2010-2013, Texas Instruments Incorporated
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -96,7 +96,8 @@ extern "C" {
 /*!
  *  @brief  Number of static entries in address translation table.
  */
-#define AddrTable_STATIC_COUNT 0
+#define AddrTable_IPU_STATIC_COUNT 1
+#define AddrTable_DSP_STATIC_COUNT 0
 
 /*!
  *  @brief  max entries in translation table.
@@ -169,11 +170,25 @@ typedef struct OMAP5430TESLAPROC_module_object_tag {
 
 
 /* Default memory regions */
-static UInt32 AddrTable_count = AddrTable_STATIC_COUNT;
+static UInt32 AddrTable_IPU_count = AddrTable_IPU_STATIC_COUNT;
+static UInt32 AddrTable_DSP_count = AddrTable_DSP_STATIC_COUNT;
 
 /* Default memory regions */
 static ProcMgr_AddrInfo OMAP5430BENELLIPROC_defaultMemRegions [AddrTable_SIZE] =
 {
+        /* L2 RAM */
+        {
+            .addr[ProcMgr_AddrType_MasterKnlVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterUsrVirt] = -1u,
+            .addr[ProcMgr_AddrType_MasterPhys] = 0x55020000u,
+            .addr[ProcMgr_AddrType_SlaveVirt] = 0x20000000u,
+            .addr[ProcMgr_AddrType_SlavePhys] = -1u,
+            .size = 0x10000u,
+            .isCached = FALSE,
+            .mapMask = ProcMgr_SLAVEVIRT,
+            .isMapped = TRUE,
+            .refCount = 0u      /* refCount set to 0 for static entry */
+        },
 };
 
 /* Default memory regions for DSP */
@@ -196,7 +211,7 @@ static
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU0PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
+    .defInstParams.numMemEntries = AddrTable_IPU_STATIC_COUNT,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -209,7 +224,7 @@ static
 OMAP5430BENELLIPROC_ModuleObject OMAP5430IPU1PROC_state =
 {
     .config_size = sizeof (OMAP5430BENELLIPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
+    .defInstParams.numMemEntries = AddrTable_IPU_STATIC_COUNT,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -222,7 +237,7 @@ static
 OMAP5430TESLAPROC_ModuleObject OMAP5430DSPPROC_state =
 {
     .config_size = sizeof (OMAP5430TESLAPROC_Config),
-    .defInstParams.numMemEntries = AddrTable_STATIC_COUNT,
+    .defInstParams.numMemEntries = AddrTable_DSP_STATIC_COUNT,
     .isSetup = FALSE,
     .procHandle = NULL,
     .gateHandle = NULL
@@ -485,17 +500,17 @@ OMAP5430BENELLIPROC_Params_init (OMAP5430BENELLIPROC_Handle  handle,
     {
         case PROCTYPE_IPU0:
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
-            numMemEntries = AddrTable_count;
+            numMemEntries = AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
-            numMemEntries = AddrTable_count;
+            numMemEntries = AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
             pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
-            numMemEntries = AddrTable_count;
+            numMemEntries = AddrTable_DSP_count;
             break;
     }
 
@@ -1038,6 +1053,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
     SysLink_MemEntry_Block      memBlock;
     Char                        configProp[SYSLINK_MAX_NAMELENGTH];
     ProcMgr_AddrInfo *          pMemRegn        = NULL;
+    UInt32 *                    AddrTable_count = NULL;
 
     GT_2trace (curTrace, GT_ENTER, "OMAP5430BENELLIPROC_attach", handle, params);
 
@@ -1049,16 +1065,19 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
         case PROCTYPE_IPU0:
             pState = &OMAP5430IPU0PROC_state;
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            AddrTable_count = &AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pState = &OMAP5430IPU1PROC_state;
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            AddrTable_count = &AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
             pState = (OMAP5430BENELLIPROC_ModuleObject *)&OMAP5430DSPPROC_state;
             pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
+            AddrTable_count = &AddrTable_DSP_count;
             break;
     }
 
@@ -1147,8 +1166,8 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
 
             if (entry->map == FALSE) {
                 /* update table with entries which don't require mapping */
-                if (AddrTable_count != AddrTable_SIZE) {
-                    me = &pMemRegn[AddrTable_count];
+                if (*AddrTable_count != AddrTable_SIZE) {
+                    me = &pMemRegn[*AddrTable_count];
 
                     me->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                     me->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
@@ -1160,7 +1179,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                     me->isCached = entry->isCached;
                     me->mapMask = entry->mapMask;
 
-                    AddrTable_count++;
+                    (*AddrTable_count)++;
                 }
                 else {
                     status = PROCESSOR_E_FAIL;
@@ -1262,6 +1281,20 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                               status,
                                               "Failed to enable the slave MMU");
                             }
+                            else {
+#endif
+                                status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                                    Processor_ResetCtrlCmd_MMU_Release);
+                                if (status < 0) {
+                                    /*! @retval status */
+                                    GT_setFailureReason (curTrace,
+                                        GT_4CLASS,
+                                        "OMAP5430BENELLI_halResetCtrl",
+                                        status,
+                                        "Reset MMU_Release failed");
+                                }
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                            }
                         }
                     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -1297,6 +1330,8 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
     Int i                              = 0;
     ProcMgr_AddrInfo *    ai;
     ProcMgr_AddrInfo *          pMemRegn        = NULL;
+    UInt32                    staticCount = 0;
+    UInt32 *                  AddrTable_count = NULL;
 
     GT_1trace (curTrace, GT_ENTER, "OMAP5430BENELLIPROC_detach", handle);
 
@@ -1306,14 +1341,20 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
     {
         case PROCTYPE_IPU0:
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            staticCount = AddrTable_IPU_STATIC_COUNT;
+            AddrTable_count = &AddrTable_IPU_count;
             break;
 #ifndef SYSLINK_SYSBIOS_SMP
         case PROCTYPE_IPU1:
             pMemRegn = OMAP5430BENELLIPROC_defaultMemRegions;
+            staticCount = AddrTable_IPU_STATIC_COUNT;
+            AddrTable_count = &AddrTable_IPU_count;
             break;
 #endif
         case PROCTYPE_DSP:
             pMemRegn = OMAP5430TESLAPROC_defaultMemRegions;
+            staticCount = AddrTable_DSP_STATIC_COUNT;
+            AddrTable_count = &AddrTable_DSP_count;
             break;
     }
 
@@ -1336,27 +1377,39 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
             if (procHandle->procId == PROCTYPE_IPU0 ||
                 procHandle->procId == PROCTYPE_DSP) {
-                /* Disable MMU */
-                GT_0trace (curTrace,
+                status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                    Processor_ResetCtrlCmd_MMU_Reset);
+                if (status < 0) {
+                    /*! @retval status */
+                    GT_setFailureReason (curTrace,
+                                 GT_4CLASS,
+                                 "OMAP5430BENELLI_halResetCtrl",
+                                 status,
+                                 "Reset MMU failed");
+                }
+                else {
+                    /* Disable MMU */
+                    GT_0trace (curTrace,
                            GT_2CLASS,
                            "    OMAP5430BENELLIPROC_detach: "
                            "Disabling Slave MMU ...");
-                status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
+                    status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
                                                    Processor_MmuCtrlCmd_Disable,
                                                    NULL);
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
-                if (status < 0) {
-                    GT_setFailureReason (curTrace,
+                    if (status < 0) {
+                        GT_setFailureReason (curTrace,
                                          GT_4CLASS,
                                          "OMAP5430BENELLIPROC_detach",
                                          status,
                                          "Failed to disable the slave MMU");
-                }
+                    }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
+                }
             }
 
             /* delete all dynamically added entries */
-            for (i = AddrTable_STATIC_COUNT; i < AddrTable_count; i++) {
+            for (i = staticCount; i < *AddrTable_count; i++) {
                 ai = &pMemRegn[i];
                 ai->addr[ProcMgr_AddrType_MasterKnlVirt] = -1u;
                 ai->addr[ProcMgr_AddrType_MasterUsrVirt] = -1u;
@@ -1369,8 +1422,8 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                 ai->isMapped = FALSE;
                 ai->refCount = 0u;
             }
-            object->params.numMemEntries = AddrTable_STATIC_COUNT;
-            AddrTable_count = AddrTable_STATIC_COUNT;
+            object->params.numMemEntries = staticCount;
+            *AddrTable_count = staticCount;
 
             //No need to reset.. that will be done in STOP
            /* tmpStatus = OMAP5430BENELLI_halResetCtrl (object->halObject,
@@ -1466,77 +1519,68 @@ OMAP5430BENELLIPROC_start (Processor_Handle        handle,
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                             Processor_ResetCtrlCmd_MMU_Release,
-                                             entryPt);
+
+        if(handle->procId != MultiProc_getId("DSP")) {
+            status = ipu_setup(object->halObject, object->params.memEntries,
+                               object->params.numMemEntries);
+        }
+        else {
+            status = tesla_setup(object->halObject,
+                                 object->params.memEntries,
+                                 object->params.numMemEntries);
+        }
+
         if (status < 0) {
             /*! @retval status */
             GT_setFailureReason (curTrace,
                                  GT_4CLASS,
                                  "OMAP5430BENELLI_halResetCtrl",
                                  status,
-                                 "Reset MMU_Release failed");
+                                 "ipu_setup failed");
         }
         else {
-            if(handle->procId != MultiProc_getId("DSP"))
-                status = ipu_setup(object->halObject, object->params.memEntries,
-                                   object->params.numMemEntries);
-            else
-                status = tesla_setup(object->halObject,
-                                     object->params.memEntries,
-                                     object->params.numMemEntries);
+            if (handle->procId == MultiProc_getId("DSP")) {
+                /* Get the user virtual address of the PRM base */
+                sysCtrlMapInfo.src  = 0x4A002000;
+                sysCtrlMapInfo.size = 0x1000;
+                sysCtrlMapInfo.isCached = FALSE;
+
+                status = Memory_map (&sysCtrlMapInfo);
+                if (status < 0) {
+                    status = PROCESSOR_E_FAIL;
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "ProcMgr_load",
+                                          status,
+                                          "Memory_map failed");
+                }
+                else {
+                    *(UInt32 *)(sysCtrlMapInfo.dst + 0x304) = entryPt;
+
+                    sysCtrlUnmapInfo.addr = sysCtrlMapInfo.dst;
+                    sysCtrlUnmapInfo.size = sysCtrlMapInfo.size;
+                    sysCtrlUnmapInfo.isCached = FALSE;
+                    Memory_unmap (&sysCtrlUnmapInfo);
+                }
+            }
+            if (status >= 0) {
+                status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                                             Processor_ResetCtrlCmd_Release);
+            }
             if (status < 0) {
                 /*! @retval status */
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "OMAP5430BENELLI_halResetCtrl",
                                      status,
-                                     "ipu_setup failed");
-            }
-            else {
-                if (handle->procId == MultiProc_getId("DSP")) {
-                    /* Get the user virtual address of the PRM base */
-                    sysCtrlMapInfo.src  = 0x4A002000;
-                    sysCtrlMapInfo.size = 0x1000;
-                    sysCtrlMapInfo.isCached = FALSE;
-
-                    status = Memory_map (&sysCtrlMapInfo);
-                    if (status < 0) {
-                        status = PROCESSOR_E_FAIL;
-                        GT_setFailureReason (curTrace,
-                                             GT_4CLASS,
-                                             "ProcMgr_load",
-                                              status,
-                                              "Memory_map failed");
-                    }
-                    else {
-                        *(UInt32 *)(sysCtrlMapInfo.dst + 0x304) = entryPt;
-
-                        sysCtrlUnmapInfo.addr = sysCtrlMapInfo.dst;
-                        sysCtrlUnmapInfo.size = sysCtrlMapInfo.size;
-                        sysCtrlUnmapInfo.isCached = FALSE;
-                        Memory_unmap (&sysCtrlUnmapInfo);
-                    }
-                }
-                if (status >= 0) {
-                    status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                                 Processor_ResetCtrlCmd_Release,
-                                                 entryPt);
-                }
-                if (status < 0) {
-                    /*! @retval status */
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "OMAP5430BENELLI_halResetCtrl",
-                                         status,
-                                         "Reset Release failed");
-                }
+                                     "Reset Release failed");
             }
         }
+
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-        return status;
+    return status;
 }
 
 
@@ -1574,8 +1618,7 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
         status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                             Processor_ResetCtrlCmd_Reset,
-                                             0);
+                                             Processor_ResetCtrlCmd_Reset);
         if (status < 0) {
             /*! @retval status */
             GT_setFailureReason (curTrace,
@@ -1586,17 +1629,6 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
         }
 
         ipu_destroy(object->halObject);
-        status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                             Processor_ResetCtrlCmd_MMU_Reset,
-                                             0);
-        if (status < 0) {
-            /*! @retval status */
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "OMAP5430BENELLI_halResetCtrl",
-                                 status,
-                                 "Reset MMU failed");
-        }
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
@@ -1870,8 +1902,7 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                     }
                     else {
                         status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                                       Processor_ResetCtrlCmd_Reset,
-                                                       0);
+                            Processor_ResetCtrlCmd_Reset);
                         if (status < 0) {
                             GT_setFailureReason(curTrace, GT_4CLASS,
                                                 "OMAP5430BENELLIPROC_control",
@@ -1879,9 +1910,9 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                                                 "Error while Resetting proc");
                         }
                         else {
-                            status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                                   Processor_ResetCtrlCmd_MMU_Reset,
-                                                   0);
+                            status = OMAP5430BENELLI_halResetCtrl(
+                                object->halObject,
+                                Processor_ResetCtrlCmd_MMU_Reset);
                             if (status < 0) {
                                 GT_setFailureReason(curTrace, GT_4CLASS,
                                                     "OMAP5430BENELLIPROC_control",
@@ -1905,8 +1936,7 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
             case Omap5430BenelliProc_CtrlCmd_Resume:
                 if (procHandle->state == ProcMgr_State_Suspended) {
                     status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                                 Processor_ResetCtrlCmd_MMU_Release,
-                                                 0);
+                        Processor_ResetCtrlCmd_MMU_Release);
                     if (status < 0) {
                         GT_setFailureReason(curTrace, GT_4CLASS,
                                             "OMAP5430BENELLIPROC_control",
@@ -1925,9 +1955,9 @@ OMAP5430BENELLIPROC_control (Processor_Handle handle, Int32 cmd, Ptr arg)
                                                "Error while restoring MMU context");
                         }
                         else {
-                            status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                                     Processor_ResetCtrlCmd_Release,
-                                                     0);
+                            status = OMAP5430BENELLI_halResetCtrl(
+                                object->halObject,
+                                Processor_ResetCtrlCmd_Release);
                             if (status < 0) {
                                 GT_setFailureReason(curTrace, GT_4CLASS,
                                                     "OMAP5430BENELLIPROC_control",

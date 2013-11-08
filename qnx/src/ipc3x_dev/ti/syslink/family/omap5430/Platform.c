@@ -860,15 +860,7 @@ _Platform_setup (Ipc_Config * cfg)
         /* Create an instance of the Processor object for
          * OMAP5430 */
         OMAP5430BENELLIPROC_Params_init (NULL, &ipu0ProcParams, procId);
-        pa = cfg->pAddr;
-        va = cfg->vAddr;
-        memEntries = ipu0ProcParams.memEntries;
-        for (i = 0; i < ipu0ProcParams.numMemEntries; i++) {
-            memEntries[i].addr[ProcMgr_AddrType_MasterPhys] = pa;
-            memEntries[i].addr[ProcMgr_AddrType_MasterKnlVirt] = va;
-            pa += memEntries[i].size;
-            va += memEntries[i].size;
-        }
+
         handle->sHandles.ipu0.pHandle = OMAP5430BENELLIPROC_create (
                                                       procId,
                                                       &ipu0ProcParams);
@@ -934,15 +926,7 @@ _Platform_setup (Ipc_Config * cfg)
             /* Create an instance of the Processor object for
              * OMAP5430 */
             OMAP5430BENELLIPROC_Params_init(NULL, &ipu1ProcParams,procId);
-            pa = cfg->pAddr;
-            va = cfg->vAddr;
-            memEntries = ipu1ProcParams.memEntries;
-            for (i = 0; i < ipu1ProcParams.numMemEntries; i++) {
-                memEntries[i].addr[ProcMgr_AddrType_MasterPhys] = pa;
-                memEntries[i].addr[ProcMgr_AddrType_MasterKnlVirt] = va;
-                pa += memEntries[i].size;
-                va += memEntries[i].size;
-            }
+
             handle->sHandles.ipu1.pHandle = OMAP5430BENELLIPROC_create(procId,
                                                           &ipu1ProcParams);
 
@@ -997,15 +981,7 @@ _Platform_setup (Ipc_Config * cfg)
             /* Create an instance of the Processor object for
                        * OMAP5430 */
             OMAP5430BENELLIPROC_Params_init (NULL, &dspProcParams, procId);
-            pa = cfg->pAddr_dsp;
-            va = cfg->vAddr_dsp;
-            memEntries = dspProcParams.memEntries;
-            for (i = 0; i < dspProcParams.numMemEntries; i++) {
-                memEntries[i].addr[ProcMgr_AddrType_MasterPhys] = pa;
-                memEntries[i].addr[ProcMgr_AddrType_MasterKnlVirt] = va;
-                pa += memEntries[i].size;
-                va += memEntries[i].size;
-            }
+
             handle->sHandles.dsp.pHandle = OMAP5430BENELLIPROC_create (
                                                           procId,
                                                           &dspProcParams);

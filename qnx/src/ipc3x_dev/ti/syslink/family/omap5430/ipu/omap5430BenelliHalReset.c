@@ -89,7 +89,7 @@ extern "C" {
  *  @sa
  */
 Int
-OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd, UInt32 entryPt)
+OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd)
 {
     Int                  status    = PROCESSOR_SUCCESS;
     OMAP5430BENELLI_HalObject * halObject = NULL;
@@ -107,7 +107,7 @@ OMAP5430BENELLI_halResetCtrl (Ptr halObj, Processor_ResetCtrlCmd cmd, UInt32 ent
     UINT32 DSPClkStCtrl;
     Int ret;
 
-    GT_3trace (curTrace, GT_ENTER, "OMAP5430BENELLI_halResetCtrl", halObj, cmd, entryPt);
+    GT_2trace (curTrace, GT_ENTER, "OMAP5430BENELLI_halResetCtrl", halObj, cmd);
 
     GT_assert (curTrace, (halObj != NULL));
     GT_assert (curTrace, (cmd < Processor_ResetCtrlCmd_EndValue));
