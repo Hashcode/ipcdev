@@ -1191,7 +1191,7 @@ Int RcmServer_addSymbol(RcmServer_Object *obj, String funcName,
 
         _strcpy(slot->name, funcName);
         slot->key = RcmServer_getNextKey_P(obj);
-        fxnIdx = (slot->key << _RCM_KeyShift) | (i << 12) | j;
+        fxnIdx = ((UInt32)(slot->key) << _RCM_KeyShift) | (i << 12) | j;
     }
 
     /* error, no more room to add new symbol */
@@ -1672,7 +1672,8 @@ Int RcmServer_getSymIdx_P(RcmServer_Object *obj, String name, UInt32 *index)
                     if (i == 0) {
                         fxnIdx = 0x80000000 | j;
                     } else {
-                        fxnIdx = (slot->key << _RCM_KeyShift) | (i << 12) | j;
+                        fxnIdx = ((UInt32)(slot->key) << _RCM_KeyShift) |
+                                (i << 12) | j;
                     }
                     break;
                 }
