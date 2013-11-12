@@ -4,6 +4,9 @@ ipc: [-HTg] <core_id1> <executable1> [<core_id2> <executable2> ...]
 
   <core_id#> should be set to a core name
       followed by the path to the executable to load on that core.
+      Supported core ids are
+          OMAP54xx: IPU, DSP
+          DRA7xx: IPU2, DSP1
 
 Options:
  -H <option>    Enable/Disable Ducati hibernation.  Default: 1
