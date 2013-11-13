@@ -1281,7 +1281,7 @@ OMAP5430BENELLIPROC_attach (Processor_Handle        handle,
                                               status,
                                               "Failed to enable the slave MMU");
                             }
-                            else {
+                            else if (procHandle->procId == PROCTYPE_IPU0) {
 #endif
                                 status = OMAP5430BENELLI_halResetCtrl(object->halObject,
                                     Processor_ResetCtrlCmd_MMU_Release);
@@ -1375,8 +1375,7 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
 
         if (    (procHandle->bootMode == ProcMgr_BootMode_Boot)
             ||  (procHandle->bootMode == ProcMgr_BootMode_NoLoad_Pwr)) {
-            if (procHandle->procId == PROCTYPE_IPU0 ||
-                procHandle->procId == PROCTYPE_DSP) {
+            if (procHandle->procId == PROCTYPE_IPU0) {
                 status = OMAP5430BENELLI_halResetCtrl(object->halObject,
                     Processor_ResetCtrlCmd_MMU_Reset);
                 if (status < 0) {
@@ -1406,6 +1405,25 @@ OMAP5430BENELLIPROC_detach (Processor_Handle handle)
                     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
                 }
+            }
+            else if (procHandle->procId == PROCTYPE_DSP) {
+                /* Disable MMU */
+                GT_0trace (curTrace,
+                       GT_2CLASS,
+                       "    OMAP5430BENELLIPROC_detach: "
+                       "Disabling Slave MMU ...");
+                status = OMAP5430BENELLI_halMmuCtrl (object->halObject,
+                                               Processor_MmuCtrlCmd_Disable,
+                                               NULL);
+#if !defined(SYSLINK_BUILD_OPTIMIZE)
+                if (status < 0) {
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "OMAP5430BENELLIPROC_detach",
+                                         status,
+                                         "Failed to disable the slave MMU");
+                }
+#endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
             }
 
             /* delete all dynamically added entries */
@@ -1519,64 +1537,77 @@ OMAP5430BENELLIPROC_start (Processor_Handle        handle,
     }
     else {
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
-
-        if(handle->procId != MultiProc_getId("DSP")) {
-            status = ipu_setup(object->halObject, object->params.memEntries,
-                               object->params.numMemEntries);
-        }
-        else {
-            status = tesla_setup(object->halObject,
-                                 object->params.memEntries,
-                                 object->params.numMemEntries);
-        }
-
-        if (status < 0) {
-            /*! @retval status */
-            GT_setFailureReason (curTrace,
-                                 GT_4CLASS,
-                                 "OMAP5430BENELLI_halResetCtrl",
-                                 status,
-                                 "ipu_setup failed");
-        }
-        else {
-            if (handle->procId == MultiProc_getId("DSP")) {
-                /* Get the user virtual address of the PRM base */
-                sysCtrlMapInfo.src  = 0x4A002000;
-                sysCtrlMapInfo.size = 0x1000;
-                sysCtrlMapInfo.isCached = FALSE;
-
-                status = Memory_map (&sysCtrlMapInfo);
-                if (status < 0) {
-                    status = PROCESSOR_E_FAIL;
-                    GT_setFailureReason (curTrace,
-                                         GT_4CLASS,
-                                         "ProcMgr_load",
-                                          status,
-                                          "Memory_map failed");
-                }
-                else {
-                    *(UInt32 *)(sysCtrlMapInfo.dst + 0x304) = entryPt;
-
-                    sysCtrlUnmapInfo.addr = sysCtrlMapInfo.dst;
-                    sysCtrlUnmapInfo.size = sysCtrlMapInfo.size;
-                    sysCtrlUnmapInfo.isCached = FALSE;
-                    Memory_unmap (&sysCtrlUnmapInfo);
-                }
-            }
-            if (status >= 0) {
-                status = OMAP5430BENELLI_halResetCtrl(object->halObject,
-                                             Processor_ResetCtrlCmd_Release);
-            }
+        if (handle->procId == MultiProc_getId("DSP")) {
+            status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                                                 Processor_ResetCtrlCmd_MMU_Release);
             if (status < 0) {
                 /*! @retval status */
                 GT_setFailureReason (curTrace,
                                      GT_4CLASS,
                                      "OMAP5430BENELLI_halResetCtrl",
                                      status,
-                                     "Reset Release failed");
+                                     "Reset MMU_Release failed");
             }
         }
 
+        if (status >= 0) {
+            if(handle->procId != MultiProc_getId("DSP")) {
+                status = ipu_setup(object->halObject, object->params.memEntries,
+                                   object->params.numMemEntries);
+            }
+            else {
+                status = tesla_setup(object->halObject,
+                                     object->params.memEntries,
+                                     object->params.numMemEntries);
+            }
+
+            if (status < 0) {
+                /*! @retval status */
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "OMAP5430BENELLI_halResetCtrl",
+                                     status,
+                                     "ipu_setup failed");
+            }
+            else {
+                if (handle->procId == MultiProc_getId("DSP")) {
+                    /* Get the user virtual address of the PRM base */
+                    sysCtrlMapInfo.src  = 0x4A002000;
+                    sysCtrlMapInfo.size = 0x1000;
+                    sysCtrlMapInfo.isCached = FALSE;
+
+                    status = Memory_map (&sysCtrlMapInfo);
+                    if (status < 0) {
+                        status = PROCESSOR_E_FAIL;
+                        GT_setFailureReason (curTrace,
+                                             GT_4CLASS,
+                                             "ProcMgr_load",
+                                              status,
+                                              "Memory_map failed");
+                    }
+                    else {
+                        *(UInt32 *)(sysCtrlMapInfo.dst + 0x304) = entryPt;
+
+                        sysCtrlUnmapInfo.addr = sysCtrlMapInfo.dst;
+                        sysCtrlUnmapInfo.size = sysCtrlMapInfo.size;
+                        sysCtrlUnmapInfo.isCached = FALSE;
+                        Memory_unmap (&sysCtrlUnmapInfo);
+                    }
+                }
+                if (status >= 0) {
+                    status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                                                 Processor_ResetCtrlCmd_Release);
+                }
+                if (status < 0) {
+                    /*! @retval status */
+                    GT_setFailureReason (curTrace,
+                                         GT_4CLASS,
+                                         "OMAP5430BENELLI_halResetCtrl",
+                                         status,
+                                         "Reset Release failed");
+                }
+            }
+        }
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
 #endif /* if !defined(SYSLINK_BUILD_OPTIMIZE) */
@@ -1629,6 +1660,18 @@ OMAP5430BENELLIPROC_stop (Processor_Handle handle)
         }
 
         ipu_destroy(object->halObject);
+        if (procHandle->procId ==  MultiProc_getId("DSP")) {
+            status = OMAP5430BENELLI_halResetCtrl(object->halObject,
+                                                 Processor_ResetCtrlCmd_MMU_Reset);
+            if (status < 0) {
+                /*! @retval status */
+                GT_setFailureReason (curTrace,
+                                     GT_4CLASS,
+                                     "OMAP5430BENELLI_halResetCtrl",
+                                     status,
+                                     "Reset MMU failed");
+            }
+        }
 
 #if !defined(SYSLINK_BUILD_OPTIMIZE)
     }
