@@ -219,7 +219,12 @@ for (arg = 0; arg < arguments.length; arg++) {
         }
     }
 
-    if (targetName.match(/elf\.M4$/)) {
+    /*
+     * TODO: for now, continue to support OMAP5 for M3 targets until all users
+     * migrate to the new OMAP5-based M4 platform.  Eventually remove omap54xx
+     * from the M3 target.platforms[] array.
+     */
+    if (targetName.match(/elf\.M(3|4)$/)) {
         switch (platform) {
             case 'OMAP54XX':
                 target.platforms.$add("ti.platforms.sdp5430:IPU");
